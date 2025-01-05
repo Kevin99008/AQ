@@ -1,0 +1,41 @@
+.card {
+    background-color: rgb(141, 141, 141); /* White background for the card */
+    border-radius: 15px; /* Rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
+    padding: 2rem 10rem;
+    margin: 0rem 2rem;
+    }
+
+  .aquaKids{
+    background: linear-gradient(to bottom right, #89f7fe, #66a6ff);
+  }
+
+  .playSound{
+    background: linear-gradient(to bottom right, #ffafbd, #ffc3a0);
+  }
+  
+  .default{
+    background: linear-gradient(to right, #d5c4e3, #b2c2e1);
+  }
+
+  .aquaKids, .playSound *{
+    text-shadow: 2px 0.5px 10px gray; /* Black shadow with blur */
+    color: white;  
+  }
+
+
+/* List styles */
+.descriptionList {
+  list-style-type: disc; /* Default bullet style */
+  padding-left: 0; /* Remove left padding */
+  margin-left: 0; /* Remove left margin */
+}
+
+.descriptionList li {
+  margin-bottom: 10px; /* Space between list items */
+}
+
+/* Change bullet color using ::marker (if supported) */
+.descriptionList li::marker {
+  color: gray; /* Change this to your desired bullet color */
+}
