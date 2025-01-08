@@ -1,6 +1,27 @@
+"use client"
 import Image from 'next/image';
+import useUserSession from '@/stores/user';
+import { useState, useEffect } from 'react';
 
 export default function loginPage() {
+
+    const { setTokens, setUser, user} = useUserSession();
+   
+
+    // const [hydrated, setHydrated] = useState(false);
+
+    // Hydrate the Zustand store after the component mounts
+    // useEffect(() => {
+    //     setHydrated(true);
+    // }, []);
+
+    const handleLogin = () => {
+        setUser({id: "test",
+            email: "test",
+            role: "admin"})
+    
+      };
+
     return (
         <section className="bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
@@ -15,7 +36,7 @@ export default function loginPage() {
                     width={32}
                     height={32}
                 />
-                Flowbite
+                {user?.email || 'Guest'}
             </a>
             <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
                 <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
@@ -88,6 +109,7 @@ export default function loginPage() {
                         >
                             Sign in
                         </button>
+                        <button onClick={handleLogin}>Login</button>
                         <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                             Don’t have an account yet?{' '}
                             <a
