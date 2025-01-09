@@ -23,6 +23,9 @@
     color: white;  
   }
 
+.card h1{
+  font-size: 2rem;
+}
 
 /* List styles */
 .descriptionList {

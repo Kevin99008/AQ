@@ -16,6 +16,23 @@ export default function MainHeader(){
                     AquaCube                    
                     <Image src={logoImg2} alt="playSound"/>
                 </Link>
+                
+                <nav className={classes.nav}>
+                    <ul>
+                        <li>
+                            <NavLink href="/dashboard">Home</NavLink>
+                        </li>
+                        <li>
+                            <NavLink href="/login">AquaKids</NavLink>
+                        </li>
+                        <li>
+                            <NavLink href="/login">PlaySound</NavLink>
+                        </li>
+                        <li>
+                            <NavLink href="/login">Storage</NavLink>
+                        </li>
+                    </ul>
+                </nav>
 
                 <nav className={classes.nav}>
                     <ul>

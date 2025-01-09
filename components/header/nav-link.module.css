@@ -1,27 +1,24 @@
 .link {
-    background: linear-gradient(to right, #ea8e42, #f1a18f);
+  background: linear-gradient(to bottom right, #89f7fe, #66a6ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
     font-family: Arial, sans-serif;
-    color: white;
     text-decoration: none;
     font-weight: bold;
+    font-size: 1.5rem;
     padding: 1rem 1rem;
     border-radius: 0.5rem;
   }
   
-.link:hover,
-.link:active {
-    background: linear-gradient(90deg, #ff8a05, #f9b331);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 18px rgba(248, 190, 42, 0.8);
-  }
-
   .active {
-    background: linear-gradient(90deg, #ff8a05, #f9b331);
+    background: linear-gradient(to bottom right, #89f7fe, #66a6ff);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   
- 
+  .link:hover,
+  .link:active {
+    background: linear-gradient(to bottom right, #89f7fe, #66a6ff);
+    -webkit-text-fill-color:white;
+    }
