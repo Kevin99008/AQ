@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import './globals.css';
-import MainHeader from "@/components/header/header";
+// import MainHeader from "@/components/header/header";
+import Navbar from "@/components/header/apple-header";
 // import Hydrations from "@/components/auth/hydration";
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -16,7 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {/* <Hydrations /> */}
-        <MainHeader />
+        <Navbar />
         {children}
       </body>
     </html>

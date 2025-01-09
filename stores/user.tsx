@@ -45,7 +45,7 @@ const useUserSession = create<SessionState>()(
     {
       name: 'user-session', 
       storage: createJSONStorage(() => localStorage),
-      skipHydration: true,
+      // skipHydration: true,
     }
   )
 );
