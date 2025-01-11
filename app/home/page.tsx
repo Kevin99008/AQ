@@ -8,11 +8,12 @@ export default function homePage() {
     { title: "Piano Course", description: "Description for Course 2", quota: 10, completed: 5 },
     { title: "Guitar", description: "Description for Course 3", quota: 10, completed: 0 },
   ];
-    const sortOptions = ["ALL", "Aquakids course", "PlaySound", "Archived"];
+    const sortOptions = ["ALL", "Aquakids course", "PlaySound", "Other"];
 
   return (
     <div className={classes.container}>
       <div className={classes.cardContainer}>
+        Courses
         <div className={classes.button}>
           <SortDropdown  options={sortOptions}/>
         </div>

@@ -1,5 +1,5 @@
 import classes from "./page.module.css"
-import Card from "@/components/card/card";
+import Card from "@/components/InfoCard/card";
 import Image from "next/image";
 import aquakidsLogo from "@/assets/logo.png";
 import playsoundLogo from "@/assets/logo2.png";
