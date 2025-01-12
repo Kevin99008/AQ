@@ -3,7 +3,10 @@ import Card from "@/components/InfoCard/card";
 import Image from "next/image";
 import aquakidsLogo from "@/assets/logo.png";
 import playsoundLogo from "@/assets/logo2.png";
+import ImageBackground from "@/components/images/imageBackground";
+
 export default function Home() {
+
   const aquakidsData = {
     title: "AquaKids",
     detail: "Welcome to Aquakids Chiang Mai! the ultimate destination for nurturing your child's swimming skills in a fun, safe, and engaging environment!",
@@ -28,6 +31,11 @@ export default function Home() {
 
   return (
     <>
+      <div className={classes.containerImage}>
+        <span className={classes.text}>AquaCube</span>
+        <div className={classes.subText}>Webpage for Aquakids & Playsound Chiangmai</div>
+        <ImageBackground />
+      </div>
       <div className={classes.container}>
         <Image src={aquakidsData.logo.src} alt={aquakidsData.title} width={400} height={400}/>
         <Card title={aquakidsData.title} detail={aquakidsData.detail} description={aquakidsData.description}/>
