@@ -9,13 +9,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 5rem;
+  padding: 2rem;
 }
 
 .containerImage {
   position: relative;
   width: 100%;
-  height: 500px; /* Adjust height as needed */
+  height: 30rem; /* Adjust height as needed */
   display: flex;
   align-items: center;
   justify-content: center;
