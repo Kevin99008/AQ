@@ -7,6 +7,30 @@
     width: 70rem;
     }
 
+.detailCard {
+    background-color: rgb(141, 141, 141); /* White background for the card */
+    border-radius: 15px; /* Rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
+    padding: 1rem 3rem;
+    margin: 0.5rem 0.5rem;
+    }
+
+.detailCard .title {
+    background-color: rgb(82, 180, 44); /* White background for the card */
+    border-radius: 15px; /* Rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
+    padding: 0.5rem 0.5rem;
+    margin: 0.5rem 0.5rem;
+    }
+
+.detailCard li {
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */    
+    padding: 0.5rem 0.5rem;
+    margin: 0.5rem 0.5rem;
+    border-width: 1px;
+    border-radius: 10px;
+    }
+
   .aquaKids{
     background: linear-gradient(to bottom right, #89f7fe, #66a6ff);
   }
@@ -16,7 +40,7 @@
   }
   
   .default{
-    background: linear-gradient(to right, #d5c4e3, #b2c2e1);
+    background: linear-gradient(to right, #d1abee, #95b8ff);
   }
 
   .aquaKids, .playSound *{
@@ -25,7 +49,12 @@
   }
 
 .card h1{
-  font-size: 2rem;
+  font-size: 3rem;
+}
+
+.card h2{
+  font-size: 1.5rem;
+  margin: 0 0 1rem 0;
 }
 
 .cardHeader{
@@ -43,18 +72,11 @@ text-align: center;
   width: 70%;
 }
 
-/* List styles */
 .descriptionList {
-  list-style-type: disc; /* Default bullet style */
-  padding-left: 0; /* Remove left padding */
-  margin-left: 0; /* Remove left margin */
-}
-
-.descriptionList li {
-  margin-bottom: 10px; /* Space between list items */
-}
-
-/* Change bullet color using ::marker (if supported) */
-.descriptionList li::marker {
-  color: gray; /* Change this to your desired bullet color */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Creates two equal columns */
+  gap: 10px; /* Space between items */
+  list-style-type: none; /* Remove default list styling */
+  padding: 0; /* Remove default padding */
+  margin: 0; /* Remove default margin */
 }

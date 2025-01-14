@@ -1,13 +1,13 @@
 "use client"; // Mark this as a Client Component
 
 import React, { useState } from "react";
-import classes from "./dropDown.module.css";
+import classes from "./SortDropdown.module.css";
 
 interface SortDropdownProps {
   options: string[];
 }
 
-const SortDropdown: React.FC<SortDropdownProps> = ({ options }) => {
+export default function SortDropdown({ options }: SortDropdownProps) {
   const [selectedOption, setSelectedOption] = useState<string>(options[0]);
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -29,7 +29,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({ options }) => {
           {options.map((option, index) => (
             <li
               key={index}
-              className={`${classes.dropdownItem }${
+              className={`${classes.dropdownItem} ${
                 option === selectedOption ? "selected" : ""
               }`}
               onClick={() => handleOptionClick(option)}
@@ -41,6 +41,4 @@ const SortDropdown: React.FC<SortDropdownProps> = ({ options }) => {
       )}
     </div>
   );
-};
-
-export default SortDropdown;
+}

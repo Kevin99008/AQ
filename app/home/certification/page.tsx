@@ -1,4 +1,4 @@
-import SortDropdown from "@/components/dropDown/dropDown";
+import SortDropdown from "@/components/dropDown/SortDropdown";
 import classes from "./page.module.css"; // Use CSS Modules for styling in Next.js
 
 export default function homePage() {

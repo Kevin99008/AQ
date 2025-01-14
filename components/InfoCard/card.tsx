@@ -1,11 +1,18 @@
 import ImagePreview from "../images/imagePreview";
 import classes from "./card.module.css";
 import Image from "next/image";
+import DetailCard from "./detailCard";
+
+interface DescriptionDetail {
+    title: string;
+    detail: string[]; // Change skills to an array of strings
+}
+
 // Define the props interface
 interface CardProps {
     title: string;
     detail: string;
-    description: string[]; // Change to an array of strings
+    description: { [key: string]: DescriptionDetail }; // Use an index signature for description
     logo: string;
     previewImage: string[]; // Change to an array of strings
 }
@@ -30,8 +37,8 @@ export default function Card({ title, detail, description, logo, previewImage }:
                 </div>
                 <h2>{detail}</h2>
                 <ul className={classes.descriptionList}>
-                    {description.map((desc, index) => (
-                        <li key={index}>{desc}</li>
+                    {Object.keys(description).map((key) => (
+                        <DetailCard key={key} title={key} detail={description[key].detail} />
                     ))}
                 </ul>
             </div>

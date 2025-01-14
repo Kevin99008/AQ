@@ -15,31 +15,59 @@ import PSImg4 from "@/assets/playsound/4.jpg";
 
 export default function Home() {
 
-  const aquakidsData = {
-    title: "AquaKids",
-    detail: "Welcome to Aquakids Chiang Mai! the ultimate destination for nurturing your child's swimming skills in a fun, safe, and engaging environment!",
-    description: [
-      "Age-Appropriate Classes: Our programs cater to children from infancy up to 10 years old, focusing on water safety and swimming techniques tailored to each developmental stage.",
-      "Engaging Learning Environment: We utilize songs, games, and water toys to create an interactive experience that encourages children to learn while having fun. This approach not only builds swimming skills but also promotes physical and emotional development.",
-      "Expert Instructors: Our certified instructors are passionate about teaching and are committed to ensuring every child feels confident and safe in the water."
-    ],
-    logo: aquakidsLogo,
-    previewImage: [
+const aquakidsData = {
+  title: "AquaKids",
+  detail: "Welcome to Aquakids Chiang Mai! The ultimate destination for nurturing your child's swimming skills in a fun, safe, and engaging environment!",
+  description: {
+      "Babies1 (B1)": { title: "Babies1 (B1)", detail: [
+        "• น้องสามารถฟังสัญญาณ Three Raedy Goได้",
+        "• น้องทำท่า Back Position (Twinkle) นอนบนไหล่ผู้ปกครองได้",
+        "• น้องทำ Safe Jump (Ready Splash) โดยมีผู้ปกครองประคองน้องลงน้ำในท่าที่ถูกต้อง"
+      ] },
+      "Babies2 (B2)": { title: "Babies2 (B2)", detail: [
+        "• น้องทำ Safe Jump (Ready Splash) ได้ด้วยตัวเอง",
+        "• น้องเริ่มถีบขาเองได้",
+        "• น้องสามารถดำน้ำท่า DOUBLE MOVING SWIM ได้โดยไม่สำลัก"
+      ] },
+      "Toddler1 (T1)": { title: "Toddler1 (T1)", detail: [
+        "• น้องสามารถเตะขาได้อย่างถูกวิธี",
+        "• น้องสามารถหมุนแขนได้เอง",
+        "• น้องสามารถดำน้ำได้ โดยไม่สำลักและไม่ร้องไห้ (ปล่อย มือและไกลขึ้น)"
+      ] },
+      "Toddler2 (T2)": { title: "Toddler2 (T2)", detail: [
+        "• น้องทำ Safe Jump (Ready Splash) ได้ด้วยตัวเอง",
+        "• น้องเริ่มถีบขาเองได้",
+        "• น้องสามารถดำน้ำท่า DOUBLE MOVING SWIM ได้โดยไม่สำลัก"
+      ] },
+      "Toddler3 (T3)": { title: "Toddler3 (T3)", detail: [
+        "• น้องทำ Safe Jump (Ready Splash) ได้ด้วยตัวเอง",
+        "• น้องเริ่มถีบขาเองได้",
+        "• น้องสามารถดำน้ำท่า DOUBLE MOVING SWIM ได้โดยไม่สำลัก"
+      ] },
+      "Pre-School (PS)": { title: "Pre-School (PS)", detail: [
+        "• น้องทำ Safe Jump (Ready Splash) ได้ด้วยตัวเอง",
+        "• น้องเริ่มถีบขาเองได้",
+        "• น้องสามารถดำน้ำท่า DOUBLE MOVING SWIM ได้โดยไม่สำลัก"
+      ] },
+  },
+  logo: aquakidsLogo,
+  previewImage: [
       AQImg1.src,
       AQImg2.src,
       AQImg3.src,
       AQImg4.src
-    ]
-  }
+  ]
+};
   
   const playsoundData = {
     title: "PlaySound",
     detail: "Experience the joy of music at Playsound Chiang Mai, the premier music school dedicated to nurturing your child's musical talents from an early age!",
-    description: [
-      "Expert Instructors: Our passionate teachers are dedicated to creating a nurturing environment where every child can flourish musically.",
-      "Cognitive Development: Engaging with music enhances children's IQ and cognitive skills, making it a vital part of their early education.",
-      "Fun Learning Environment: We believe that learning music should be enjoyable! Our interactive classes keep children excited and motivated to learn."
-    ],
+    description: {
+      "Piano": { title: "Piano", detail: ["Introduction to Piano", "Piano Skills"] },
+      "Guitar": { title: "Guitar", detail: ["Basic Guitar", "Guitar Skills"] },
+      "Drum": { title: "Drum", detail: ["Beginner Drum techniques", "Drum Skills"] },
+      "Sing": { title: "Sing", detail: ["Basic Singing", "Sing Skills"] },
+  },
     logo: playsoundLogo,
     previewImage: [
       PSImg1.src,
@@ -57,10 +85,21 @@ export default function Home() {
         <ImageBackground />
       </div>
       <div className={classes.container}>
-        <Card title={aquakidsData.title} detail={aquakidsData.detail} description={aquakidsData.description} logo={aquakidsData.logo.src} previewImage={aquakidsData.previewImage}/>
+        <Card 
+                  title={aquakidsData.title} 
+                  detail={aquakidsData.detail} 
+                  description={aquakidsData.description} 
+                  logo={aquakidsData.logo.src}
+                  previewImage={aquakidsData.previewImage} 
+              />
       </div>
       <div className={classes.container}>
-        <Card title={playsoundData.title} detail={playsoundData.detail} description={playsoundData.description} logo={playsoundData.logo.src} previewImage={playsoundData.previewImage}/>
+        <Card 
+                  title={playsoundData.title} 
+                  detail={playsoundData.detail} 
+                  description={playsoundData.description} 
+                  logo={playsoundData.logo.src} 
+                  previewImage={playsoundData.previewImage}/>
       </div>
     </>
 );
