@@ -11,6 +11,13 @@
   align-items: center;
   padding: 2rem;
 }
+.navigator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(to bottom right, #c7fbff, #9edbff);
+}
 
 .containerImage {
   position: relative;

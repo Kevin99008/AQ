@@ -12,6 +12,8 @@ import PSImg1 from "@/assets/playsound/1.jpg";
 import PSImg2 from "@/assets/playsound/2.jpg";
 import PSImg3 from "@/assets/playsound/3.jpg";
 import PSImg4 from "@/assets/playsound/4.jpg";
+import MapComponent from "@/components/map/map";
+import ScrollLink from "@/components/scrollLink/scrollLink";
 
 export default function Home() {
 
@@ -59,7 +61,7 @@ const aquakidsData = {
   ]
 };
   
-  const playsoundData = {
+const playsoundData = {
     title: "PlaySound",
     detail: "Experience the joy of music at Playsound Chiang Mai, the premier music school dedicated to nurturing your child's musical talents from an early age!",
     description: {
@@ -75,7 +77,7 @@ const aquakidsData = {
       PSImg3.src,
       PSImg4.src
     ]
-  }
+};
 
   return (
     <>
@@ -84,7 +86,29 @@ const aquakidsData = {
         <div className={classes.subText}>Webprovider for Aquakids & Playsound Chiangmai</div>
         <ImageBackground />
       </div>
-      <div className={classes.container}>
+      <div className={classes.navigator}>
+        <div>
+                    <ScrollLink
+                      aria-current="page"
+                      id="aquakids"
+                    >
+                      AquaKids
+                    </ScrollLink>
+                    <ScrollLink
+                      aria-current="page"
+                      id="playsound"
+                    >
+                      PlaySound
+                    </ScrollLink>
+                    <ScrollLink
+                      aria-current="page"
+                      id="address"
+                    >
+                      Address
+                    </ScrollLink>
+        </div>
+      </div>
+      <div className={classes.container} id="aquakids">
         <Card 
                   title={aquakidsData.title} 
                   detail={aquakidsData.detail} 
@@ -93,13 +117,16 @@ const aquakidsData = {
                   previewImage={aquakidsData.previewImage} 
               />
       </div>
-      <div className={classes.container}>
+      <div className={classes.container} id="playsound">
         <Card 
                   title={playsoundData.title} 
                   detail={playsoundData.detail} 
                   description={playsoundData.description} 
                   logo={playsoundData.logo.src} 
                   previewImage={playsoundData.previewImage}/>
+      </div>
+      <div className={classes.container} id="address">
+        <MapComponent />
       </div>
     </>
 );
