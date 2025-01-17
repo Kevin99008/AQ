@@ -4,38 +4,9 @@ import { useState } from 'react';
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-<<<<<<< Updated upstream
-export default function MainHeader(){
-    return(
-        <>   
-            <header className={classes.header}>
-                <Link className={classes.logo} href="/">
-                    <Image src={logoImg} alt="aquaKids"/>
-                    AquaCube                    
-                    <Image src={logoImg2} alt="playSound"/>
-                </Link>
-                
-                <nav className={classes.nav}>
-                    <ul>
-                        <li>
-                            <NavLink href="/dashboard">Home</NavLink>
-                        </li>
-                        <li>
-                            <NavLink href="/login">AquaKids</NavLink>
-                        </li>
-                        <li>
-                            <NavLink href="/login">PlaySound</NavLink>
-                        </li>
-                        <li>
-                            <NavLink href="/login">Storage</NavLink>
-                        </li>
-                    </ul>
-                </nav>
-=======
   const handleMobileMenuToggle = () => {
     setIsMenuOpen((prevState) => !prevState);
   };
->>>>>>> Stashed changes
 
   return (
     <div className="w- h-full bg-gray-100 dark:bg-gray-700">

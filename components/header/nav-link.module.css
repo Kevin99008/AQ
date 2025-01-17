@@ -22,3 +22,15 @@
     background: linear-gradient(to bottom right, #89f7fe, #66a6ff);
     -webkit-text-fill-color:white;
     }
+    .text {
+      color: white; /* Text color for better contrast */
+      font-size: 1.5rem; /* Adjust size as needed */
+      font-weight: bold; /* Optional for emphasis */
+      text-shadow: 
+          -1px -1px 2px gray,  
+          1px -1px 2px gray,
+          -1px 1px 2px gray,
+          1px 1px 2px gray;
+  }
+  
+  

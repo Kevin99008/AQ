@@ -54,7 +54,7 @@ export default function StaticGraph() {
   return (
     <>
     <div className={classes.card}>
-      <Bar data={data} options={options} />;
+      <Bar data={data} options={options} />
     </div>
     </>
   )

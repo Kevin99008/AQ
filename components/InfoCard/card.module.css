@@ -1,0 +1,80 @@
+.card {
+    border-radius: 15px; /* Rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
+    padding: 2rem 4rem;
+    margin: 0rem 2rem;
+    width: 70rem;
+    }
+
+.detailCard {
+    border-radius: 15px; /* Rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
+    padding: 1rem 3rem;
+    margin: 0.5rem 0.5rem;
+    }
+
+.detailCard .title {
+    border-radius: 10px; /* Rounded corners */
+    padding: 0.5rem 0.5rem;
+    margin: 0.5rem 0.5rem;
+    font-weight: bold; /* Optional for emphasis */
+    }
+
+.detailCard li {
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */    
+    padding: 0.5rem 0.5rem;
+    margin: 0.5rem 0.5rem;
+    border-width: 1px;
+    border-radius: 10px;
+    }
+
+  .aquaKids{
+    background: linear-gradient(to bottom right, #89f7fe, #66a6ff);
+  }
+
+  .playSound{
+    background: linear-gradient(to bottom right, #ffafbd, #ffc3a0);
+  }
+  
+  .default{
+    background: linear-gradient(to right, #d29efa, #f3a3be);
+  }
+
+  .aquaKids, .playSound *{
+    text-shadow: 2px 0.5px 10px gray; /* Black shadow with blur */
+    color: white;  
+  }
+
+.card h1{
+  font-size: 3rem;
+}
+
+.card h2{
+  font-size: 1.5rem;
+  margin: 0 0 1rem 0;
+}
+
+.cardHeader{
+  display: flex;
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.title{
+text-align: center;
+font-weight: bold; /* Optional for emphasis */
+}
+
+.imageContainer{
+  position: relative;
+  width: 70%;
+}
+
+.descriptionList {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Creates two equal columns */
+  gap: 10px; /* Space between items */
+  list-style-type: none; /* Remove default list styling */
+  padding: 0; /* Remove default padding */
+  margin: 0; /* Remove default margin */
+}
