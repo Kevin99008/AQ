@@ -1,13 +1,10 @@
-'use client'
-import Image from 'next/image';
+import MyTimeline from "@/components/timeline/timeLine";
 
-
-export default function loginPage() {
-    return (
-     
-
-            <div>test</div>
-
-
-    );
+export default function Home() {
+  return (
+    <div>
+      <h1>React Calendar Timeline in Next.js</h1>
+      <MyTimeline />
+    </div>
+  );
 }
