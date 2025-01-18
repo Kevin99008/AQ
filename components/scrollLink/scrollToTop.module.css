@@ -1,0 +1,26 @@
+.scrollToTopBtn {
+    display: none; /* Hidden by default */
+    position: fixed; /* Fixed position */
+    bottom: 20px; /* Distance from the bottom */
+    right: 30px; /* Distance from the right */
+    z-index: 2; /* Ensure it appears above other elements */
+    background-color: white; /* Background color */
+    color: black; /* Text color */
+    border: none; /* No borders */
+    text-align: center;
+    border-radius: 50%;
+    width: 3rem; /* Width of the button */
+    height: 3rem; /* Height of the button */
+    font-size: 2rem; /* Font size for text/icon */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: opacity 0.5s ease; /* Smooth transition for opacity */
+  }
+  
+  .scrollToTopBtn:hover{
+    background-color: black;
+    color: white;
+  }
+
+  .scrollToTopBtn.show {
+    display: block; /* Show button when class is added */
+  }

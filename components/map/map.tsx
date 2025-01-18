@@ -10,13 +10,13 @@ export default function MapComponent() {
         <div className={classes.card}>
             <span className={classes.title}>Address</span>
             <div className={classes.mapContainer}>
-                    <Image src={map} alt={map.src} width={600} className={classes.image}/>
+                    <Image src={map} alt={map.src} className={classes.image}/>
             </div>
                     <span className={classes.text}>
                     8 Moo 6, Super Highway Chiang Mai-Lampang, Nong Pa Krang Sub-district, Mueang District, Chiang Mai, Thailand, 50000</span>
                 <div className={classes.body}>
                 <Link href="https://maps.app.goo.gl/VEYiXWJaiMxFqnbH9" target="_blank" passHref className={classes.button}>
-                        Map
+                        Get Address
                 </Link>
                 </div>
         </div>

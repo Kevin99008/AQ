@@ -8,8 +8,19 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
-  background: linear-gradient(to bottom right, #c7fbff, #9edbff);
+  background-color: white;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
+}
+
+.navigator .button{
+  padding: 1rem 5rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+.navigator .button:hover{
+  background-color: black;
+  color: white;
 }
 
 .containerImage {

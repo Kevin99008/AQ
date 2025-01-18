@@ -1,6 +1,6 @@
 import classes from "./page.module.css"
 import ImageBackground from "@/components/images/imageBackground";
-import Card from "@/components/InfoCard/card";
+import Card from "@/components/infoCard/card";
 
 import aquakidsLogo from "@/assets/logo.png";
 import playsoundLogo from "@/assets/logo2.png";
@@ -105,19 +105,23 @@ const playsoundData = {
         <ImageBackground />
       </div>
       <div className={classes.navigator}>
-        <div>
+        <div className={classes.button}>
                     <ScrollLink
                       aria-current="page"
                       id="aquakids"
                     >
                       AquaKids
                     </ScrollLink>
+        </div>
+        <div className={classes.button}>
                     <ScrollLink
                       aria-current="page"
                       id="playsound"
                     >
                       PlaySound
                     </ScrollLink>
+        </div>
+        <div className={classes.button}>
                     <ScrollLink
                       aria-current="page"
                       id="address"

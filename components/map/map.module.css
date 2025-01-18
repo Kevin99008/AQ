@@ -13,6 +13,7 @@
     display: flex; /* Use flexbox */
     justify-content: center; /* Center horizontally */
     align-items: center; /* Center vertically */
+    width: 100%;
 }
 
 .mapContainer iframe {
@@ -27,6 +28,8 @@
 .title {
     color: white; /* Text color for better contrast */
     font-size: 3rem; /* Adjust size as needed */
+    text-shadow: 2px 0.5px 10px gray; /* Black shadow with blur */
+    font-weight: bold; /* Optional for emphasis */
 }
 
 .text {
@@ -41,7 +44,8 @@
 
 .button {
     padding: 15px 30px; /* Add padding for button size */
-    background-color: #4c00ff; /* Button background color */
+    margin-top: 1rem;
+    background-color: black; /* Button background color */
     color: white; /* Text color */
     font-size: 16px; /* Font size */
     border: none; /* Remove border */
@@ -52,7 +56,8 @@
 }
 
 .button:hover {
-    background-color: #7a09fc; /* Darker shade on hover */
+    background-color: white ;/* Darker shade on hover */
+    color: black;
 }
 
 .body {
