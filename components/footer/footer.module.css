@@ -35,3 +35,22 @@
 .navLink:hover {
     text-decoration: underline; /* Underline on hover */
 }
+
+/* Media Queries for Mobile Responsiveness */
+
+@media (max-width: 768px) {
+    .footerContent {
+        flex-direction: column; /* Stack items vertically on mobile */
+        align-items: flex-start; /* Align items to start in column layout */
+        text-align: center; /* Center text for mobile view */
+    }
+
+    .navList {
+        flex-direction: column; /* Stack navigation links vertically on mobile */
+        margin-top: 1rem; /* Add space above the nav list on mobile */
+    }
+
+    .copyright {
+        font-size: 12px; /* Slightly smaller font size for mobile */
+    }
+}
