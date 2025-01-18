@@ -35,7 +35,7 @@ export default function ImagePreview({images}: imageProp) {
             alt={`Image ${index + 1}`}
             layout="fill"
             objectFit="cover"
-            quality={100}
+            quality={50}
             className={classes.image}
           />
         </div>
