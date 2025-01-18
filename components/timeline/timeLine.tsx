@@ -13,16 +13,19 @@ const groups = [
   { id: 2, title: "Group 2" },
 ];
 
+
+
 const MyTimeline = () => {
   return (
-    <div style={{ height: "500px" }}>
+ 
+    
       <Timeline
         groups={groups}
         items={items}
-        defaultTimeStart={new Date(2025, 0, 1).getTime()} // Convert Date to timestamp
-        defaultTimeEnd={new Date(2025, 0, 10).getTime()} 
+        defaultTimeStart={new Date(2025, 0, 1).getTime()}
+        defaultTimeEnd={new Date(2025, 0, 10).getTime()}
       />
-    </div>
+
   );
 };
 
