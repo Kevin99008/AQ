@@ -1,4 +1,4 @@
-// components/Timeline.js
+'use client'
 
 import Timeline from "react-calendar-timeline";
 
