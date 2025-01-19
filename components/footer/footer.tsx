@@ -9,8 +9,8 @@ export default function Footer() {
                     <nav>
                         <ul className={classes.navList}>
                             <li>Tel. 0972762626</li>
-                            <li><a href="https://www.facebook.com/profile.php?id=100063802697610" className={classes.navLink}>AquaKids</a></li>
-                            <li><a href="https://www.facebook.com/profile.php?id=100067089941474" className={classes.navLink}>PlaySound</a></li>
+                            <li><a href="https://www.facebook.com/profile.php?id=100063802697610" target="_blank" className={classes.navLink}>AquaKids</a></li>
+                            <li><a href="https://www.facebook.com/profile.php?id=100067089941474" target="_blank" className={classes.navLink}>PlaySound</a></li>
                         </ul>
                     </nav>
                 </div>
