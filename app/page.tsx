@@ -14,7 +14,6 @@ import PSImg3 from "@/assets/playsound/3.jpg";
 import PSImg4 from "@/assets/playsound/4.jpg";
 import MapComponent from "@/components/map/map";
 import ScrollLink from "@/components/scrollLink/scrollLink";
-import { Container } from "postcss";
 
 export default function Home() {
 

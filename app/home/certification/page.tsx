@@ -1,8 +1,8 @@
+//page.tsx of certification
 import SortDropdown from "@/components/dropDown/SortDropdown";
 import classes from "./page.module.css"; // Use CSS Modules for styling in Next.js
 
 export default function homePage() {
-  // Sample data for courses with checked states
   const courses = [
     { title: "Toddler Swimming Course", description: "Age-Appropriate Classes: Our programs cater to children from infancy up to 10 years old, focusing on water safety and swimming techniques tailored to each developmental stage.", quota: 10, completed: 10 },
   ];
