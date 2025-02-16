@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import type { StaticImageData } from "next/image"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -26,40 +26,114 @@ const initialLogsData: Log[] = [
 
 export default function StorageComponent() {
   const [viewType, setViewType] = useState("table")
-  const [logsData, setLogsData] = useState<Log[]>(initialLogsData)
+  const [logsData, setLogsData] = useState<Log[]>([])
   const [isEditing, setIsEditing] = useState(false)
   const [newItem, setNewItem] = useState<{ title: string; quantity: number; imageUrl: string | StaticImageData }>({
     title: "",
     quantity: 0,
     imageUrl: "",
   })
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/storages/")
+        if (!response.ok) throw new Error("Failed to fetch data")
+        
+        const data = await response.json()
+        setLogsData(data)
+      } catch (err) {
+        setError("Error loading data")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLogs()
+  }, [])
 
   const handleQuantityChange = (id: number, newQuantity: number) => {
     setLogsData((prevData) => prevData.map((log) => (log.id === id ? { ...log, quantity: newQuantity } : log)))
   }
 
-  const addQuantity = (id: number) => {
+  const addQuantity = async (id: number) => {
     const log = logsData.find((log) => log.id === id)
     const newQuantity = (log?.quantity ?? 0) + 1
     handleQuantityChange(id, newQuantity)
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/storages/${id}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ quantity: newQuantity }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to update quantity");
+      }
+  
+      // Optionally, handle the response from the server
+      const data = await response.json();
+      // console.log("Updated data:", data);
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+    }
   }
 
-  const discardQuantity = (id: number) => {
+  const discardQuantity = async (id: number) => {
     const log = logsData.find((log) => log.id === id)
     const newQuantity = Math.max((log?.quantity ?? 0) - 1, 0)
     handleQuantityChange(id, newQuantity)
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/storages/${id}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ quantity: newQuantity }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to update quantity");
+      }
+  
+      // Optionally, handle the response from the server
+      const data = await response.json();
+      // console.log("Updated data:", data);
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+    }
   }
 
-  const saveChanges = () => {
+  const saveChanges = async () => {
     setIsEditing(false)
-    // Add any additional logic for saving changes
+    try {
+      // Fetch the updated list of logs from the API
+      const response = await fetch("http://localhost:8000/api/storages/");
+      if (!response.ok) {
+        throw new Error("Failed to fetch updated data");
+      }
+  
+      const data = await response.json();
+      
+      // Update the state with the new data
+      setLogsData(data);
+  
+    } catch (error) {
+      console.error("Error fetching updated data:", error);
+    }
   }
 
   const handleNewItemChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setNewItem((prevItem) => ({
       ...prevItem,
-      [name]: name === "quantity" ? Number(value) : value,
+      [name]: name === "quantity" ? (value === "" ? "" : Number(value)) : value,
     }))
   }
 
@@ -74,21 +148,37 @@ export default function StorageComponent() {
     }
   }
 
-  const addNewItem = () => {
+  const addNewItem = async () => {
     if (!newItem.title || newItem.quantity <= 0) return
 
-    const newId = Math.max(...logsData.map((log) => log.id), 0) + 1
+    try {
+      const response = await fetch("http://localhost:8000/api/storages/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: newItem.title,
+          quantity: newItem.quantity,
+        }),
+      });
+
+    if (!response.ok) {
+      throw new Error("Failed to add item");
+    }
+
+    const data = await response.json();
+
     setLogsData((prevData) => [
       ...prevData,
-      {
-        id: newId,
-        title: newItem.title,
-        imageUrl: newItem.imageUrl || "/placeholder.svg",
-        quantity: newItem.quantity,
-      },
-    ])
+      { id: data.id, title: data.title, imageUrl: data.storage_image, quantity: data.quantity },
+    ]);
 
-    setNewItem({ title: "", quantity: 0, imageUrl: "" })
+    setNewItem({ title: "", quantity: 0, imageUrl: "" });
+
+    } catch (error) {
+      console.error("Error adding item:", error);
+    }
   }
 
   return (
