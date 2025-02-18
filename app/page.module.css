@@ -1,28 +1,39 @@
+/* page.module.css */
+
+/* General Styles */
 .container {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
+  padding: 1rem;
 }
+
+/* Navigator Styles */
 .navigator {
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: white;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
+  flex-wrap: wrap; /* Allows buttons to wrap on smaller screens */
+  padding: 0.5rem; /* Reduce padding for mobile */
 }
 
-.navigator .button{
-  padding: 1rem 5rem;
-  font-size: 1.5rem;
+.navigator .button {
+  padding: 0.5rem 1rem; /* Reduce padding for smaller buttons */
+  font-size: 1rem; /* Smaller font size for buttons */
+  border-radius: 14px;
   font-weight: bold;
   transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+  margin: 0.25rem; /* Add some spacing between buttons */
 }
-.navigator .button:hover{
+
+.navigator .button:hover {
   background-color: black;
   color: white;
 }
 
+/* Image Container Styles */
 .containerImage {
   position: relative;
   width: 100%;
@@ -33,9 +44,11 @@
   overflow: hidden;
 }
 
-.backgroundImage{
+.backgroundImage {
   border-radius: 10px;
   filter: brightness(0.6);
+  width: 100%; /* Make sure image takes full width of its container */
+  height: auto; /* Maintain aspect ratio */
 }
 
 .containerImage .text {
@@ -47,6 +60,7 @@
   font-size: 10rem; /* Adjust size as needed */
   font-weight: bold; /* Optional for emphasis */
   z-index: 1; /* Ensures text appears above the image */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Add text shadow for better readability */
 }
 
 .text {
@@ -54,7 +68,6 @@
   font-weight: bold; /* Optional for emphasis */
   z-index: 1; /* Ensures text appears above the image */
   filter: drop-shadow(0 0 0.1rem rgba(0, 0, 0, 0.5));
-
 }
 
 .subText {
@@ -67,33 +80,50 @@
   text-align: center;
   font-weight: bold; /* Optional for emphasis */
   z-index: 1; /* Ensures text appears above the image */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Add text shadow for better readability */
 }
 
+/* Media Queries for Responsiveness */
 @media (max-width: 768px) {
   .container {
-      padding: 1rem; /* Reduce padding on mobile */
-      align-items: flex-start; /* Align items to start in column layout */
-      text-align: center; /* Center text for mobile view */
+    padding: 0.5rem; /* Reduce padding on mobile */
+    align-items: center; /* Align items to center in column layout */
+    text-align: center; /* Center text for mobile view */
+    flex-direction: column; /* Stack items vertically on smaller screens */
   }
 
   .containerImage {
-      height: 20rem; /* Reduced height for mobile screens */
-      padding-bottom: 1rem; /* Add space below the image on mobile */
-  }
-
-  .backgroundImage {
-      filter: brightness(0.5); /* Slightly adjust brightness on mobile if needed */
-      border-radius: 8px; /* Smaller border radius on mobile for a tighter look */
+    height: 20rem; /* Reduced height for mobile screens */
   }
 
   .containerImage .text {
-      font-size: 3rem; /* Smaller font size for mobile screens */
-      top: 60%; /* Adjust vertical position on mobile if necessary */
+    font-size: 3rem; /* Smaller font size for mobile screens */
+    top: 50%; /* Adjust vertical position on mobile if necessary */
   }
 
   .subText {
-      font-size: 1rem; /* Smaller subtext size for mobile screens */
-      top: 85%; /* Adjust vertical position on mobile if necessary */
-      transform: translate(0%, -50%); 
- }
+    font-size: 1rem; /* Smaller subtext size for mobile screens */
+    top: 75%; /* Adjust vertical position on mobile if necessary */
+  }
+
+  .navigator {
+    flex-direction: column; /* Stack buttons vertically on smaller screens */
+    align-items: stretch; /* Make buttons take the full width of the navigator */
+    padding: 0.5rem;
+  }
+
+  .navigator .button {
+    padding: 0.5rem; /* Adjust padding for mobile buttons */
+    font-size: 1rem; /* Further reduced font size for very small screens */
+    margin: 0.25rem;
+    text-align: center; /* Center text within the buttons */
+  }
+
+  /* Styles for the Login Link */
+  .navigator a {
+      margin-left: 0 !important; /* Remove left margin */
+      margin-top: 0.5rem; /* Add top margin to separate it from other buttons */
+      width: 100%; /* Make the login link take full width */
+      box-sizing: border-box; /* Include padding and border in element's total width and height */
+  }
 }

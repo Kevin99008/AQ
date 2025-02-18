@@ -14,6 +14,7 @@ import PSImg3 from "@/assets/playsound/3.jpg";
 import PSImg4 from "@/assets/playsound/4.jpg";
 import MapComponent from "@/components/map/map";
 import ScrollLink from "@/components/scrollLink/scrollLink";
+import Link from "next/link";
 
 export default function Home() {
 
@@ -127,6 +128,14 @@ const playsoundData = {
                     >
                       Address
                     </ScrollLink>
+        </div>
+        <div>
+        <Link
+              className="inline-flex items-center justify-center rounded-xl bg-black px-8 py-4 ml-4  font-semibold text-white shadow-sm transition-all duration-150 hover:bg-white hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              href="/login"
+            >
+              Login
+            </Link>
         </div>
       </div>
         <div className={classes.container} id="aquakids">

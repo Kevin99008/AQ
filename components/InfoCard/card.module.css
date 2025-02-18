@@ -1,12 +1,12 @@
 .card {
-    border-radius: 15px; /* Rounded corners */
+    border-radius: 14px; /* Rounded corners */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
     padding: 2rem 2rem;
     width: 70rem;
     }
 
 .detailCard {
-    border-radius: 15px; /* Rounded corners */
+    border-radius: 14px; /* Rounded corners */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
     padding: 0.5rem;
     margin: 0.5rem 0.5rem;
@@ -22,7 +22,7 @@
     padding: 0.5rem 0.5rem;
     margin: 0.5rem 0.5rem;
     border-width: 1px;
-    border-radius: 10px;
+    border-radius: 14px;
     }
 
   .aquaKids{

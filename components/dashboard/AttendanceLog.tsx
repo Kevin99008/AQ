@@ -5,6 +5,7 @@ interface AttendanceRecord {
   id: number
   name: string
   timestamp: string
+  course: string
 }
 
 interface AttendanceLogProps {
@@ -24,6 +25,7 @@ export default function AttendanceLog({ records, onSelectAttendance }: Attendanc
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Timestamp</TableHead>
+              <TableHead>Course</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -35,6 +37,7 @@ export default function AttendanceLog({ records, onSelectAttendance }: Attendanc
               >
                 <TableCell>{record.name}</TableCell>
                 <TableCell>{record.timestamp}</TableCell>
+                <TableCell>{record.course}</TableCell>
               </TableRow>
             ))}
           </TableBody>

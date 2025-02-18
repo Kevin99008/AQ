@@ -4,6 +4,7 @@ interface AttendanceRecord {
   id: number
   name: string
   timestamp: string
+  course: string
 }
 
 interface AttendanceHistoryProps {
@@ -27,6 +28,10 @@ export default function AttendanceHistory({ record, onClose }: AttendanceHistory
           <div className="grid grid-cols-4 items-center gap-4">
             <span className="font-bold">Timestamp:</span>
             <span className="col-span-3">{record.timestamp}</span>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <span className="font-bold">Course:</span>
+            <span className="col-span-3">{record.course}</span>
           </div>
         </div>
       </DialogContent>

@@ -18,7 +18,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body id="top">
-        <Navbar />
         {children}
         <Footer />
         {/* Include the client-side ScrollToTopButton */}

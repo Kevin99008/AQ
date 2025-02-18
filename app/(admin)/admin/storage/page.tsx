@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Minus, Edit, Save, X } from "lucide-react"
-
+import defaultImg from "@/assets/logo.png"
 type Log = {
   id: number
   title: string
@@ -20,8 +20,8 @@ type Log = {
 }
 
 const initialLogsData: Log[] = [
-  { id: 1, title: "Swimming Glasses", imageUrl: "/placeholder.svg", quantity: 10 },
-  { id: 2, title: "Float Board", imageUrl: "/placeholder.svg", quantity: 1 },
+  { id: 1, title: "Swimming Glasses", imageUrl: defaultImg, quantity: 10 },
+  { id: 2, title: "Float Board", imageUrl: defaultImg, quantity: 1 },
 ]
 
 export default function StorageComponent() {
@@ -230,7 +230,7 @@ export default function StorageComponent() {
                       <TableRow key={log.id}>
                         <TableCell>
                           <Image
-                            src={log.imageUrl || "/placeholder.svg"}
+                            src={log.imageUrl || defaultImg}
                             alt={log.title}
                             width={50}
                             height={50}
@@ -261,7 +261,7 @@ export default function StorageComponent() {
                     <Card key={log.id}>
                       <CardContent className="p-4">
                         <Image
-                          src={log.imageUrl || "/placeholder.svg"}
+                          src={log.imageUrl || defaultImg}
                           alt={log.title}
                           width={100}
                           height={100}
@@ -320,7 +320,7 @@ export default function StorageComponent() {
                 <Input type="file" accept="image/*" onChange={handleImageUpload} />
                 {newItem.imageUrl && (
                   <Image
-                    src={newItem.imageUrl || "/placeholder.svg"}
+                    src={newItem.imageUrl || defaultImg}
                     alt="Uploaded Image"
                     width={100}
                     height={100}
