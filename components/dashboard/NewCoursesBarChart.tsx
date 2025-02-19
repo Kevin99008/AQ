@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
 
 const data = [
   { month: "Jan", courses: 4 },
@@ -18,13 +18,14 @@ const data = [
 
 export default function NewCoursesBarChart() {
   return (
-    <Card className="w-full">
+    <Card className="h-[400px] bg-white">
       <CardHeader>
         <CardTitle>New Courses Sold per Month</CardTitle>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+      <CardContent className="h-[320px]">
+        <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
             <Tooltip />
@@ -35,4 +36,3 @@ export default function NewCoursesBarChart() {
     </Card>
   )
 }
-
