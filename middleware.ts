@@ -14,7 +14,7 @@ export function middleware(request: NextRequest) {
     // Check if the route starts with /admin
     if (url.pathname.startsWith('/admin')) {
         // Redirect to login if no user or if the user role is not admin
-        if (!user || user.role !== 'admin') {
+        if (!user || user.role !== 'staff') {
             url.pathname = '/login';
             return NextResponse.redirect(url);
         }

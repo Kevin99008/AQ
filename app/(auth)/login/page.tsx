@@ -1,95 +1,129 @@
 "use client";
 
-import Image from "next/image";
+import { useState } from "react";
 import useUserSession from "@/stores/user";
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const { setTokens, setUser, user } = useUserSession();
+  const { setUser, setTokens } = useUserSession();
+  const { push } = useRouter();
+  const [credentials, setCredentials] = useState<{ username: string; password: string }>(
+    {
+      username: "",
+      password: "",
+    }
+  );
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = () => {
-    setUser({
-      id: "test",
-      email: "test",
-      role: "admin",
-    });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCredentials((prevItem) => ({
+      ...prevItem,
+      [name]: value,
+    }));
+  };
+
+  const handleLogin = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/token/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        const errorMessage = typeof data === "object"
+        ? Object.entries(data)
+            .map(([field, messages]) => `${field}: ${messages}`)
+            .join(" | ") // Join errors with " | "
+        : "Invalid credentials";
+
+        throw new Error(errorMessage);
+      }
+
+      const { access, refresh } = await response.json();
+      setTokens(access, refresh);
+
+      const userResponse = await fetch("http://localhost:8000/api/user/info/", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${access}`,
+        },
+      });
+
+      if (!userResponse.ok) {
+        throw new Error("Failed to fetch user data");
+      }
+
+      const userData = await userResponse.json();
+
+      setUser(userData);
+      push("admin/aquakids")
+
+  } catch (err: any) {
+    if (err instanceof Error) {
+      setError(err.message); // Show the actual API error
+    } else {
+      setError("Something went wrong");
+    }
+  }
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center p-4 transition-colors duration-300 bg-gradient-to-r from-blue-100 to-purple-100">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-8">
-        <div className="flex justify-center items-center mb-6"> {/* Changed justify-between to justify-center */}
-            <h1 className="text-2xl font-bold text-gray-800">
-                Welcome Back
-            </h1>
+    <div className="flex h-screen bg-indigo-700">
+      <div className="w-full max-w-xs m-auto bg-indigo-100 rounded p-5">
+        <header>
+          <img
+            className="w-20 mx-auto mb-5"
+            src="https://img.icons8.com/fluent/344/year-of-tiger.png"
+            alt="Tiger Icon"
+          />
+        </header>
+        <div>
+          <label className="block mb-2 text-indigo-500" htmlFor="username">
+            Username
+          </label>
+          <input
+            className="w-full p-2 mb-6 text-indigo-700 border-b-2 border-indigo-500 outline-none focus:bg-gray-300"
+            type="text"
+            name="username"
+            value={credentials.username}
+            onChange={handleChange}
+          />
         </div>
-          <form className="space-y-6">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                UserID
-              </label>
-              <input
-                type="email"
-                id="email"
-                className="w-full px-4 py-3 rounded-lg bg-gray-100 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="UserID"
-                required
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                className="w-full px-4 py-3 rounded-lg bg-gray-100 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember"
-                  type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="remember"
-                  className="ml-2 block text-sm text-gray-700"
-                >
-                  Remember me
-                </label>
-              </div>
-              <a
-                href="#"
-                className="text-sm font-medium text-blue-600 hover:underline"
-              >
-                Forgot password?
-              </a>
-            </div>
-            <div>
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold py-3 px-4 rounded-lg hover:opacity-90 transition duration-300"
-                onClick={handleLogin}
-              >
-                Login
-              </button>
-            </div>
-          </form>
-          <p className="mt-8 text-center text-sm text-gray-600">
-          <button onClick={handleLogin}>Debug Login</button>
-          </p>
+        <div>
+          <label className="block mb-2 text-indigo-500" htmlFor="password">
+            Password
+          </label>
+          <input
+            className="w-full p-2 mb-6 text-indigo-700 border-b-2 border-indigo-500 outline-none focus:bg-gray-300"
+            type="password"
+            name="password"
+            value={credentials.password}
+            onChange={handleChange}
+          />
         </div>
+        <div>
+          <button
+            className="w-full bg-indigo-700 hover:bg-pink-700 text-white font-bold py-2 px-4 mb-6 rounded"
+            onClick={handleLogin}
+          >
+            Login
+          </button>
+        </div>
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        <footer className="flex justify-between text-sm">
+          <a className="text-indigo-700 hover:text-pink-700" href="#">
+            Forgot Password?
+          </a>
+          <a className="text-indigo-700 hover:text-pink-700" href="#">
+            Create Account
+          </a>
+        </footer>
       </div>
-    </section>
+    </div>
   );
 }
