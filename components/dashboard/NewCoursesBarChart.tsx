@@ -1,22 +1,18 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
-const data = [
-  { month: "Jan", courses: 4 },
-  { month: "Feb", courses: 3 },
-  { month: "Mar", courses: 5 },
-  { month: "Apr", courses: 2 },
-  { month: "May", courses: 6 },
-  { month: "Jun", courses: 4 },
-  { month: "Jul", courses: 3 },
-  { month: "Aug", courses: 5 },
-  { month: "Sep", courses: 7 },
-  { month: "Oct", courses: 4 },
-  { month: "Nov", courses: 6 },
-  { month: "Dec", courses: 3 },
-]
+// Define the shape of the data being passed to the component
+interface CourseData {
+  month: string;
+  courses: number;
+}
 
-export default function NewCoursesBarChart() {
+interface NewCoursesBarChartProps {
+  data: CourseData[];
+}
+
+const NewCoursesBarChart: React.FC<NewCoursesBarChartProps> = ({ data }) => {
   return (
     <Card className="h-[400px] bg-white">
       <CardHeader>
@@ -34,5 +30,7 @@ export default function NewCoursesBarChart() {
         </ResponsiveContainer>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
+
+export default NewCoursesBarChart;

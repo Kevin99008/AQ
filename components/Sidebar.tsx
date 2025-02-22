@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Home, UserPlus, Users, BookOpen, Menu, ScanFace, LogOut } from "lucide-react"
+import { Home, UserPlus, Users, BookOpen, Menu, ScanFace, LogOut, WavesLadder, Music4, BookA } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 
@@ -15,6 +15,24 @@ export default function Sidebar() {
         <Link href="/admin/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
           <Home size={20} />
           <span>Dashboard</span>
+        </Link>
+      </li>
+      <li>
+        <Link href="/admin/aquakids" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
+          <WavesLadder size={20} />
+          <span>Aquakids</span>
+        </Link>
+      </li>
+      <li>
+        <Link href="/admin/playsound" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
+          <Music4 size={20} />
+          <span>Playsound</span>
+        </Link>
+      </li>
+      <li>
+        <Link href="/admin/other" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
+          <BookA size={20} />
+          <span>Other</span>
         </Link>
       </li>
       <li>

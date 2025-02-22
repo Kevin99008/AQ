@@ -12,13 +12,13 @@ export function middleware(request: NextRequest) {
     console.log('User cookie:', user);
 
     // Check if the route starts with /admin
-    if (url.pathname.startsWith('/admin')) {
-        // Redirect to login if no user or if the user role is not admin
-        if (!user || user.role !== 'staff') {
-            url.pathname = '/login';
-            return NextResponse.redirect(url);
-        }
-    }
+    // if (url.pathname.startsWith('/admin')) {
+    //     // Redirect to login if no user or if the user role is not admin
+    //     if (!user || user.role !== 'staff') {
+    //         url.pathname = '/login';
+    //         return NextResponse.redirect(url);
+    //     }
+    // }
 
     // Allow access to the route
     return NextResponse.next();

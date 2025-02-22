@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 import useUserSession from "@/stores/user";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
+import logo from "@/assets/logo.png"
+import Image from "next/image";
 
 export default function LoginPage() {
   const { setUser, setTokens } = useUserSession();
   const { push } = useRouter();
-  const [credentials, setCredentials] = useState<{ username: string; password: string }>(
-    {
-      username: "",
-      password: "",
-    }
-  );
+  const [credentials, setCredentials] = useState<{ username: string; password: string }>({
+    username: "",
+    password: "",
+  });
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,11 +35,12 @@ export default function LoginPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        const errorMessage = typeof data === "object"
-        ? Object.entries(data)
-            .map(([field, messages]) => `${field}: ${messages}`)
-            .join(" | ") // Join errors with " | "
-        : "Invalid credentials";
+        const errorMessage =
+          typeof data === "object"
+            ? Object.entries(data)
+                .map(([field, messages]) => `${field}: ${messages}`)
+                .join(" | ")
+            : "Invalid credentials";
 
         throw new Error(errorMessage);
       }
@@ -61,65 +62,63 @@ export default function LoginPage() {
       const userData = await userResponse.json();
 
       setUser(userData);
-      push("admin/aquakids")
-
-  } catch (err: any) {
-    if (err instanceof Error) {
-      setError(err.message); // Show the actual API error
-    } else {
-      setError("Something went wrong");
+      push("admin/aquakids");
+    } catch (err: any) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Something went wrong");
+      }
     }
-  }
   };
 
   return (
-    <div className="flex h-screen bg-indigo-700">
-      <div className="w-full max-w-xs m-auto bg-indigo-100 rounded p-5">
-        <header>
-          <img
-            className="w-20 mx-auto mb-5"
-            src="https://img.icons8.com/fluent/344/year-of-tiger.png"
+    <div className="flex h-screen bg-gradient-to-r from-blue-100 to-blue-50">
+      <div className="w-full max-w-md m-auto bg-white shadow-lg rounded-lg p-8">
+        <header className="flex flex-col items-center">
+          <Image
+            className="w-40 mb-4"
+            src={logo}
             alt="Tiger Icon"
           />
+          <h2 className="text-xl font-semibold text-gray-700">Welcome Back</h2>
         </header>
-        <div>
-          <label className="block mb-2 text-indigo-500" htmlFor="username">
+        <div className="mt-6">
+          <label className="block text-gray-600 text-sm mb-1" htmlFor="username">
             Username
           </label>
           <input
-            className="w-full p-2 mb-6 text-indigo-700 border-b-2 border-indigo-500 outline-none focus:bg-gray-300"
+            className="w-full p-3 border rounded-md text-gray-700 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             type="text"
             name="username"
             value={credentials.username}
             onChange={handleChange}
           />
         </div>
-        <div>
-          <label className="block mb-2 text-indigo-500" htmlFor="password">
+        <div className="mt-4">
+          <label className="block text-gray-600 text-sm mb-1" htmlFor="password">
             Password
           </label>
           <input
-            className="w-full p-2 mb-6 text-indigo-700 border-b-2 border-indigo-500 outline-none focus:bg-gray-300"
+            className="w-full p-3 border rounded-md text-gray-700 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             type="password"
             name="password"
             value={credentials.password}
             onChange={handleChange}
           />
         </div>
-        <div>
-          <button
-            className="w-full bg-indigo-700 hover:bg-pink-700 text-white font-bold py-2 px-4 mb-6 rounded"
-            onClick={handleLogin}
-          >
-            Login
-          </button>
-        </div>
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-        <footer className="flex justify-between text-sm">
-          <a className="text-indigo-700 hover:text-pink-700" href="#">
+        <button
+          className="w-full mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition"
+          onClick={handleLogin}
+        >
+          Login
+        </button>
+        {error && <p className="text-red-500 text-sm text-center mt-4">{error}</p>}
+        <footer className="flex justify-between text-sm mt-4">
+          <a className="text-blue-500 hover:underline" href="#">
             Forgot Password?
           </a>
-          <a className="text-indigo-700 hover:text-pink-700" href="#">
+          <a className="text-blue-500 hover:underline" href="#">
             Create Account
           </a>
         </footer>
