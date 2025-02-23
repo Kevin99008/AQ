@@ -74,25 +74,20 @@ export default function StorageComponent() {
     handleQuantityChange(id, newQuantity)
 
     try {
-      const response = await fetch(`http://localhost:8000/api/storages/${id}/`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ quantity: newQuantity }),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to update quantity");
+      const response = await apiFetch(`/api/storages/${id}/`, "PATCH", { quantity: newQuantity })
+      if (response === TOKEN_EXPIRED) {
+        push("/login")
+      } else {
+        toast.success('item changed successfully!');
       }
-  
-      // Optionally, handle the response from the server
-      const data = await response.json();
-      // console.log("Updated data:", data);
-    } catch (error) {
-      console.error("Error updating quantity:", error);
+    } catch (err: any) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Something went wrong");   
+      }
     }
-  }
+    }
 
   const discardQuantity = async (id: number) => {
     const log = logsData.find((log) => log.id === id)
@@ -100,42 +95,37 @@ export default function StorageComponent() {
     handleQuantityChange(id, newQuantity)
 
     try {
-      const response = await fetch(`http://localhost:8000/api/storages/${id}/`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ quantity: newQuantity }),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to update quantity");
+      const response = await apiFetch(`/api/storages/${id}/`, "PATCH", { quantity: newQuantity })
+      if (response === TOKEN_EXPIRED) {
+        push("/login")
+      } else {
+        toast.success('item changed successfully!');
       }
-  
-      // Optionally, handle the response from the server
-      const data = await response.json();
-      // console.log("Updated data:", data);
-    } catch (error) {
-      console.error("Error updating quantity:", error);
+    } catch (err: any) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Something went wrong");   
+      }
     }
   }
 
   const saveChanges = async () => {
     setIsEditing(false)
     try {
-      // Fetch the updated list of logs from the API
-      const response = await fetch("http://localhost:8000/api/storages/");
-      if (!response.ok) {
-        throw new Error("Failed to fetch updated data");
+      const data = await apiFetch<Log[]>("/api/storages/")
+      if (data === TOKEN_EXPIRED) {
+        push("/login")
+      } else {
+        setLogsData(data)
+        toast.success('Data saved successfully!');
       }
-  
-      const data = await response.json();
-      
-      // Update the state with the new data
-      setLogsData(data);
-  
-    } catch (error) {
-      console.error("Error fetching updated data:", error);
+    } catch (err: any) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Something went wrong");   
+      }
     }
   }
 
@@ -158,36 +148,37 @@ export default function StorageComponent() {
     }
   }
 
+  type LogResponse = {
+    id: number
+    title: string
+    storage_image: string | StaticImageData
+    quantity: number
+  }
+
   const addNewItem = async () => {
     if (!newItem.title || newItem.quantity <= 0) return
 
     try {
-      const response = await fetch("http://localhost:8000/api/storages/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: newItem.title,
-          quantity: newItem.quantity,
-        }),
-      });
-
-    if (!response.ok) {
-      throw new Error("Failed to add item");
-    }
-
-    const data = await response.json();
-
-    setLogsData((prevData) => [
-      ...prevData,
-      { id: data.id, title: data.title, imageUrl: data.storage_image, quantity: data.quantity },
-    ]);
-
-    setNewItem({ title: "", quantity: 0, imageUrl: "" });
-
-    } catch (error) {
-      console.error("Error adding item:", error);
+      const data = await apiFetch<LogResponse>("/api/storages/", "POST", {
+        title: newItem.title,
+        quantity: newItem.quantity,
+      })
+      if (data === TOKEN_EXPIRED) {
+        push("/login")
+      } else {
+        setLogsData((prevData) => [
+          ...prevData,
+          { id: data.id, title: data.title, imageUrl: data.storage_image, quantity: data.quantity },
+        ])
+        toast.success('item added successfully!');
+        setNewItem({ title: "", quantity: 0, imageUrl: "" })
+      }
+    } catch (err: any) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Something went wrong");   
+      }
     }
   }
 
