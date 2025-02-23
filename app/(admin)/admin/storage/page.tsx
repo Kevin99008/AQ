@@ -12,6 +12,10 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Minus, Edit, Save, X } from "lucide-react"
 import defaultImg from "@/assets/logo.png"
+import { apiFetch, TOKEN_EXPIRED  } from "@/utils/api"
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
+
 type Log = {
   id: number
   title: string
@@ -35,21 +39,27 @@ export default function StorageComponent() {
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const { push } = useRouter();
 
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/storages/")
-        if (!response.ok) throw new Error("Failed to fetch data")
+        const result = await apiFetch<Log[]>("/api/storages/");
         
-        const data = await response.json()
-        setLogsData(data)
-      } catch (err) {
-        setError("Error loading data")
-      } finally {
-        setLoading(false)
+        if (result === TOKEN_EXPIRED) {
+          push("/login");
+        } else {
+          setLogsData(result); // Set the fetched logs data
+          toast.success('Data fetched successfully!');
+        }
+      } catch (err: any) {
+        if (err instanceof Error) {
+          toast.error(err.message);
+        } else {
+          toast.error("Something went wrong");   
+        }
       }
-    }
+    };
 
     fetchLogs()
   }, [])
