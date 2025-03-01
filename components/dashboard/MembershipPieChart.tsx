@@ -1,16 +1,14 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-const data = [
-  { name: "Active Teachers", value: 50 },
-  { name: "Inactive Teachers", value: 10 },
-  { name: "Active Students", value: 200 },
-  { name: "Inactive Students", value: 40 },
-]
+interface PieChartData {
+  name: string;
+  value: number;
+}
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
+const COLORS = ["#0088FE", "#00C49F"]
 
-export default function MembershipPieChart() {
+export default function MembershipPieChart({ data }: { data: PieChartData[] }) {
   return (
     <Card className="h-[400px] bg-white">
       <CardHeader>
@@ -19,7 +17,16 @@ export default function MembershipPieChart() {
       <CardContent className="h-[320px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={data} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value">
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey="value"
+              nameKey="name"
+            >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
@@ -32,4 +39,3 @@ export default function MembershipPieChart() {
     </Card>
   )
 }
-

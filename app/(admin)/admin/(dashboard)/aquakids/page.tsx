@@ -25,6 +25,11 @@ interface CourseData {
   courses: number;
 }
 
+interface PieChartData {
+  name: string;
+  value: number;
+}
+
 interface StatisticsData {
   totalMembers: number;
   activeMembers: number;
@@ -32,35 +37,44 @@ interface StatisticsData {
   newStudents: number;
 }
 
-export default function DashboardAquaKids() {
+export default function DashboardAdmin() {
   const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(null);
   const [studentData, setStudentData] = useState<StudentData[]>([]);
   const [courseData, setCourseData] = useState<CourseData[]>([]);
-  const [lastMonthData] = useState<StatisticsData>({
-    totalMembers: 1300,
-    activeMembers: 1100,
-    inactiveMembers: 200,
-    newStudents: 60,
+  const [lastMonthData, setLastMonthData] = useState<StatisticsData>({
+    totalMembers: 0,
+    activeMembers: 0,
+    inactiveMembers: 0,
+    newStudents: 0
   });
-  const [thisMonthData] = useState<StatisticsData>({
-    totalMembers: 1250,
-    activeMembers: 1050,
-    inactiveMembers: 220,
-    newStudents: 55,
+  const [thisMonthData, setThisMonthData] = useState<StatisticsData>({
+    totalMembers: 0,
+    activeMembers: 0,
+    inactiveMembers: 0,
+    newStudents: 0
   });
-
+  const [pieChartData, setPieData] = useState<PieChartData[]>([
+    { name: "Teacher", value: 0 },
+    { name: "Student", value: 0 }
+  ]);
+  
+  
   useEffect(() => {
     // Simulated data fetching; replace this with your actual API call
     const fetchData = async () => {
       try {
-        // Example of fetching from an API
-        // const studentResponse = await fetch('/api/new-students');
-        // const studentData = await studentResponse.json();
-        // setStudentData(studentData);
+         // Fetching last month and this month data
+         const lastMonthResponse = await fetch('http://localhost:8000/api/static/count/');
+         const lastMonthData: StatisticsData = await lastMonthResponse.json();
+         setLastMonthData(lastMonthData);
+ 
+         const thisMonthResponse = await fetch('http://localhost:8000/api/static/count/');
+         const thisMonthData: StatisticsData = await thisMonthResponse.json();
+         setThisMonthData(thisMonthData);
 
-        // const courseResponse = await fetch('/api/new-courses');
-        // const courseData = await courseResponse.json();
-        // setCourseData(courseData);
+         const pieChartResponse = await fetch('http://localhost:8000/api/static/pie');
+          const pieChartData: PieChartData[] = await pieChartResponse.json(); // Changed to PieChartData[] (array)
+          setPieData(pieChartData);
 
         // Using static data for now
         const fetchedStudentData: StudentData[] = [
@@ -120,7 +134,7 @@ export default function DashboardAquaKids() {
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <div className="md:col-span-2 lg:col-span-4">
-          <StatisticsOverview lastMonthData={lastMonthData} thisMonthData={thisMonthData} />
+          <StatisticsOverview lastMonthData={lastMonthData} thisMonthData={thisMonthData} />      
         </div>
         <div className="md:col-span-2 lg:col-span-2">
           <NewStudentsBarChart data={studentData} />
@@ -128,11 +142,11 @@ export default function DashboardAquaKids() {
         <div className="md:col-span-2 lg:col-span-2">
           <NewCoursesBarChart data={courseData} />
         </div>
-        <div className="md:flex md:flex-col md:w-full md:h-full md:max-w-full">
+        <div className="md:col-span-2 lg:col-span-2">
           <AttendanceLog records={attendanceRecords} onSelectAttendance={setSelectedAttendance} />
         </div>
-        <div className="md:flex md:flex-col md:w-full md:h-full md:max-w-full">
-          <MembershipPieChart />
+        <div className="md:col-span-2 lg:col-span-2 ">
+          <MembershipPieChart data={pieChartData}/>
         </div>
       </div>
       {selectedAttendance && (

@@ -56,7 +56,13 @@ export default function Sidebar() {
       <li>
         <Link href="/admin/enrollCourse" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
           <BookOpen size={20} />
-          <span>Courses</span>
+          <span>Enroll Courses</span>
+        </Link>
+      </li>
+      <li>
+        <Link href="/admin/createCourse" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
+          <BookOpen size={20} />
+          <span>Create Courses</span>
         </Link>
       </li>
       <li>
