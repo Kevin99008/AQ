@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Home, UserPlus, Users, BookOpen, Menu, ScanFace, LogOut, WavesLadder, Music4, BookA } from "lucide-react"
+import { Home, UserPlus, Users, BookOpen, Menu, ScanFace, LogOut, WavesLadder, Music4, BookA, GraduationCap, BookPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 
@@ -54,6 +54,12 @@ export default function Sidebar() {
         </Link>
       </li>
       <li>
+        <Link href="/admin/uploadCertificate" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
+          <GraduationCap size={20} />
+          <span>Certificate</span>
+        </Link>
+      </li>
+      <li>
         <Link href="/admin/enrollCourse" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
           <BookOpen size={20} />
           <span>Enroll Courses</span>
@@ -61,7 +67,7 @@ export default function Sidebar() {
       </li>
       <li>
         <Link href="/admin/createCourse" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
-          <BookOpen size={20} />
+          <BookPlus size={20} />
           <span>Create Courses</span>
         </Link>
       </li>
