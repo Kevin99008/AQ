@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +10,7 @@ import MemberDetails from "@/components/dashboard/MemberDetails"
 interface Member {
   id: number
   name: string
-  phoneNumber: string
+  contact: string
   role: string
 }
 
@@ -18,34 +18,50 @@ export default function MemberListPage() {
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
   const [teacherSearch, setTeacherSearch] = useState("")
   const [studentSearch, setStudentSearch] = useState("")
+  const [userSearch, setUserSearch] = useState("")
+  const [teachers, setTeachers] = useState<Member[]>([])
+  const [students, setStudents] = useState<Member[]>([])
+  const [users, setUsers] = useState<Member[]>([])
 
-  const teachers = [
-    { id: 1, name: "John Doe", phoneNumber: "555-123-4567", role: "teacher" },
-    { id: 2, name: "Jane Smith", phoneNumber: "555-987-6543", role: "teacher" },
-    { id: 3, name: "Alice Johnson", phoneNumber: "555-246-8013", role: "teacher" },
-    { id: 4, name: "Bob Brown", phoneNumber: "555-135-7924", role: "teacher" },
-    { id: 5, name: "Charlie Davis", phoneNumber: "555-369-1215", role: "teacher" },
-    { id: 6, name: "Eva White", phoneNumber: "555-789-3456", role: "teacher" },
-  ]
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [teachersRes, studentsRes, usersRes] = await Promise.all([
+          fetch("http://localhost:8000/api/teachers/"),
+          fetch("http://localhost:8000/api/students/"),
+          fetch("http://localhost:8000/api/user/list/"),
+        ])
+  
+        const [teachersData, studentsData, usersData] = await Promise.all([
+          teachersRes.json(),
+          studentsRes.json(),
+          usersRes.json(),
+        ])
+  
+        setTeachers(teachersData)
+        setStudents(studentsData)
+        setUsers(usersData)
+      } catch (err) {
+        console.error("Failed to fetch data:", err)
+      }
+    }
+  
+    fetchData()
+  }, [])
+  
 
-  const students = [
-    { id: 7, name: "Frank Miller", phoneNumber: "555-456-7890", role: "student" },
-    { id: 8, name: "Grace Taylor", phoneNumber: "555-890-1234", role: "student" },
-    { id: 9, name: "Henry Wilson", phoneNumber: "555-567-2345", role: "student" },
-    { id: 10, name: "Ivy Moore", phoneNumber: "555-901-3456", role: "student" },
-    { id: 11, name: "Jack Thompson", phoneNumber: "555-678-4567", role: "student" },
-    { id: 12, name: "Kate Anderson", phoneNumber: "555-234-5678", role: "student" },
-    { id: 13, name: "Liam Harris", phoneNumber: "555-345-6789", role: "student" },
-    { id: 14, name: "Mia Clark", phoneNumber: "555-789-0123", role: "student" },
-  ]
+const filteredTeachers = teachers.filter(
+  (teacher) => teacher.name && teacher.name.toLowerCase().includes(teacherSearch.toLowerCase())
+)
 
-  const filteredTeachers = teachers.filter((teacher) =>
-    teacher.name.toLowerCase().includes(teacherSearch.toLowerCase()),
-  )
+const filteredStudents = students.filter(
+  (student) => student.name && student.name.toLowerCase().includes(studentSearch.toLowerCase())
+)
 
-  const filteredStudents = students.filter((student) =>
-    student.name.toLowerCase().includes(studentSearch.toLowerCase()),
-  )
+const filteredUsers = users.filter(
+  (user) => user.name && user.name.toLowerCase().includes(userSearch.toLowerCase())
+)
+
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-100 min-h-screen">
@@ -73,9 +89,18 @@ export default function MemberListPage() {
           />
           <MemberList title="Students List" members={filteredStudents} onSelectMember={setSelectedMember} />
         </div>
+        <div>
+        <Input
+          type="text"
+          placeholder="Search members..."
+          value={userSearch}
+          onChange={(e) => setUserSearch(e.target.value)}
+          className="mb-4"
+        />
+        <MemberList title="Members List" members={filteredUsers} onSelectMember={setSelectedMember} />
+      </div>
       </div>
       {selectedMember && <MemberDetails member={selectedMember} onClose={() => setSelectedMember(null)} />}
     </div>
   )
 }
-

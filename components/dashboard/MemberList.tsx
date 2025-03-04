@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 interface Member {
   id: number
   name: string
-  phoneNumber: string
+  contact: string
   role: string
 }
 
@@ -25,7 +25,7 @@ export default function MemberList({ title, members, onSelectMember }: MemberLis
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>phoneNumber</TableHead>
+              <TableHead>contact</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -36,7 +36,7 @@ export default function MemberList({ title, members, onSelectMember }: MemberLis
                 onClick={() => onSelectMember(member)}
               >
                 <TableCell>{member.name}</TableCell>
-                <TableCell>{member.phoneNumber}</TableCell>
+                <TableCell>{member.contact}</TableCell>
               </TableRow>
             ))}
           </TableBody>
