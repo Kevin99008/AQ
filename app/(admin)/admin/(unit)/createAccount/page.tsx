@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,9 +11,8 @@ export default function CreateAccountPage() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+    username: "",
+    contact: ""
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,15 +22,14 @@ export default function CreateAccountPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would typically send the form data to your backend
     console.log("Form submitted:", formData)
-    // Reset form after submission
+
+    // Reset form
     setFormData({
       firstName: "",
       lastName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      username: "",
+      contact: "",
     })
   }
 
@@ -46,39 +43,46 @@ export default function CreateAccountPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" name="firstName" value={formData.firstName} onChange={handleChange} required />
+              <Input
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" name="lastName" value={formData.lastName} onChange={handleChange} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
               <Input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
                 onChange={handleChange}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
+                id="username"
+                name="username"
+                value={formData.username}
                 onChange={handleChange}
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
+            <div className="space-y-2">
+              <Label htmlFor="contact">Phone number</Label>
+              <Input
+                id="contact"
+                name="contact"
+                type="tel"
+                value={formData.contact}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full bg-black text-white">
               Create Account
             </Button>
           </form>
@@ -87,4 +91,3 @@ export default function CreateAccountPage() {
     </div>
   )
 }
-
