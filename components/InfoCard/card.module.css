@@ -1,22 +1,19 @@
 .card {
-    border-radius: 15px; /* Rounded corners */
+    border-radius: 14px; /* Rounded corners */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
-    padding: 2rem 4rem;
-    margin: 0rem 2rem;
+    padding: 2rem 2rem;
     width: 70rem;
     }
 
 .detailCard {
-    border-radius: 15px; /* Rounded corners */
+    border-radius: 14px; /* Rounded corners */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
-    padding: 1rem 3rem;
+    padding: 0.5rem;
     margin: 0.5rem 0.5rem;
     }
 
 .detailCard .title {
     border-radius: 10px; /* Rounded corners */
-    padding: 0.5rem 0.5rem;
-    margin: 0.5rem 0.5rem;
     font-weight: bold; /* Optional for emphasis */
     }
 
@@ -25,7 +22,7 @@
     padding: 0.5rem 0.5rem;
     margin: 0.5rem 0.5rem;
     border-width: 1px;
-    border-radius: 10px;
+    border-radius: 14px;
     }
 
   .aquaKids{
@@ -67,7 +64,7 @@ font-weight: bold; /* Optional for emphasis */
 
 .imageContainer{
   position: relative;
-  width: 70%;
+  width: 100%;
 }
 
 .descriptionList {
@@ -77,4 +74,32 @@ font-weight: bold; /* Optional for emphasis */
   list-style-type: none; /* Remove default list styling */
   padding: 0; /* Remove default padding */
   margin: 0; /* Remove default margin */
+}
+
+@media (max-width: 768px) {
+  .card {
+      padding: 1rem; /* Reduce padding on mobile */
+      box-shadow: none; /* Optionally remove shadow on mobile for simplicity */
+      width: 100%; /* Allow card to take full width on smaller screens */
+      margin-bottom: 1rem; /* Add some space below the card on mobile */
+      margin-left: .5rem;
+      margin-right:.5rem;
+      margin-top:.5rem;
+      margin-bottom:.5rem;
+      
+ }
+
+ .card h1 {
+     font-size: 2rem; /* Smaller heading size for mobile */
+ }
+
+ .card h2 {
+     font-size: 1rem; /* Smaller subheading size for mobile */
+     margin-bottom: .5rem; /* Adjust margin for mobile */
+ }
+
+ .descriptionList {
+     grid-template-columns: repeat(1, 1fr); /* Stack items in one column on mobile */
+     gap: 5px; /* Reduce gap between items on mobile */
+ }
 }

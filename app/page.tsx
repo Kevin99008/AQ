@@ -1,6 +1,6 @@
 import classes from "./page.module.css"
 import ImageBackground from "@/components/images/imageBackground";
-import Card from "@/components/InfoCard/card";
+import Card from "@/components/infoCard/card";
 
 import aquakidsLogo from "@/assets/logo.png";
 import playsoundLogo from "@/assets/logo2.png";
@@ -14,42 +14,44 @@ import PSImg3 from "@/assets/playsound/3.jpg";
 import PSImg4 from "@/assets/playsound/4.jpg";
 import MapComponent from "@/components/map/map";
 import ScrollLink from "@/components/scrollLink/scrollLink";
+import Link from "next/link";
 
 export default function Home() {
 
 const aquakidsData = {
   title: "AquaKids",
-  detail: "Welcome to Aquakids Chiang Mai! The ultimate destination for nurturing your child's swimming skills in a fun, safe, and engaging environment!",
+  intro: "Auqa Kids Chiangmai is a swimming development school for children from newborns to those aged 10 years, featuring a curriculum developed in the UK. Our facility includes an indoor pool with a filtration and disinfection system using saltwater, which prevents irritation to the eyes, unlike chlorine. Children can comfortably open their eyes underwater, as the saltwater has a concentration similar to that of tears. Additionally, the saltwater system helps nourish children's skin. Our pool is heated to international standards, ensuring that children feel relaxed and safe while learning. Our curriculum is designed to foster both physical and mental development, focusing not only on swimming skills but also on building self-confidence, water safety skills, and a love for exercise from an early age. Children will learn in a fun and welcoming environment, guided by experienced instructors who provide attentive care at every step. If you are looking for a safe and high-quality place for your child to start their swimming journey, Auqa Kids Chiangmai is the perfect choice for your family!",
+  detail: "",
   description: {
       "Babies1 (B1)": { title: "Babies1 (B1)", detail: [
-        "• น้องสามารถฟังสัญญาณ Three Raedy Goได้",
-        "• น้องทำท่า Back Position (Twinkle) นอนบนไหล่ผู้ปกครองได้",
-        "• น้องทำ Safe Jump (Ready Splash) โดยมีผู้ปกครองประคองน้องลงน้ำในท่าที่ถูกต้อง"
+        "• The child can listen for the Three Ready Go signal.",
+        "• The child can perform the Back Position (Twinkle) lying on the parent's shoulder.",
+        "• The child can do a Safe Jump (Ready Splash) with the parent supporting them into the water in the correct position."
       ] },
-      "Babies2 (B2)": { title: "Babies2 (B2)", detail: [
-        "• น้องทำ Safe Jump (Ready Splash) ได้ด้วยตัวเอง",
-        "• น้องเริ่มถีบขาเองได้",
-        "• น้องสามารถดำน้ำท่า DOUBLE MOVING SWIM ได้โดยไม่สำลัก"
+"Babies2 (B2)": { title: "Babies2 (B2)", detail: [
+        "• The child can perform a Safe Jump (Ready Splash) by themselves.",
+        "• The child can start kicking their legs on their own.",
+        "• The child can dive in the DOUBLE MOVING SWIM position without choking."
       ] },
-      "Toddler1 (T1)": { title: "Toddler1 (T1)", detail: [
-        "• น้องสามารถเตะขาได้อย่างถูกวิธี",
-        "• น้องสามารถหมุนแขนได้เอง",
-        "• น้องสามารถดำน้ำได้ โดยไม่สำลักและไม่ร้องไห้ (ปล่อย มือและไกลขึ้น)"
+"Toddler1 (T1)": { title: "Toddler1 (T1)", detail: [
+        "• The child can kick their legs correctly.",
+        "• The child can rotate their arms independently.",
+        "• The child can dive without choking and without crying (releasing hands and going further)."
       ] },
-      "Toddler2 (T2)": { title: "Toddler2 (T2)", detail: [
-        "• น้องทำ Safe Jump (Ready Splash) ได้ด้วยตัวเอง",
-        "• น้องเริ่มถีบขาเองได้",
-        "• น้องสามารถดำน้ำท่า DOUBLE MOVING SWIM ได้โดยไม่สำลัก"
+"Toddler2 (T2)": { title: "Toddler2 (T2)", detail: [
+        "• The child can perform a Safe Jump (Ready Splash) by themselves.",
+        "• The child can start kicking their legs on their own.",
+        "• The child can dive in the DOUBLE MOVING SWIM position without choking."
       ] },
-      "Toddler3 (T3)": { title: "Toddler3 (T3)", detail: [
-        "• น้องทำ Safe Jump (Ready Splash) ได้ด้วยตัวเอง",
-        "• น้องเริ่มถีบขาเองได้",
-        "• น้องสามารถดำน้ำท่า DOUBLE MOVING SWIM ได้โดยไม่สำลัก"
+"Toddler3 (T3)": { title: "Toddler3 (T3)", detail: [
+        "• The child can perform a Safe Jump (Ready Splash) by themselves.",
+        "• The child can start kicking their legs on their own.",
+        "• The child can dive in the DOUBLE MOVING SWIM position without choking."
       ] },
-      "Pre-School (PS)": { title: "Pre-School (PS)", detail: [
-        "• น้องทำ Safe Jump (Ready Splash) ได้ด้วยตัวเอง",
-        "• น้องเริ่มถีบขาเองได้",
-        "• น้องสามารถดำน้ำท่า DOUBLE MOVING SWIM ได้โดยไม่สำลัก"
+"Pre-School (PS)": { title: "Pre-School (PS)", detail: [
+        "• The child can perform a Safe Jump (Ready Splash) by themselves.",
+        "• The child can start kicking their legs on their own.",
+        "• The child can dive in the DOUBLE MOVING SWIM position without choking."
       ] },
   },
   logo: aquakidsLogo,
@@ -63,12 +65,28 @@ const aquakidsData = {
   
 const playsoundData = {
     title: "PlaySound",
-    detail: "Experience the joy of music at Playsound Chiang Mai, the premier music school dedicated to nurturing your child's musical talents from an early age!",
+    detail: "",
     description: {
-      "Piano": { title: "Piano", detail: ["Introduction to Piano", "Piano Skills"] },
-      "Guitar": { title: "Guitar", detail: ["Basic Guitar", "Guitar Skills"] },
-      "Drum": { title: "Drum", detail: ["Beginner Drum techniques", "Drum Skills"] },
-      "Sing": { title: "Sing", detail: ["Basic Singing", "Sing Skills"] },
+      "Piano Class": { title: "Piano Class", detail: [
+        "• Enhanced cognitive abilities and improved concentration.",
+        "• Development of fine motor skills and hand-eye coordination.",
+        "• A lifelong appreciation for music and the ability to play their favorite songs."
+      ] },
+      "Singing Class": { title: "Singing Class", detail: [
+        "• Improved vocal techniques and stage presence.",
+        "• Boosted self-esteem through performance opportunities.",
+        "• Enhanced listening skills and musicality."
+      ] },
+      "Drum Class": { title: "Drum Class", detail: [
+        "• Strengthened rhythm and timing skills.",
+        "• Improved physical coordination and motor skills.",
+        "• An outlet for energy and creativity through percussion."
+      ] },
+      "Guitar Class": { title: "Guitar Class", detail: [ 
+        "• Development of finger dexterity and coordination.",
+        "• Understanding of musical structure and rhythm.",
+        "• The joy of playing popular songs and expressing creativity through music."
+      ] },
   },
     logo: playsoundLogo,
     previewImage: [
@@ -87,19 +105,23 @@ const playsoundData = {
         <ImageBackground />
       </div>
       <div className={classes.navigator}>
-        <div>
+        <div className={classes.button}>
                     <ScrollLink
                       aria-current="page"
                       id="aquakids"
                     >
                       AquaKids
                     </ScrollLink>
+        </div>
+        <div className={classes.button}>
                     <ScrollLink
                       aria-current="page"
                       id="playsound"
                     >
                       PlaySound
                     </ScrollLink>
+        </div>
+        <div className={classes.button}>
                     <ScrollLink
                       aria-current="page"
                       id="address"
@@ -107,16 +129,24 @@ const playsoundData = {
                       Address
                     </ScrollLink>
         </div>
+        <div>
+        <Link
+              className="inline-flex items-center justify-center rounded-xl bg-black px-8 py-4 ml-4  font-semibold text-white shadow-sm transition-all duration-150 hover:bg-white hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              href="/login"
+            >
+              Login
+            </Link>
+        </div>
       </div>
-      <div className={classes.container} id="aquakids">
-        <Card 
-                  title={aquakidsData.title} 
-                  detail={aquakidsData.detail} 
-                  description={aquakidsData.description} 
-                  logo={aquakidsData.logo.src}
-                  previewImage={aquakidsData.previewImage} 
-              />
-      </div>
+        <div className={classes.container} id="aquakids">
+          <Card 
+                    title={aquakidsData.title} 
+                    detail={aquakidsData.detail} 
+                    description={aquakidsData.description} 
+                    logo={aquakidsData.logo.src}
+                    previewImage={aquakidsData.previewImage} 
+                />
+        </div>
       <div className={classes.container} id="playsound">
         <Card 
                   title={playsoundData.title} 

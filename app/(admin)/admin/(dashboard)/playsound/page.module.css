@@ -1,0 +1,10 @@
+.container {
+  display: flex;
+  padding: 3rem;
+  gap: 1rem;
+}
+
+.minorContainer{
+width: 50%;
+margin: auto;
+}

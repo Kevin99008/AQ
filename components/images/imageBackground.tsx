@@ -5,6 +5,10 @@ import decImage1 from "@/assets/aquaKids/1.jpg";
 import decImage2 from "@/assets/aquaKids/2.jpg";
 import decImage3 from "@/assets/aquaKids/3.jpg";
 import decImage4 from "@/assets/aquaKids/4.jpg";
+import decImage5 from "@/assets/playsound/1.jpg";
+import decImage6 from "@/assets/playsound/2.jpg";
+import decImage7 from "@/assets/playsound/3.jpg";
+import decImage8 from "@/assets/playsound/4.jpg";
 import classes from "./imageBackground.module.css";
 import Image from "next/image";
 
@@ -13,7 +17,11 @@ export default function ImageBackground() {
     decImage1,
     decImage2,
     decImage3,
-    decImage4
+    decImage4,
+    decImage5,
+    decImage6,
+    decImage7,
+    decImage8
   ];
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);

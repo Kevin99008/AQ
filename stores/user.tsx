@@ -3,12 +3,9 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { setCookie, getCookie, deleteCookie } from '@/utils/cookies';
 
 type User = {
-    id: string;
-    email: string;
-    role: string;
-    // any other fields you need
+  username: string;
+  role: string;
 };
-
 
 type SessionState = {
     user: User | null;
@@ -27,19 +24,18 @@ const useUserSession = create<SessionState>()(
       refreshToken: null,
       setUser: (user: User) => {
         set({ user });
-        // Persist user data in cookies
         setCookie('user', JSON.stringify(user), { expires: 7, path: '/' });
       },
-      setTokens: (accessToken: string) => {
-        set({ accessToken });
-        // Persist accessToken in cookies
-        setCookie('accessToken', accessToken, { expires: 7, path: '/' });
+      setTokens: (accessToken: string, refreshToken: string) => {
+        set({ accessToken, refreshToken });
+        setCookie("accessToken", accessToken, { expires: 7, path: "/" });
+        setCookie("refreshToken", refreshToken, { expires: 7, path: "/" });
       },
       logout: () => {
-        set({ user: null, accessToken: null });
-        // Remove user data and token from cookies
-        deleteCookie('user');
-        deleteCookie('accessToken');
+        set({ user: null, accessToken: null, refreshToken: null });
+        deleteCookie("user");
+        deleteCookie("accessToken");
+        deleteCookie("refreshToken");
       },
     }),
     {

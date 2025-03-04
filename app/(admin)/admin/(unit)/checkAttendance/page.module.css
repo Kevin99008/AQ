@@ -1,0 +1,27 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40%; /* Full viewport height */
+    margin: 0;
+    background-color: #f0f0f0; /* Light background for contrast */
+    margin-bottom: 24px;
+    border-radius: 14px;
+    text-align: center;
+}
+
+.blackbox {
+    width: 200px; /* Width of the box */
+    height: 200px; /* Height of the box */
+    background-color: black; /* Black color */
+    border-radius: 10px; /* Optional: rounded corners */
+    margin: 50px;
+}
+
+.button {
+    padding: 2rem;
+    text-align: center;
+    background-color: lightgreen;
+    border-radius: 14px;
+}
+
