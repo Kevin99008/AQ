@@ -19,13 +19,6 @@ export function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     const accessToken = request.cookies.get('accessToken')?.value; // Get access token using the utility function
 
-    const DEBUG_MODE = true;
-
-    if (DEBUG_MODE) {
-        console.log("Middleware Debug Mode Enabled 🚨");
-        return NextResponse.next();
-    }
-
     // Check if the token exists and if it's expired
     if (!accessToken) {
         console.log("No token, redirecting to login...");
@@ -52,10 +45,23 @@ export function middleware(request: NextRequest) {
         }
     }
 
+    // Check if the route starts with /user
+    if (url.pathname.startsWith('/home')) {
+        const userCookie = request.cookies.get('user'); // Retrieve the user cookie
+        const user = userCookie?.value ? JSON.parse(userCookie.value) : null;
+
+        // If no user or role is not 'staff', redirect to login
+        if (!user || user.role !== 'user') {
+            console.log("not user, redirecting to login...");
+            url.pathname = '/login';
+            return NextResponse.redirect(url);
+        }
+    }
+
     // Allow access to the route
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: ['/admin/:path*'], // Apply the middleware to /admin and its subpaths
+    matcher: ['/admin/:path*', '/home/:path*'], // Apply the middleware to /admin and /home (and their subpaths)
 };

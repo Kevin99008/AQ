@@ -32,7 +32,7 @@ export default function LoginPage() {
         },
         body: JSON.stringify(credentials),
       });
-
+  
       if (!response.ok) {
         const data = await response.json();
         const errorMessage =
@@ -41,28 +41,35 @@ export default function LoginPage() {
                 .map(([field, messages]) => `${field}: ${messages}`)
                 .join(" | ")
             : "Invalid credentials";
-
+  
         throw new Error(errorMessage);
       }
-
+  
       const { access, refresh } = await response.json();
       setTokens(access, refresh);
-
+  
       const userResponse = await fetch("http://localhost:8000/api/user/info/", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${access}`,
         },
       });
-
+  
       if (!userResponse.ok) {
         throw new Error("Failed to fetch user data");
       }
-
+  
       const userData = await userResponse.json();
-
       setUser(userData);
-      push("admin/aquakids");
+  
+      // Check user role and redirect accordingly
+      if (userData.role === "staff") {
+        push("admin/dashboard");
+      } else if (userData.role === "user") {
+        push("home/");
+      } else {
+        push("/");
+      }
     } catch (err: any) {
       if (err instanceof Error) {
         setError(err.message);
@@ -71,6 +78,7 @@ export default function LoginPage() {
       }
     }
   };
+  
 
   return (
     <div className="flex h-screen bg-gradient-to-r from-blue-100 to-blue-50">
