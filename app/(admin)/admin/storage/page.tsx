@@ -13,32 +13,28 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Minus, Edit, Save, X } from "lucide-react"
 import defaultImg from "@/assets/logo.png"
 import { apiFetch, TOKEN_EXPIRED  } from "@/utils/api"
+import { apiFetchFormData } from "@/utils/formData"
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 
 type Log = {
   id: number
   title: string
-  imageUrl: string | StaticImageData
+  storage_image: string | StaticImageData
   quantity: number
 }
-
-const initialLogsData: Log[] = [
-  { id: 1, title: "Swimming Glasses", imageUrl: defaultImg, quantity: 10 },
-  { id: 2, title: "Float Board", imageUrl: defaultImg, quantity: 1 },
-]
 
 export default function StorageComponent() {
   const [viewType, setViewType] = useState("table")
   const [logsData, setLogsData] = useState<Log[]>([])
   const [isEditing, setIsEditing] = useState(false)
-  const [newItem, setNewItem] = useState<{ title: string; quantity: number; imageUrl: string | StaticImageData }>({
+  const [newItem, setNewItem] = useState<{ title: string; quantity: number; imageUrl: string; file: File | null }>({
     title: "",
     quantity: 0,
     imageUrl: "",
+    file: null,
   })
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+
   const { push } = useRouter();
 
   useEffect(() => {
@@ -139,12 +135,18 @@ export default function StorageComponent() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setNewItem((prevItem) => ({ ...prevItem, imageUrl: reader.result as string }))
-      }
-      reader.readAsDataURL(file)
+      const file = e.target.files[0];
+      setNewItem((prevItem) => ({
+        ...prevItem,
+        imageUrl: URL.createObjectURL(file), // Preview image
+        file: file, // Store file for FormData
+      }));
+    } else {
+      setNewItem((prevItem) => ({
+        ...prevItem,
+        imageUrl: "",
+        file: null,
+      }));
     }
   }
 
@@ -156,30 +158,40 @@ export default function StorageComponent() {
   }
 
   const addNewItem = async () => {
-    if (!newItem.title || newItem.quantity <= 0) return
+    if (!newItem.title || newItem.quantity <= 0) {
+      toast.error("Please provide a valid title and quantity.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("title", newItem.title);
+    formData.append("quantity", newItem.quantity.toString());
+
+    if (newItem.file) {
+      formData.append("storage_image", newItem.file); // Only append if file exists
+    }
 
     try {
-      const data = await apiFetch<LogResponse>("/api/storages/", "POST", {
-        title: newItem.title,
-        quantity: newItem.quantity,
-      })
+      const data = await apiFetchFormData<LogResponse>("/api/storages/", "POST", formData);
       if (data === TOKEN_EXPIRED) {
-        push("/login")
+        push("/login");
       } else {
         setLogsData((prevData) => [
           ...prevData,
-          { id: data.id, title: data.title, imageUrl: data.storage_image, quantity: data.quantity },
-        ])
-        toast.success('item added successfully!');
-        setNewItem({ title: "", quantity: 0, imageUrl: "" })
+          { id: data.id, title: data.title, storage_image: data.storage_image || defaultImg, quantity: data.quantity },
+        ]);
+        toast.success("Item added successfully!");
+        setNewItem({ title: "", quantity: 0, imageUrl: "", file: null }); // Reset state
       }
     } catch (err: any) {
       if (err instanceof Error) {
         toast.error(err.message);
       } else {
-        toast.error("Something went wrong");   
+        toast.error("Something went wrong");
       }
     }
+  
+
   }
 
   return (
@@ -231,7 +243,7 @@ export default function StorageComponent() {
                       <TableRow key={log.id}>
                         <TableCell>
                           <Image
-                            src={log.imageUrl || defaultImg}
+                            src={log.storage_image || defaultImg}
                             alt={log.title}
                             width={50}
                             height={50}
@@ -262,7 +274,7 @@ export default function StorageComponent() {
                     <Card key={log.id}>
                       <CardContent className="p-4">
                         <Image
-                          src={log.imageUrl || defaultImg}
+                          src={log.storage_image || defaultImg}
                           alt={log.title}
                           width={100}
                           height={100}
