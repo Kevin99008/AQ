@@ -6,8 +6,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { apiFetch, TOKEN_EXPIRED  } from "@/utils/api"
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
+type UserResponse = {
+  id: number
+  username: string
+  password: string
+  email: string
+  role: string
+  first_name: string
+  last_name: string
+}
 export default function CreateAccountPage() {
+  const { push } = useRouter();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -26,25 +39,17 @@ export default function CreateAccountPage() {
     console.log("Form submitted:", formData)
 
     try {
-      const response = await fetch("http://localhost:8000/api/user/create/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          username: formData.username,
-          contact: formData.contact,
-          password: formData.contact,
-        }),
+      const response = await apiFetch<UserResponse>("/api/user/create/", "POST", {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        username: formData.username,
+        contact: formData.contact,
+        password: formData.contact,
       })
 
-      const data = await response.json()
-      console.log("API Response:", data)
-
-      if (response.ok) {
-        alert("Account created successfully")
+      if (response === TOKEN_EXPIRED) {
+        push("/login")
+      } else {
         setFormData({
           firstName: "",
           lastName: "",
@@ -52,12 +57,14 @@ export default function CreateAccountPage() {
           contact: "",
           password: ""
         })
-      } else {
-        alert(`Failed to create account: ${data.message || "Unknown error"}`)
+        toast.success('user created successfully!');
       }
-    } catch (error) {
-      console.error("Error:", error)
-      alert("Failed to create account")
+    } catch (error: any) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Something went wrong");   
+      }
     }
   }
 
@@ -95,6 +102,16 @@ export default function CreateAccountPage() {
                 id="username"
                 name="username"
                 value={formData.username}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                value={formData.password}
                 onChange={handleChange}
                 required
               />
