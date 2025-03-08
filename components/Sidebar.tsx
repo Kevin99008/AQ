@@ -54,6 +54,12 @@ export default function Sidebar() {
         </Link>
       </li>
       <li>
+        <Link href="/admin/userList" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
+          <Users size={20} />
+          <span>Users</span>
+        </Link>
+      </li>
+      <li>
         <Link href="/admin/uploadCertificate" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
           <GraduationCap size={20} />
           <span>Certificate</span>

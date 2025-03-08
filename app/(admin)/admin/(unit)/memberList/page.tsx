@@ -14,6 +14,12 @@ interface Member {
   role: string
 }
 
+interface User {
+  id: number
+  username: string
+  contact: string
+}
+
 export default function MemberListPage() {
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
   const [teacherSearch, setTeacherSearch] = useState("")
