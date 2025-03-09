@@ -16,11 +16,11 @@ export function UserDetails({ user, onStudentAdded }: UserDetailsProps) {
     <div className="mx-auto max-w-3xl">
       <div className="mb-6 flex items-center gap-4">
         <Avatar className="h-16 w-16">
-          <AvatarImage src={user.avatar} alt={user.name} />
-          <AvatarFallback className="text-lg">{user.name.charAt(0)}</AvatarFallback>
+          <AvatarImage src={user.avatar} alt={user.username} />
+          <AvatarFallback className="text-lg">{user.username.charAt(0)}</AvatarFallback>
         </Avatar>
         <div>
-          <h1 className="text-2xl font-bold">{user.name}</h1>
+          <h1 className="text-2xl font-bold">{user.username}</h1>
           <p className="text-muted-foreground">{user.role}</p>
         </div>
       </div>
@@ -34,18 +34,18 @@ export function UserDetails({ user, onStudentAdded }: UserDetailsProps) {
             </div>
             <div className="grid grid-cols-2 gap-1">
               <dt className="text-sm font-medium text-muted-foreground">Phone</dt>
-              <dd>{user.phone}</dd>
+              <dd>{user.contact}</dd>
             </div>
             <div className="grid grid-cols-2 gap-1">
               <dt className="text-sm font-medium text-muted-foreground">Join Date</dt>
-              <dd>{user.joinDate}</dd>
+              <dd>{user.join_date}</dd>
             </div>
           </dl>
         </UserInfoCard>
 
         <UserInfoCard
           title="Students"
-          description={`${user.name} has ${user.students.length} student${user.students.length !== 1 ? "s" : ""}`}
+          description={`${user.username} has ${user.students.length} student${user.students.length !== 1 ? "s" : ""}`}
         >
           <StudentList students={user.students} />
           <AddStudentForm user={user} onStudentAdded={onStudentAdded} />

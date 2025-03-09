@@ -13,7 +13,7 @@ export async function fetchUsers(): Promise<User[]> {
 
 // Fetch a specific user
 export async function fetchUser(userId: number): Promise<User> {
-  const response = await fetch(`http://localhost:8000/api/users/${userId}`)
+  const response = await fetch(`http://localhost:8000/api/user/${userId}`)
 
   if (!response.ok) {
     throw new Error("Failed to fetch user")

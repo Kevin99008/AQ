@@ -17,7 +17,7 @@ export default function UserListPage() {
   // Filter users based on search query
   const filteredUsers = users.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.role.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
@@ -29,8 +29,8 @@ export default function UserListPage() {
         const data = await fetchUsers()
         setUsers(data)
 
-        if (data.length > 0 && !selectedUser) {
-          setSelectedUser(data[0])
+        if (users.length > 0 && !selectedUser) {
+          setSelectedUser(users[0])
         }
       } catch (error) {
         toast.error("Failed to load users. Please refresh the page.")

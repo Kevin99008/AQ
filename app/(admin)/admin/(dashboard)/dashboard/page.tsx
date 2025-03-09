@@ -7,35 +7,9 @@ import NewStudentsBarChart from "@/components/dashboard/NewStudentsBarChart";
 import NewCoursesBarChart from "@/components/dashboard/NewCoursesBarChart";
 import AttendanceLog from "@/components/dashboard/AttendanceLog";
 import AttendanceHistory from "@/components/dashboard/AttendanceHistory";
-
-interface AttendanceRecord {
-  id: number;
-  name: string;
-  timestamp: string;
-  course: string;
-}
-
-interface StudentData {
-  month: string;
-  students: number;
-}
-
-interface CourseData {
-  month: string;
-  courses: number;
-}
-
-interface PieChartData {
-  name: string;
-  value: number;
-}
-
-interface StatisticsData {
-  totalMembers: number;
-  activeMembers: number;
-  inactiveMembers: number;
-  newStudents: number;
-}
+import { AttendanceRecord, StudentData, CourseData, PieChartData, StatisticsData } from "@/types/dashboard";
+import { apiFetch, TOKEN_EXPIRED } from "@/utils/api";
+import { useRouter } from "next/navigation";
 
 export default function DashboardAdmin() {
   const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(null);
@@ -57,64 +31,49 @@ export default function DashboardAdmin() {
     { name: "Teacher", value: 0 },
     { name: "Student", value: 0 }
   ]);
-  
+  const { push } = useRouter();
   
   useEffect(() => {
     // Simulated data fetching; replace this with your actual API call
     const fetchData = async () => {
       try {
-         // Fetching last month and this month data
-         const lastMonthResponse = await fetch('http://localhost:8000/api/static/count/');
-         const lastMonthData: StatisticsData = await lastMonthResponse.json();
-         setLastMonthData(lastMonthData);
- 
-         const thisMonthResponse = await fetch('http://localhost:8000/api/static/count/');
-         const thisMonthData: StatisticsData = await thisMonthResponse.json();
-         setThisMonthData(thisMonthData);
-
-         const pieChartResponse = await fetch('http://localhost:8000/api/static/pie');
-          const pieChartData: PieChartData[] = await pieChartResponse.json(); // Changed to PieChartData[] (array)
-          setPieData(pieChartData);
-
+        // Fetching last month and this month data
+        const lastMonthResponse = await apiFetch<StatisticsData>('/api/static/count/');
+        if (lastMonthResponse !== TOKEN_EXPIRED) {
+          setLastMonthData(lastMonthResponse);  // Set data only if the token is not expired
+        }
+  
+        const thisMonthResponse = await apiFetch<StatisticsData>('/api/static/count/');
+        if (thisMonthResponse !== TOKEN_EXPIRED) {
+          setThisMonthData(thisMonthResponse);  // Set data only if the token is not expired
+        }
+  
+        const pieChartResponse = await apiFetch<PieChartData[]>('/api/static/pie');
+        if (pieChartResponse !== TOKEN_EXPIRED) {
+          setPieData(pieChartResponse);  // Set data only if the token is not expired
+        }
+  
         // Using static data for now
         const fetchedStudentData: StudentData[] = [
           { month: "Jan", students: 12 },
           { month: "Feb", students: 19 },
-          { month: "Mar", students: 3 },
-          { month: "Apr", students: 5 },
-          { month: "May", students: 2 },
-          { month: "Jun", students: 3 },
-          { month: "Jul", students: 8 },
-          { month: "Aug", students: 15 },
-          { month: "Sep", students: 7 },
-          { month: "Oct", students: 10 },
-          { month: "Nov", students: 22 },
-          { month: "Dec", students: 14 },
         ];
         setStudentData(fetchedStudentData);
-
+  
         const fetchedCourseData: CourseData[] = [
           { month: "Jan", courses: 4 },
           { month: "Feb", courses: 3 },
-          { month: "Mar", courses: 5 },
-          { month: "Apr", courses: 2 },
-          { month: "May", courses: 6 },
-          { month: "Jun", courses: 4 },
-          { month: "Jul", courses: 3 },
-          { month: "Aug", courses: 5 },
-          { month: "Sep", courses: 7 },
-          { month: "Oct", courses: 4 },
-          { month: "Nov", courses: 6 },
-          { month: "Dec", courses: 3 },
         ];
         setCourseData(fetchedCourseData);
+  
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
     };
-
+  
     fetchData();
   }, []);
+  
 
   const attendanceRecords = [
     { id: 1, name: "John Doe", timestamp: "2025-01-18 10:00 AM", course: "Mathematics 101" },

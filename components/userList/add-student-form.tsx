@@ -28,9 +28,12 @@ export function AddStudentForm({ user, onStudentAdded }: AddStudentFormProps) {
       setIsSubmitting(true)
 
       try {
-        await addStudent(user.id, { name, birthdate })
+        await addStudent(user.id, {
+          name, birthdate,
+          sessions: []
+        })
 
-        toast.success(`Added ${name} to ${user.name}'s students`)
+        toast.success(`Added ${name} to ${user.username}'s students`)
 
         setName("")
         setBirthdate("")

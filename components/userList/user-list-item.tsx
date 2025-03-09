@@ -19,11 +19,11 @@ export function UserListItem({ user, isSelected, onSelect }: UserListItemProps) 
       onClick={() => onSelect(user)}
     >
       <Avatar>
-        <AvatarImage src={user.avatar} alt={user.name} />
-        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+        <AvatarImage src={user.avatar} alt={user.username} />
+        <AvatarFallback>{user.username.charAt(0)}</AvatarFallback>
       </Avatar>
       <div className="flex-1 overflow-hidden">
-        <p className="font-medium">{user.name}</p>
+        <p className="font-medium">{user.username}</p>
         <p className="truncate text-sm text-muted-foreground">{user.role}</p>
       </div>
       <div className="flex items-center gap-1 text-muted-foreground">
