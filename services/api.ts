@@ -22,20 +22,20 @@ export async function fetchUser(userId: number): Promise<User> {
   return response.json()
 }
 
-// Add a new student to a user
-export async function addStudent(userId: number, studentData: Omit<Student, "id" | "courses">): Promise<Student> {
-  const response = await fetch(`/api/users/${userId}/students`, {
+export const addStudent = async (userId: number, studentData: { name: string; birthdate: string }) => {
+  const response = await fetch(`http://localhost:8000/api/students/add/${userId}/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(studentData),
-  })
+  });
 
   if (!response.ok) {
-    throw new Error("Failed to add student")
+    throw new Error("Failed to add student");
   }
 
-  return response.json()
-}
+  return await response.json();
+};
+
 
