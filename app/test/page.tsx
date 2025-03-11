@@ -1,89 +1,40 @@
-// pages/checkout.tsx
-import React, { useState } from 'react';
-import Omise from 'omise';
+'use client'
 
-interface ICard {
-  name: string;
-  city: string;
-  postal_code: number | string;
-  number: string;
-  security_code: string;
-  expiration_month: number | string;
-  expiration_year: number | string;
-  country?: string;
-  state?: string;
-  phone_number?: string;
-  street1?: string;
-  street2?: string;
+import CheckoutPage from "@/components/payments/CheckoutPage";
+import convertToSubcurrency from "@/utils/convertCurrency";
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+
+if (process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY === undefined) {
+  throw new Error("NEXT_PUBLIC_STRIPE_PUBLIC_KEY is not defined");
 }
 
-const CheckoutPage = () => {
-  const [amount, setAmount] = useState(1000); // Amount in cents
-  const [isProcessing, setIsProcessing] = useState(false);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
-  const omise = Omise({
-    publicKey: process.env.NEXT_PUBLIC_OMISE_PUBLIC_KEY, // Ensure your public key is set in .env.local
-  });
+export default function Home() {
 
-  const handleCheckout = async () => {
-    setIsProcessing(true);
+  const amount = 49.99;
 
-    const card: ICard = {
-      name: 'Test User',
-      city: 'Bangkok',
-      postal_code: '10110',
-      number: '4242424242424242',
-      security_code: '123',
-      expiration_month: '12',
-      expiration_year: '2025',
-    };
-
-    try {
-      // Create a token with the card information (you'd typically get this from a form)
-      const token = await omise.tokens.create({card});
-
-      if (token) {
-        // Send the token to your backend for payment processing
-        const response = await fetch('/api/charge', {
-          method: 'POST',
-          body: JSON.stringify({ tokenId: token.id, amount }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          // Handle successful payment
-          alert('Payment successful');
-        } else {
-          // Handle error response
-          alert('Payment failed');
-        }
-      }
-    } catch (error) {
-      alert('Payment failed');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   return (
-    <div>
-      <h1>Checkout</h1>
-      <div>
-        <label htmlFor="amount">Amount (in cents):</label>
-        <input
-          id="amount"
-          type="number"
-          value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
-        />
+    <main className="max-w-6xl mx-auto p-10 text-white text-center border m-10 rounded-md bg-gradient-to-tr from-blue-500 to-purple-500">
+      <div className="mb-10">
+        <h1 className="text-4xl font-extrabold mb-2">Sonny</h1>
+        <h2 className="text-2xl">
+          has requested
+          <span className="font-bold"> ${amount}</span>
+        </h2>
       </div>
-      <button onClick={handleCheckout} disabled={isProcessing}>
-        {isProcessing ? 'Processing...' : 'Pay Now'}
-      </button>
-    </div>
-  );
-};
 
-export default CheckoutPage;
+      <Elements
+        stripe={stripePromise}
+        options={{
+          mode: "payment",
+          amount: convertToSubcurrency(amount),
+          currency: "thb",
+        }}
+      >
+        {/* <CheckoutPage amount={amount} /> */}
+      </Elements>
+  </main>)
+}
