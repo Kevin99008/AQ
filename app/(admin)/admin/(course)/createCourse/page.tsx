@@ -1,18 +1,16 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Upload, X } from "lucide-react"
+import { toast } from "react-toastify"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
@@ -21,22 +19,17 @@ const formSchema = z.object({
   name: z.string().min(3, { message: "Course name must be at least 3 characters" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   numberOfClasses: z.coerce.number().int().min(1, { message: "Course must have at least 1 class" }),
-  courseGroup: z.string({ required_error: "Please select a course group" }),
-  image: z.any().optional(),
+  levelId: z.string({ required_error: "Please select a course level" }), // Change courseGroup to levelId
 })
 
-const courseGroups = [
-  { id: "programming", name: "Programming" },
-  { id: "design", name: "Design" },
-  { id: "business", name: "Business" },
-  { id: "marketing", name: "Marketing" },
-  { id: "personal-development", name: "Personal Development" },
+const courseLevels = [
+  { id: "1", name: "Beginner" },
+  { id: "2", name: "Intermediate" },
+  { id: "3", name: "Advanced" },
 ]
 
 export default function CreateCoursePage() {
   const router = useRouter()
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -44,58 +37,46 @@ export default function CreateCoursePage() {
     defaultValues: {
       name: "",
       description: "",
-      numberOfClasses: 1,
-      courseGroup: "",
-      image: null,
+      numberOfClasses: 10,
+      levelId: "",
     },
   })
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setImageFile(file)
-    const reader = new FileReader()
-    reader.onload = () => {
-      setImagePreview(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
-
-  function removeImage() {
-    setImageFile(null)
-    setImagePreview(null)
-    form.setValue("image", null)
-  }
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
-
+  
     try {
-      // Here you would typically upload the image and submit the form data to your API
-      console.log("Form values:", values)
-      console.log("Image file:", imageFile)
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Success message and redirect
-      alert("Course created successfully!")
-      router.push("/courses") // Redirect to courses page
+      const response = await fetch("http://localhost:8000/api/courses/create/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          courseName: values.name,
+          description: values.description,
+          levelId: values.levelId,  // Just sending the levelId, not the entire level object
+        }),
+      })
+  
+      if (!response.ok) throw new Error("Failed to create course")
+  
+      toast.success("Course created successfully!")
+      router.push("/admin/createCourse")
     } catch (error) {
       console.error("Error creating course:", error)
-      alert("Failed to create course. Please try again.")
+      toast.error("Failed to create course. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
   }
+  
 
   return (
-    <div className="container max-w-3xl py-10">
+    <div className="container py-10 place-items-center">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Create New Course</CardTitle>
-          <CardDescription>Fill in the details below to create a new course. All fields are required.</CardDescription>
+          <CardDescription>Fill in the details below to create a new course.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -109,7 +90,6 @@ export default function CreateCoursePage() {
                     <FormControl>
                       <Input placeholder="Introduction to Web Development" {...field} />
                     </FormControl>
-                    <FormDescription>The name of your course as it will appear to students.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -122,13 +102,8 @@ export default function CreateCoursePage() {
                   <FormItem>
                     <FormLabel>Course Description</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Provide a detailed description of your course..."
-                        className="min-h-[120px]"
-                        {...field}
-                      />
+                      <Textarea placeholder="Provide a detailed description..." className="min-h-[120px]" {...field} />
                     </FormControl>
-                    <FormDescription>Describe what students will learn in this course.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -136,107 +111,42 @@ export default function CreateCoursePage() {
 
               <FormField
                 control={form.control}
-                name="image"
+                name="numberOfClasses"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Course Image</FormLabel>
+                    <FormLabel>Number of Classes</FormLabel>
                     <FormControl>
-                      <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:items-start">
-                        <div className="flex h-48 w-full items-center justify-center rounded-md border border-dashed sm:w-48">
-                          {imagePreview ? (
-                            <div className="relative h-full w-full">
-                              <Image
-                                src={imagePreview || "/placeholder.svg"}
-                                alt="Course preview"
-                                fill
-                                className="rounded-md object-cover"
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-2 top-2 h-6 w-6 rounded-full bg-background/80"
-                                onClick={removeImage}
-                              >
-                                <X className="h-4 w-4" />
-                                <span className="sr-only">Remove image</span>
-                              </Button>
-                            </div>
-                          ) : (
-                            <label
-                              htmlFor="courseImage"
-                              className="flex cursor-pointer flex-col items-center justify-center gap-1 p-4 text-center"
-                            >
-                              <Upload className="h-8 w-8 text-muted-foreground" />
-                              <span className="text-sm font-medium">Upload image</span>
-                              <span className="text-xs text-muted-foreground">SVG, PNG, JPG or GIF (max. 2MB)</span>
-                            </label>
-                          )}
-                        </div>
-                        <div className="w-full space-y-2">
-                          <div className="flex items-center justify-between">
-                            <FormDescription>Upload a high-quality image to represent your course.</FormDescription>
-                          </div>
-                          <Input
-                            id="courseImage"
-                            type="file"
-                            accept="image/*"
-                            className={imagePreview ? "hidden" : ""}
-                            onChange={(e) => {
-                              handleImageChange(e)
-                              field.onChange(e.target.files?.[0] || null)
-                            }}
-                          />
-                        </div>
-                      </div>
+                      <Input type="number" min="1" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <div className="grid gap-6 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="numberOfClasses"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Number of Classes</FormLabel>
+              <FormField
+                control={form.control}
+                name="levelId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Course Level</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <Input type="number" min="1" {...field} />
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a course level" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormDescription>How many classes does this course contain?</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="courseGroup"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Course Group</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a course group" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {courseGroups.map((group) => (
-                            <SelectItem key={group.id} value={group.id}>
-                              {group.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>The category this course belongs to.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                      <SelectContent>
+                        {courseLevels.map((level) => (
+                          <SelectItem key={level.id} value={level.id}>
+                            {level.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </form>
           </Form>
         </CardContent>
@@ -252,4 +162,3 @@ export default function CreateCoursePage() {
     </div>
   )
 }
-
