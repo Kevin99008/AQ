@@ -22,7 +22,7 @@ const CheckoutPage = ({amount}: { amount: number }) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ amount: convertToSubcurrency(amount) }),
+      body: JSON.stringify({ amount: convertToSubcurrency(amount), student_id: "1", course_id: "2" }),
     })
       .then((res) => res.json())
       .then((data) => setClientSecret(data.client_secret));
