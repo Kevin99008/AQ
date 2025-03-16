@@ -14,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Course name must be at least 3 characters" }),
@@ -44,22 +45,16 @@ export default function CreateCoursePage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
-  
+
     try {
-      const response = await fetch("http://localhost:8000/api/courses/create/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          courseName: values.name,
-          description: values.description,
-          levelId: values.levelId,  // Just sending the levelId, not the entire level object
-        }),
+      const response = await apiFetch("/api/courses/create/", "POST", {
+        courseName: values.name,
+        description: values.description,
+        levelId: values.levelId,  // Just sending the levelId, not the entire level object
       })
-  
-      if (!response.ok) throw new Error("Failed to create course")
-  
+
+      if (response === TOKEN_EXPIRED) throw new Error("Token expired. Please log in again.")
+
       toast.success("Course created successfully!")
       router.push("/admin/createCourse")
     } catch (error) {

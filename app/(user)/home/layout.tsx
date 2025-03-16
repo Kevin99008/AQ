@@ -1,16 +1,16 @@
 import type React from "react"
-import Sidebar from "@/components/Sidebar"
+import Sidebar from "@/components/userComponent/Sidebar"
 
-export default function AdminLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">{children}</main>
-    </div>
+        <div className="flex min-h-screen">
+          <Sidebar />
+          <main className="flex-1 p-4 md:p-8">{children}</main>
+        </div>
   )
 }
 
