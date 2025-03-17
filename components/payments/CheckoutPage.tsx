@@ -11,13 +11,17 @@ import convertToSubcurrency from "@/utils/convertCurrency";
 const CheckoutPage = ({
     amount,
     studentId, 
-    courseId, 
-    date,  
+    courseId,
+    teacherId, 
+    date, 
+    time, 
   }: { 
     amount: number;
     studentId: string;
     courseId: string;
+    teacherId: string;
     date: string;
+    time: string;
   }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -36,7 +40,7 @@ const CheckoutPage = ({
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ amount: convertToSubcurrency(amount), student_id: studentId, course_id: courseId, date: date }),
+      body: JSON.stringify({ amount: convertToSubcurrency(amount), student_id: studentId, course_id: courseId, date: date, teacher_id: teacherId, start_time: time }),
     })
       .then((res) => res.json())
       .then((data) => setClientSecret(data.client_secret));
@@ -62,7 +66,7 @@ const CheckoutPage = ({
       elements,
       clientSecret,
       confirmParams: {
-        return_url: `http://www.localhost:3000/payment-success?amount=${amount}`,
+        return_url: `http://www.localhost:3000/admin/enrollCourse/payment-success?amount=${amount}`,
       },
     });
 
@@ -94,7 +98,7 @@ const CheckoutPage = ({
   }
   
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-2 rounded-md">
+    <form onSubmit={handleSubmit} className="bg-white p-2 rounded-md w-full">
       {clientSecret && <PaymentElement />}
 
       {errorMessage && <div>{errorMessage}</div>}
@@ -103,7 +107,7 @@ const CheckoutPage = ({
         disabled={!stripe || loading}
         className="text-white w-full p-5 bg-black mt-2 rounded-md font-bold disabled:opacity-50 disabled:animate-pulse"
       >
-        {!loading ? `Pay $${amount}` : "Processing..."}
+        {!loading ? `Pay` : "Processing..."}
       </button>
     </form>
   )

@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 import { StepIndicator } from "@/components/dashboard/step-indicator"
-import type { StudentRaw, User } from "@/types/user"
+import type { StudentRaw, TeacherRaw } from "@/types/user"
 import type { CourseRaw } from "@/types/course"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon } from "lucide-react"
@@ -41,18 +41,20 @@ export default function EnrollmentPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [users, setUsers] = useState<StudentRaw[]>([])
   const [courses, setCourses] = useState<CourseRaw[]>([])
+  const [teachers, setTeachers] = useState<TeacherRaw[]>([])
   const [selectedStudent, setSelectedStudent] = useState<StudentRaw | null>(null)
   const [selectedCourse, setSelectedCourse] = useState<CourseRaw | null>(null)
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherRaw | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [searchCourseQuery, setSearchCourseQuery] = useState("")
+  const [searchTeacherQuery, setSearchTeacherQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [date, setDate] = useState(new Date())
   const [price, setPrice] = useState(10)
-  const [time, setTime] = useState('00:00');
   const [selectedTime, setSelectedTime] = useState<string>("")
 
-  const steps = ["Select Student", "Select Course", "Confirm Enrollment"]
+  const steps = ["Select Student", "Select Course", "Select Teacher", "Confirm Enrollment"]
   // const [users, setUsers] = useState<User[]>([])
   // Filter users based on search query
   const filteredStudent = users.filter(
@@ -66,6 +68,12 @@ export default function EnrollmentPage() {
     (course) =>
       (course.courseName?.toLowerCase() || "").includes((searchCourseQuery || "").toLowerCase()),
 
+  )
+
+  const filteredTeacger = teachers.filter(
+    (teacher) =>
+      (teacher.name?.toLowerCase() || "").includes((searchTeacherQuery || "").toLowerCase()) ||
+      (teacher.username?.toLowerCase() || "").includes((searchTeacherQuery || "").toLowerCase()),
   )
 
   // Fetch users and courses on initial load
@@ -82,6 +90,11 @@ export default function EnrollmentPage() {
         const coursesData = await apiFetch<CourseRaw[]>('/api/courses/');
         if (coursesData !== TOKEN_EXPIRED) {
           setCourses(coursesData);  // Set data only if the token is not expired
+        }
+       
+        const teachersData = await apiFetch<TeacherRaw[]>('/api/teachersreforge/');
+        if (teachersData !== TOKEN_EXPIRED) {
+          setTeachers(teachersData);  // Set data only if the token is not expired
         }
 
       } catch (err: any) {
@@ -112,18 +125,35 @@ export default function EnrollmentPage() {
     setCurrentStep(2) // Move to confirmation step
   }
 
+  const handlerTeacherSelect = (teacher: TeacherRaw) => {
+    setSelectedTeacher(teacher)
+    setCurrentStep(3)
+  }
+
   // Handle enrollment submission
   const handleEnrollment = async () => {
-    if (!selectedStudent || !selectedCourse) return
-
+    if (!selectedStudent || !selectedCourse || !selectedTeacher) return
+    if (price < 10) {
+      toast.error("Price must be not be less than 10")
+      return
+    }
+    if (selectedTime === "") {
+      toast.error("Please select time for session")
+      return
+    }
     try {
       setIsSubmitting(true)
 
       const amount = price;
-      const formattedDate = encodeURIComponent(date.toISOString());
       const studentId = selectedStudent.id
       const courseId = selectedCourse.id
-      const url = `/admin/enrollCourse/payment?amount=${amount}&date=${formattedDate}&studentId=${studentId}&courseId=${courseId}`;
+      const teacherId = selectedTeacher.id
+
+      const bangkokOffset = 7 * 60;
+      const selecteddate = new Date(date.getTime() + bangkokOffset * 60 * 1000);
+      const formattedDate = encodeURIComponent(selecteddate.toISOString());
+      const time = selectedTime
+      const url = `/admin/enrollCourse/payment?amount=${amount}&date=${formattedDate}&studentId=${studentId}&courseId=${courseId}&teacherId=${teacherId}&time=${time}`;
       push(url);
 
     } catch (error) {
@@ -265,6 +295,58 @@ export default function EnrollmentPage() {
         )}
 
         {currentStep === 2 && selectedStudent && selectedCourse && (
+          <>
+            <CardHeader>
+              <CardTitle>Select Teacher</CardTitle>
+              <CardDescription>Choose which teacher to enroll in a course</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search students..."
+                    className="pl-8"
+                    value={searchTeacherQuery}
+                    onChange={(e) => setSearchTeacherQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <RadioGroup className="space-y-3">
+                {filteredTeacger.map((teacher) => (
+                  <div key={teacher.id} className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      value={teacher.id.toString()}
+                      id={`student-${teacher.id}`}
+                      onClick={() => handlerTeacherSelect(teacher)}
+                    />
+                    <Label
+                      htmlFor={`student-${teacher.id}`}
+                      className="flex flex-1 items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-muted/50"
+                    >
+                      <div>
+                        <p className="font-medium">{teacher.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Username: {teacher.username}
+                        </p>
+                      </div>
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button variant="outline" onClick={handleBack}>
+                Back
+              </Button>
+            </CardFooter>
+          </>
+        )}
+
+        {currentStep === 3 && selectedStudent && selectedCourse && selectedTeacher && (
           <>
             <CardHeader>
               <CardTitle>Confirm Enrollment</CardTitle>

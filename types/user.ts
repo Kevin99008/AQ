@@ -26,3 +26,9 @@ export interface StudentRaw {
   birthdate: string;
   username: string
 }
+
+export interface TeacherRaw {
+  id: number;
+  name: string;
+  username: string;
+}
