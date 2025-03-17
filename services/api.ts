@@ -1,3 +1,4 @@
+import { Course } from "@/types/course"
 import type { Student, User } from "@/types/user"
 
 // Fetch all users
@@ -39,3 +40,34 @@ export const addStudent = async (userId: number, studentData: { name: string; bi
 };
 
 
+// Fetch all courses
+export async function fetchCourses(): Promise<Course[]> {
+  const response = await fetch("/api/courses")
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch courses")
+  }
+
+  return response.json()
+}
+
+// Enroll a student in a course
+export async function enrollStudentInCourse(
+  studentId: number,
+  courseId: number,
+): Promise<{ success: boolean; message: string; student: Student }> {
+  const response = await fetch(`/api/students/${studentId}/enroll`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ courseId }),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(errorData.error || "Failed to enroll student")
+  }
+
+  return response.json()
+}
