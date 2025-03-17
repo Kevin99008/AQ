@@ -14,13 +14,13 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
 export default function Home() {
 
-    const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
 
-    // Extract query parameters
-    const amount = Number(searchParams.get("amount")) || 0;
-    const date = searchParams.get("date") || "";
-    const studentId = searchParams.get("studentId") || "";
-    const courseId = searchParams.get("courseId") || "";
+  // Extract query parameters
+  const amount = Number(searchParams.get("amount")) || 0;
+  const date = searchParams.get("date") || "";
+  const studentId = searchParams.get("studentId") || "";
+  const courseId = searchParams.get("courseId") || "";
 
   return (
     <main className="max-w-6xl mx-auto p-10 text-white text-center border m-10 rounded-md bg-gradient-to-tr from-blue-500 to-purple-500">
@@ -42,7 +42,7 @@ export default function Home() {
           currency: "thb",
         }}
       >
-        <CheckoutPage amount={amount} />
+        <CheckoutPage amount={amount} date={date} studentId={studentId} courseId={courseId} />
       </Elements>
-  </main>)
+    </main>)
 }

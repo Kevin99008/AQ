@@ -8,21 +8,35 @@ import {
 } from "@stripe/react-stripe-js";
 import convertToSubcurrency from "@/utils/convertCurrency";
 
-const CheckoutPage = ({amount}: { amount: number }) => {
+const CheckoutPage = ({
+    amount,
+    studentId, 
+    courseId, 
+    date,  
+  }: { 
+    amount: number;
+    studentId: string;
+    courseId: string;
+    date: string;
+  }) => {
   const stripe = useStripe();
   const elements = useElements();
   
   const [errorMessage, setErrorMessage] = useState<string>();
   const [clientSecret, setClientSecret] = useState("");
   const [loading, setLoading] = useState(false);
+  const [paymentIntentCreated, setPaymentIntentCreated] = useState(false);
 
   useEffect(() => {
+    if (paymentIntentCreated || amount <= 0) return; // Prevent re-fetching if already created
+    setPaymentIntentCreated(true);
+
     fetch("http://localhost:8000/api/create-payment-intent/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ amount: convertToSubcurrency(amount), student_id: "1", course_id: "2" }),
+      body: JSON.stringify({ amount: convertToSubcurrency(amount), student_id: studentId, course_id: courseId, date: date }),
     })
       .then((res) => res.json())
       .then((data) => setClientSecret(data.client_secret));

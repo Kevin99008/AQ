@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 import { StepIndicator } from "@/components/dashboard/step-indicator"
@@ -19,8 +18,8 @@ import type { CourseRaw } from "@/types/course"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
-import { fetchUsers, fetchUser, fetchCourses, enrollStudentInCourse } from "@/services/api"
 import { format } from "date-fns"
+
 
 export default function EnrollmentPage() {
   const { push } = useRouter();
@@ -34,7 +33,8 @@ export default function EnrollmentPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [date, setDate] = useState(new Date())
-  const [price, setPrice] = useState(1)
+  const [price, setPrice] = useState(10)
+  const [time, setTime] = useState('00:00');
 
   const steps = ["Select Student", "Select Course", "Confirm Enrollment"]
   // const [users, setUsers] = useState<User[]>([])
@@ -108,7 +108,7 @@ export default function EnrollmentPage() {
       const courseId = selectedCourse.id
       const url = `/admin/enrollCourse/payment?amount=${amount}&date=${formattedDate}&studentId=${studentId}&courseId=${courseId}`;
       push(url);
-      
+
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message)
@@ -288,9 +288,15 @@ export default function EnrollmentPage() {
                           // Override any specific classes here
                           day_selected: "bg-blue-500 text-white hover:bg-blue-600 hover:text-white",
                           // Add more overrides as needed
-                        }} initialFocus />
+                        }} 
+                        />
                     </PopoverContent>
                   </Popover>
+
+                  <h3 className="font-medium mb-1">Time</h3>
+                   
+                   
+                 
                 </div>
 
                 <div className="p-3 border rounded-md bg-muted/50">
@@ -302,9 +308,9 @@ export default function EnrollmentPage() {
                     <Input
                       id="credit-quantity"
                       type="number"
-                      min={1}
-                      max={10}
-                      value={price}
+                      min={10}
+                      max={99999}
+                      value={price === 0 ? '' : price} 
                       onChange={(e) => {
                         const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10)
                         setPrice(isNaN(value) ? 0 : value) // Ensure we never set NaN
