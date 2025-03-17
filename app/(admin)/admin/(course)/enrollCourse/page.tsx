@@ -12,31 +12,43 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-
+import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 import { StepIndicator } from "@/components/dashboard/step-indicator"
-import type { User, Student } from "@/types/user"
-import type { Course } from "@/types/course"
+import type { StudentRaw, User } from "@/types/user"
+import type { CourseRaw } from "@/types/course"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { CalendarIcon } from "lucide-react"
+import { Calendar } from "@/components/ui/calendar"
 import { fetchUsers, fetchUser, fetchCourses, enrollStudentInCourse } from "@/services/api"
+import { format } from "date-fns"
 
 export default function EnrollmentPage() {
-  const router = useRouter()
+  const { push } = useRouter();
   const [currentStep, setCurrentStep] = useState(0)
-  const [users, setUsers] = useState<User[]>([])
-  const [courses, setCourses] = useState<Course[]>([])
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
+  const [users, setUsers] = useState<StudentRaw[]>([])
+  const [courses, setCourses] = useState<CourseRaw[]>([])
+  const [selectedStudent, setSelectedStudent] = useState<StudentRaw | null>(null)
+  const [selectedCourse, setSelectedCourse] = useState<CourseRaw | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
+  const [searchCourseQuery, setSearchCourseQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [date, setDate] = useState(new Date())
+  const [price, setPrice] = useState(1)
 
-  const steps = ["Select Parent", "Select Student", "Select Course", "Confirm Enrollment"]
-
+  const steps = ["Select Student", "Select Course", "Confirm Enrollment"]
+  // const [users, setUsers] = useState<User[]>([])
   // Filter users based on search query
-  const filteredUsers = users.filter(
+  const filteredStudent = users.filter(
     (user) =>
-      (user.username?.toLowerCase() || "").includes((searchQuery || "").toLowerCase()) ||
-      (user.role?.toLowerCase() || "").includes((searchQuery || "").toLowerCase()),
+      (user.name?.toLowerCase() || "").includes((searchQuery || "").toLowerCase()),
+
+  )
+
+  const filteredCourse = courses.filter(
+    (course) =>
+      (course.courseName?.toLowerCase() || "").includes((searchCourseQuery || "").toLowerCase()),
+
   )
 
   // Fetch users and courses on initial load
@@ -44,13 +56,25 @@ export default function EnrollmentPage() {
     async function loadData() {
       try {
         setIsLoading(true)
-        const [usersData, coursesData] = await Promise.all([fetchUsers(), fetchCourses()])
-        setUsers(usersData)
-        setCourses(coursesData)
-      } catch (error) {
-        toast.error("Failed to load data. Please refresh the page.")
-        console.error("Failed to fetch data:", error)
-      } finally {
+
+        const studentsData = await apiFetch<StudentRaw[]>('/api/students');
+        if (studentsData !== TOKEN_EXPIRED) {
+          setUsers(studentsData);  // Set data only if the token is not expired
+        }
+
+        const coursesData = await apiFetch<CourseRaw[]>('/api/courses/');
+        if (coursesData !== TOKEN_EXPIRED) {
+          setCourses(coursesData);  // Set data only if the token is not expired
+        }
+
+      } catch (err: any) {
+        if (err instanceof Error) {
+          toast.error(err.message);
+        } else {
+          toast.error("Something went wrong");
+        }
+      }
+      finally {
         setIsLoading(false)
       }
     }
@@ -58,29 +82,17 @@ export default function EnrollmentPage() {
     loadData()
   }, [])
 
-  // Handle user selection
-  const handleUserSelect = async (user: User) => {
-    try {
-      // Fetch the full user data with students
-      const userData = await fetchUser(user.id)
-      setSelectedUser(userData)
-      setCurrentStep(1) // Move to student selection step
-    } catch (error) {
-      toast.error("Failed to load user details.")
-      console.error("Failed to fetch user details:", error)
-    }
-  }
 
   // Handle student selection
-  const handleStudentSelect = (student: Student) => {
+  const handleStudentSelect = (student: StudentRaw) => {
     setSelectedStudent(student)
-    setCurrentStep(2) // Move to course selection step
+    setCurrentStep(1) // Move to course selection step
   }
 
   // Handle course selection
-  const handleCourseSelect = (course: Course) => {
+  const handleCourseSelect = (course: CourseRaw) => {
     setSelectedCourse(course)
-    setCurrentStep(3) // Move to confirmation step
+    setCurrentStep(2) // Move to confirmation step
   }
 
   // Handle enrollment submission
@@ -90,18 +102,13 @@ export default function EnrollmentPage() {
     try {
       setIsSubmitting(true)
 
-      const result = await enrollStudentInCourse(selectedStudent.id, selectedCourse.id)
-
-      toast.success(result.message)
-
-      // Reset form and go back to first step
-      setSelectedUser(null)
-      setSelectedStudent(null)
-      setSelectedCourse(null)
-      setCurrentStep(0)
-
-      // Optionally redirect to another page
-      // router.push('/students')
+      const amount = price;
+      const formattedDate = encodeURIComponent(date.toISOString());
+      const studentId = selectedStudent.id
+      const courseId = selectedCourse.id
+      const url = `/admin/enrollCourse/payment?amount=${amount}&date=${formattedDate}&studentId=${studentId}&courseId=${courseId}`;
+      push(url);
+      
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message)
@@ -139,8 +146,8 @@ export default function EnrollmentPage() {
         {currentStep === 0 && (
           <>
             <CardHeader>
-              <CardTitle>Select Parent</CardTitle>
-              <CardDescription>Choose the parent of the student you want to enroll</CardDescription>
+              <CardTitle>Select Student</CardTitle>
+              <CardDescription>Choose which student to enroll in a course</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="mb-4">
@@ -148,7 +155,7 @@ export default function EnrollmentPage() {
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
-                    placeholder="Search parents..."
+                    placeholder="Search students..."
                     className="pl-8"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -156,84 +163,29 @@ export default function EnrollmentPage() {
                 </div>
               </div>
 
-              <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center gap-3 p-3 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => handleUserSelect(user)}
+              <RadioGroup className="space-y-3">
+                {filteredStudent.map((student) => (
+                  <div key={student.id} className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      value={student.id.toString()}
+                      id={`student-${student.id}`}
+                      onClick={() => handleStudentSelect(student)}
+                    />
+                    <Label
+                      htmlFor={`student-${student.id}`}
+                      className="flex flex-1 items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-muted/50"
                     >
-                      <Avatar>
-                        <AvatarImage src={user.avatar || ""} alt={user.username} />
-                        <AvatarFallback>{user.username.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium">{user.username}</p>
-                        <p className="text-sm text-muted-foreground">{user.role}</p>
+                      <div>
+                        <p className="font-medium">{student.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Born: {new Date(student.birthdate).toLocaleDateString()}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <span className="text-sm">{user.students?.length || 0} students</span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-center text-muted-foreground py-4">No parents found</p>
-                )}
-              </div>
-            </CardContent>
-          </>
-        )}
-
-        {currentStep === 1 && selectedUser && (
-          <>
-            <CardHeader>
-              <CardTitle>Select Student</CardTitle>
-              <CardDescription>Choose which student to enroll in a course</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <div className="flex items-center gap-3 p-3 border rounded-md bg-muted/50">
-                  <Avatar>
-                    <AvatarImage src={selectedUser.avatar || ""} alt={selectedUser.username} />
-                    <AvatarFallback>{selectedUser.username.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{selectedUser.username}</p>
-                    <p className="text-sm text-muted-foreground">{selectedUser.role}</p>
+                    </Label>
                   </div>
-                </div>
-              </div>
+                ))}
+              </RadioGroup>
 
-              {selectedUser.students.length > 0 ? (
-                <RadioGroup className="space-y-3">
-                  {selectedUser.students.map((student) => (
-                    <div key={student.id} className="flex items-center space-x-2">
-                      <RadioGroupItem
-                        value={student.id.toString()}
-                        id={`student-${student.id}`}
-                        onClick={() => handleStudentSelect(student)}
-                      />
-                      <Label
-                        htmlFor={`student-${student.id}`}
-                        className="flex flex-1 items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-muted/50"
-                      >
-                        <div>
-                          <p className="font-medium">{student.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Born: {new Date(student.birthdate).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Badge variant="outline">{student.sessions.length} courses</Badge>
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              ) : (
-                <p className="text-center text-muted-foreground py-4">
-                  No students found for this parent. Please add a student first.
-                </p>
-              )}
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button variant="outline" onClick={handleBack}>
@@ -243,7 +195,7 @@ export default function EnrollmentPage() {
           </>
         )}
 
-        {currentStep === 2 && selectedStudent && (
+        {currentStep === 1 && selectedStudent && (
           <>
             <CardHeader>
               <CardTitle>Select Course</CardTitle>
@@ -251,34 +203,34 @@ export default function EnrollmentPage() {
             </CardHeader>
             <CardContent>
               <div className="mb-4">
-                <div className="flex items-center gap-3 p-3 border rounded-md bg-muted/50">
-                  <div>
-                    <p className="font-medium">{selectedStudent.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Born: {new Date(selectedStudent.birthdate).toLocaleDateString()}
-                    </p>
-                  </div>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search courses..."
+                    className="pl-8"
+                    value={searchCourseQuery}
+                    onChange={(e) => setSearchCourseQuery(e.target.value)}
+                  />
                 </div>
               </div>
 
               <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                {courses.map((course) => (
+                {filteredCourse.map((course) => (
                   <div
                     key={course.id}
                     className="p-3 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => handleCourseSelect(course)}
                   >
                     <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-medium">{course.name}</h3>
+                      <h3 className="font-medium">{course.courseName}</h3>
                       <Badge>{course.level}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">{course.description}</p>
                     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span>Category: {course.category}</span>
+                      <span>Category: {course.description}</span>
                       <span>•</span>
-                      <span>Duration: {course.duration}</span>
-                      <span>•</span>
-                      <span>Starts: {new Date(course.startDate).toLocaleDateString()}</span>
+                      <span>Level: {course.level}</span>
                     </div>
                   </div>
                 ))}
@@ -292,7 +244,7 @@ export default function EnrollmentPage() {
           </>
         )}
 
-        {currentStep === 3 && selectedUser && selectedStudent && selectedCourse && (
+        {currentStep === 2 && selectedStudent && selectedCourse && (
           <>
             <CardHeader>
               <CardTitle>Confirm Enrollment</CardTitle>
@@ -300,10 +252,6 @@ export default function EnrollmentPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-3 border rounded-md bg-muted/50">
-                  <h3 className="font-medium mb-1">Parent</h3>
-                  <p>{selectedUser.username}</p>
-                </div>
 
                 <div className="p-3 border rounded-md bg-muted/50">
                   <h3 className="font-medium mb-1">Student</h3>
@@ -315,33 +263,58 @@ export default function EnrollmentPage() {
 
                 <div className="p-3 border rounded-md bg-muted/50">
                   <h3 className="font-medium mb-1">Course</h3>
-                  <p>{selectedCourse.name}</p>
+                  <p>{selectedCourse.courseName}</p>
                   <p className="text-sm text-muted-foreground">{selectedCourse.description}</p>
                   <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-2">
-                    <span>Category: {selectedCourse.category}</span>
+                    <span>Quota: {selectedCourse.quota}</span>
                     <span>•</span>
                     <span>Level: {selectedCourse.level}</span>
-                    <span>•</span>
-                    <span>Duration: {selectedCourse.duration}</span>
-                    <span>•</span>
-                    <span>Starts: {new Date(selectedCourse.startDate).toLocaleDateString()}</span>
                   </div>
                 </div>
 
                 <div className="p-3 border rounded-md bg-muted/50">
-                  <h3 className="font-medium mb-1">Current Courses</h3>
-                  {selectedStudent.sessions.length > 0 ? (
-                    <div className="flex flex-wrap gap-1">
-                      {selectedStudent.sessions.map((session, index) => (
-                        <Badge key={index} variant="secondary">
-                          {session.courseName}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No courses enrolled</p>
-                  )}
+                  <h3 className="font-medium mb-1">Start Date</h3>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal mt-1">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP") : <span>Select a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={date} onSelect={(newDate) => newDate && setDate(newDate)}
+                        className="!opacity-100 bg-background bg-white"
+                        classNames={{
+                          // Override any specific classes here
+                          day_selected: "bg-blue-500 text-white hover:bg-blue-600 hover:text-white",
+                          // Add more overrides as needed
+                        }} initialFocus />
+                    </PopoverContent>
+                  </Popover>
                 </div>
+
+                <div className="p-3 border rounded-md bg-muted/50">
+                  <h3 className="font-medium mb-1">Price</h3>
+                  <div className="mt-1">
+                    <Label htmlFor="credit-quantity" className="sr-only">
+                      Credits
+                    </Label>
+                    <Input
+                      id="credit-quantity"
+                      type="number"
+                      min={1}
+                      max={10}
+                      value={price}
+                      onChange={(e) => {
+                        const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10)
+                        setPrice(isNaN(value) ? 0 : value) // Ensure we never set NaN
+                      }}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Enter price for payment </p>
+                  </div>
+                </div>
+
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">

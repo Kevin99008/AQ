@@ -19,3 +19,9 @@ export interface User {
   contact: string;
   students: Student[];
 }
+
+export interface StudentRaw {
+  id: number;
+  name: string;
+  birthdate: string;
+}

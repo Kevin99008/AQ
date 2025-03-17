@@ -8,3 +8,10 @@ export interface Course {
   startDate: string
 }
 
+export interface CourseRaw {
+  id: number
+  courseName: string
+  description: string
+  level: "Beginner" | "Intermediate" | "Advanced"
+  quota: number
+}
