@@ -18,19 +18,19 @@ export default function Sidebar() {
         </Link>
       </li>
       <li>
-        <Link href="/admin/aquakids" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
+        <Link href="/admin/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
           <WavesLadder size={20} />
           <span>Aquakids</span>
         </Link>
       </li>
       <li>
-        <Link href="/admin/playsound" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
+        <Link href="/admin/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
           <Music4 size={20} />
           <span>Playsound</span>
         </Link>
       </li>
       <li>
-        <Link href="/admin/other" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
+        <Link href="/admin/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
           <BookA size={20} />
           <span>Other</span>
         </Link>
@@ -51,6 +51,12 @@ export default function Sidebar() {
         <Link href="/admin/memberList" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
           <Users size={20} />
           <span>Members</span>
+        </Link>
+      </li>
+      <li>
+        <Link href="/admin/userList" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
+          <Users size={20} />
+          <span>Users</span>
         </Link>
       </li>
       <li>

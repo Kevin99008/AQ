@@ -19,6 +19,13 @@ export function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     const accessToken = request.cookies.get('accessToken')?.value; // Get access token using the utility function
 
+    const DEBUG_MODE = true;
+
+    if (DEBUG_MODE) {
+        console.log("Middleware Debug Mode Enabled 🚨");
+        return NextResponse.next();
+    }
+
     // Check if the token exists and if it's expired
     if (!accessToken) {
         console.log("No token, redirecting to login...");

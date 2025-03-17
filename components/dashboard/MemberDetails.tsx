@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 interface Member {
   id: number
   name: string
-  phoneNumber: string
+  contact: string
   role: string
 }
 
@@ -26,8 +26,8 @@ export default function MemberDetails({ member, onClose }: MemberDetailsProps) {
             <span className="col-span-3">{member.id}</span>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <span className="font-bold">phoneNumber:</span>
-            <span className="col-span-3">{member.phoneNumber}</span>
+            <span className="font-bold">contact:</span>
+            <span className="col-span-3">{member.contact}</span>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <span className="font-bold">Role:</span>
