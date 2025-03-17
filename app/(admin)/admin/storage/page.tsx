@@ -50,7 +50,7 @@ export default function StorageComponent() {
           push("/login");
         } else {
           setLogsData(result); // Set the fetched logs data
-          toast.success('Data fetched successfully!');
+          // toast.success('Data fetched successfully!');
         }
       } catch (err: any) {
         if (err instanceof Error) {
