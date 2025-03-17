@@ -24,4 +24,5 @@ export interface StudentRaw {
   id: number;
   name: string;
   birthdate: string;
+  username: string
 }

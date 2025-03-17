@@ -41,7 +41,8 @@ export default function EnrollmentPage() {
   // Filter users based on search query
   const filteredStudent = users.filter(
     (user) =>
-      (user.name?.toLowerCase() || "").includes((searchQuery || "").toLowerCase()),
+      (user.name?.toLowerCase() || "").includes((searchQuery || "").toLowerCase()) ||
+      (user.username?.toLowerCase() || "").includes((searchQuery || "").toLowerCase()),
 
   )
 
@@ -57,7 +58,7 @@ export default function EnrollmentPage() {
       try {
         setIsLoading(true)
 
-        const studentsData = await apiFetch<StudentRaw[]>('/api/students');
+        const studentsData = await apiFetch<StudentRaw[]>('/api/studentsreforge');
         if (studentsData !== TOKEN_EXPIRED) {
           setUsers(studentsData);  // Set data only if the token is not expired
         }
@@ -177,6 +178,9 @@ export default function EnrollmentPage() {
                     >
                       <div>
                         <p className="font-medium">{student.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Username: {student.username}
+                        </p>
                         <p className="text-sm text-muted-foreground">
                           Born: {new Date(student.birthdate).toLocaleDateString()}
                         </p>
