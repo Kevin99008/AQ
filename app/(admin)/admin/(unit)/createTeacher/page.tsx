@@ -39,7 +39,7 @@ export default function CreateAccountPage() {
     console.log("Form submitted:", formData)
 
     try {
-      const response = await apiFetch<UserResponse>("/api/user/create/", "POST", {
+      const response = await apiFetch<UserResponse>("/api/teachers/create/", "POST", {
         first_name: formData.firstName,
         last_name: formData.lastName,
         username: formData.username,
@@ -57,7 +57,7 @@ export default function CreateAccountPage() {
           contact: "",
           password: ""
         })
-        toast.success('user created successfully!');
+        toast.success('teacher created successfully!');
       }
     } catch (error: any) {
       if (error instanceof Error) {
