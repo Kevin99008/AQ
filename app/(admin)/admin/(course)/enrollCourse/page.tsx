@@ -19,7 +19,22 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+// Available time slots
+const timeSlots = [
+  "08:00 AM",
+  "09:00 AM",
+  "10:00 AM",
+  "11:00 AM",
+  "12:00 PM",
+  "01:00 PM",
+  "02:00 PM",
+  "03:00 PM",
+  "04:00 PM",
+  "05:00 PM",
+  "06:00 PM",
+]
 
 export default function EnrollmentPage() {
   const { push } = useRouter();
@@ -35,6 +50,7 @@ export default function EnrollmentPage() {
   const [date, setDate] = useState(new Date())
   const [price, setPrice] = useState(10)
   const [time, setTime] = useState('00:00');
+  const [selectedTime, setSelectedTime] = useState<string>("")
 
   const steps = ["Select Student", "Select Course", "Confirm Enrollment"]
   // const [users, setUsers] = useState<User[]>([])
@@ -292,11 +308,22 @@ export default function EnrollmentPage() {
                         />
                     </PopoverContent>
                   </Popover>
-
-                  <h3 className="font-medium mb-1">Time</h3>
                    
-                   
-                 
+                  <div className="space-y-2">
+                    <Label htmlFor="time-select">Select Time</Label>
+                    <Select value={selectedTime} onValueChange={setSelectedTime}>
+                      <SelectTrigger id="time-select">
+                        <SelectValue placeholder="Select a time" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {timeSlots.map((time, index) => (
+                          <SelectItem className="hover:bg-gray-200" key={index} value={time}>
+                            {time}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="p-3 border rounded-md bg-muted/50">
