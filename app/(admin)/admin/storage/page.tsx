@@ -150,6 +150,41 @@ export default function StorageComponent() {
     }
   }
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const formData = new FormData();
+      if (file) {
+        formData.append("storage_image", file); 
+      }
+
+      try {
+        const data = await apiFetchFormData<LogResponse>(`/api/storages/image/${id}`, "PATCH", formData);
+        if (data === TOKEN_EXPIRED) {
+          push("/login");
+        } else {
+          setLogsData((prevData) =>
+            prevData.map((log) =>
+              log.id === data.id ? { ...log, storage_image: data.storage_image || defaultImg } : log
+            )
+          );
+          toast.success("Image change successfully!");
+        }
+      } catch (err: any) {
+        if (err instanceof Error) {
+          toast.error(err.message);
+        } else {
+          toast.error("Something went wrong");
+        }
+      }
+
+
+    } else {
+      
+    }
+  }
+
+
   type LogResponse = {
     id: number
     title: string
@@ -249,6 +284,9 @@ export default function StorageComponent() {
                             height={50}
                             className="rounded-md"
                           />
+                          {isEditing && (
+                            <Input type="file" accept="image/*" className="w-auto" onChange={(e) => handleImageChange(e, log.id)} />
+                        )}
                         </TableCell>
                         <TableCell>{log.title}</TableCell>
                         <TableCell>{log.quantity}</TableCell>
@@ -280,6 +318,9 @@ export default function StorageComponent() {
                           height={100}
                           className="rounded-md mb-2"
                         />
+                         {isEditing && (
+                            <Input type="file" accept="image/*" className="w-auto" onChange={(e) => handleImageChange(e, log.id)} />
+                        )}
                         <h3 className="font-semibold">{log.title}</h3>
                         <p>Quantity: {log.quantity}</p>
                         {isEditing && (
