@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Camera, AlertCircle, RefreshCw, QrCode } from "lucide-react"
 import { Html5QrcodeScanner } from "html5-qrcode"
-import Link from "next/link"
 
 export default function CheckAttendance() {
   const [scanning, setScanning] = useState(false)
@@ -108,14 +107,14 @@ export default function CheckAttendance() {
               <p className="text-center text-muted-foreground mb-4">
                 Click the button below to start scanning QR codes with your camera
               </p>
-              <Button onClick={startScanning} size="lg">
+              <Button onClick={startScanning} size="lg" className="bg-black text-white">
                 Start Camera
               </Button>
             </div>
           ) : (
             <div className="flex flex-col items-center">
               <div id="reader" className="w-full max-w-md"></div>
-              <Button onClick={stopScanning} variant="outline" className="mt-4">
+              <Button onClick={stopScanning} variant="outline" className="mt-4 bg-black text-white" >
                 Stop Scanning
               </Button>
             </div>
@@ -175,15 +174,6 @@ export default function CheckAttendance() {
           </CardContent>
         </Card>
       )}
-
-      <div className="mt-8 text-center">
-        <Button variant="outline" asChild>
-          <Link href="/generate">
-            <QrCode className="h-4 w-4 mr-2" />
-            Generate QR Code
-          </Link>
-        </Button>
-      </div>
     </div>
   )
 }

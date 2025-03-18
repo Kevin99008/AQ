@@ -31,7 +31,7 @@ interface Child {
 export default function CertificatePage({ params }: { params: { courseId: string } }) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const childId = searchParams.get("childId")
+  const studentId = searchParams.get("studentId")
   const courseId = params.courseId
 
   const [course, setCourse] = useState<CompletedCourseDetail | null>(null)
@@ -41,7 +41,7 @@ export default function CertificatePage({ params }: { params: { courseId: string
 
   // Fetch certificate details
   useEffect(() => {
-    if (!childId) return
+    if (!studentId) return
 
     const fetchCertificateDetails = async () => {
       setLoading(true)
@@ -49,7 +49,7 @@ export default function CertificatePage({ params }: { params: { courseId: string
 
       try {
         // Fetch course details
-        const courseResponse = await fetch(`/api/courses/completed/${courseId}?childId=${childId}`)
+        const courseResponse = await fetch(`/api/courses/completed/${courseId}?studentId=${studentId}`)
 
         if (!courseResponse.ok) {
           throw new Error(`Error: ${courseResponse.status}`)
@@ -59,7 +59,7 @@ export default function CertificatePage({ params }: { params: { courseId: string
         setCourse(courseData)
 
         // Fetch child details
-        const childResponse = await fetch(`/api/children/${childId}`)
+        const childResponse = await fetch(`/api/students/${studentId}`)
 
         if (!childResponse.ok) {
           throw new Error(`Error: ${childResponse.status}`)
@@ -76,16 +76,16 @@ export default function CertificatePage({ params }: { params: { courseId: string
     }
 
     fetchCertificateDetails()
-  }, [courseId, childId])
+  }, [courseId, studentId])
 
   // Handle not found or error states
-  if (!childId) {
+  if (!studentId) {
     return (
       <div className="container mx-auto flex h-[50vh] items-center justify-center px-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Missing child information</h1>
           <p className="mt-2 text-muted-foreground">Please select a child to view certificate details.</p>
-          <Button className="mt-4" onClick={() => router.push("/completed")}>
+          <Button className="mt-4" onClick={() => router.push("home/completed")}>
             Back to Completed Courses
           </Button>
         </div>
@@ -98,7 +98,7 @@ export default function CertificatePage({ params }: { params: { courseId: string
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <Button variant="ghost" onClick={() => router.push("/completed")}>
+          <Button variant="ghost" onClick={() => router.push("home/completed")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Completed Courses
           </Button>
@@ -132,7 +132,7 @@ export default function CertificatePage({ params }: { params: { courseId: string
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Button variant="ghost" className="mb-6" onClick={() => router.push("/completed")}>
+        <Button variant="ghost" className="mb-6" onClick={() => router.push("home/completed")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Completed Courses
         </Button>
@@ -155,7 +155,7 @@ export default function CertificatePage({ params }: { params: { courseId: string
           <p className="mt-2 text-muted-foreground">
             The certificate you're looking for doesn't exist or you don't have access.
           </p>
-          <Button className="mt-4" onClick={() => router.push("/completed")}>
+          <Button className="mt-4" onClick={() => router.push("home/completed")}>
             Back to Completed Courses
           </Button>
         </div>
@@ -169,7 +169,7 @@ export default function CertificatePage({ params }: { params: { courseId: string
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(`/api/certificates/download/${courseId}?childId=${childId}`)
+      const response = await fetch(`/api/certificates/download/${courseId}?studentId=${studentId}`)
 
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`)

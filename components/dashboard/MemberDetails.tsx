@@ -1,11 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-
-interface Member {
-  id: number
-  name: string
-  contact: string
-  role: string
-}
+import {Member} from '@/types/member'
 
 interface MemberDetailsProps {
   member: Member
@@ -26,12 +20,16 @@ export default function MemberDetails({ member, onClose }: MemberDetailsProps) {
             <span className="col-span-3">{member.id}</span>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <span className="font-bold">contact:</span>
-            <span className="col-span-3">{member.contact}</span>
+            <span className="font-bold">Firstname:</span>
+            <span className="col-span-3">{member.firstname}</span>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <span className="font-bold">Role:</span>
-            <span className="col-span-3 capitalize">{member.role}</span>
+            <span className="font-bold">Lastname:</span>
+            <span className="col-span-3">{member.lastname}</span>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <span className="font-bold">contact:</span>
+            <span className="col-span-3">{member.contact}</span>
           </div>
         </div>
       </DialogContent>

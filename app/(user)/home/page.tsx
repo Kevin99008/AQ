@@ -13,7 +13,7 @@ export default function HomePage() {
       </div>
 
       <div className="flex flex-col items-center justify-center space-y-4 text-center">
-        <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Course Management Portal</h1>
+        <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">AquaCube Course Management</h1>
         <p className="max-w-[700px] text-muted-foreground md:text-xl">
           Track your children&apos;s educational progress and achievements
         </p>
@@ -53,7 +53,7 @@ export default function HomePage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Access completed courses and download certificates for your children&apos;s achievements.
+              Access completed courses and view certificates for your children&apos;s achievements.
             </p>
           </CardContent>
           <CardFooter>
@@ -71,12 +71,12 @@ export default function HomePage() {
             <User className="h-8 w-8 text-primary" />
             <div className="grid gap-1">
               <CardTitle>Profile</CardTitle>
-              <CardDescription>Manage account details</CardDescription>
+              <CardDescription>View account details</CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Update your contact information and manage your children&apos;s profiles.
+              View your information and your children&apos;s profiles.
             </p>
           </CardContent>
           <CardFooter>

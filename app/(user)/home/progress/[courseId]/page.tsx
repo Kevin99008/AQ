@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { ArrowLeft, Download, AlertCircle } from "lucide-react"
 import QRCode from "qrcode"
@@ -14,13 +14,14 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 
 // Types for API responses
-interface CourseClass {
-  date: string;
-  attended: boolean;
-  topic: string;
+// Types
+interface AttendanceRecord {
+  attendanceDate: string;
+  status: string;
+  checkedDate: string | null;
 }
 
-interface CourseDetail {
+interface SessionDetail {
   id: string;
   title: string;
   description: string;
@@ -29,7 +30,7 @@ interface CourseDetail {
   startDate: string;
   endDate: string;
   teacher: string;
-  classes: CourseClass[];
+  attendanceRecords: AttendanceRecord[]; // ✅ Add attendance records
 }
 
 interface Student {
@@ -38,13 +39,15 @@ interface Student {
   birthdate: string;
 }
 
-export default function CourseDetailPage({ params }: { params: { courseId: string } }) {
-  const router = useRouter();
+export default function SessionDetailPage() {
+  const params = useParams(); // ✅ Fix: Use `useParams()` for dynamic route params
   const searchParams = useSearchParams();
-  const studentId = searchParams.get("studentId");
-  const courseId = params.courseId;
+  const router = useRouter();
 
-  const [course, setCourse] = useState<CourseDetail | null>(null);
+  const studentId = searchParams.get("studentId");
+  const courseId = params.courseId as string; // ✅ Ensure `courseId` is a string
+
+  const [course, setCourse] = useState<SessionDetail | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,8 +58,6 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
     if (student && course) {
       const qrData = JSON.stringify({
         studentId,
-        studentName: student.name,
-        courseId,
         courseTitle: course.title,
       });
 
@@ -66,39 +67,37 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
     }
   }, [student, course, studentId, courseId]);
 
-  // Fetch course details
+  // Fetch course details + attendance records
   useEffect(() => {
-    if (!studentId) return;
+    if (!studentId || !courseId) return; // ✅ Ensure both `studentId` and `courseId` exist
 
-    const fetchCourseDetails = async () => {
+    const fetchSessionDetails = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        // Fetch course progress for student
-        const progressData = await apiFetch<CourseDetail[]>(
-          `/api/sessions/progress/?studentId=${studentId}`
+        // ✅ Fetch session and attendance details
+        const sessionData = await apiFetch<SessionDetail | "TOKEN_EXPIRED">(
+          `/api/session-detail/?studentId=${studentId}&sessionId=${courseId}`
         );
-
-        if (progressData === TOKEN_EXPIRED) {
+  
+        if (sessionData === "TOKEN_EXPIRED") {
           setError("Session expired. Please log in again.");
           return;
         }
-
-        const courseData = progressData.find((c) => c.id === courseId);
-        if (!courseData) {
-          throw new Error("Course not found.");
-        }
-
-        setCourse(courseData);
-
-        // Fetch student details
-        const studentData = await apiFetch<Student>(`/api/students/${studentId}/`);
-        if (studentData === TOKEN_EXPIRED) {
+  
+        setCourse(sessionData);
+  
+        // ✅ Fetch student details
+        const studentData = await apiFetch<Student | "TOKEN_EXPIRED">(
+          `/api/students/${studentId}`
+        );
+  
+        if (studentData === "TOKEN_EXPIRED") {
           setError("Session expired. Please log in again.");
           return;
         }
-
+  
         setStudent(studentData);
       } catch (err) {
         console.error("Failed to fetch course details:", err);
@@ -108,8 +107,9 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
       }
     };
 
-    fetchCourseDetails();
+    fetchSessionDetails();
   }, [courseId, studentId]);
+
 
   // Handle not found or error states
   if (!studentId) {
@@ -239,12 +239,12 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Courses
       </Button>
-
+  
       <div className="mb-8 grid gap-6 md:grid-cols-3">
         <div className="md:col-span-2">
           <h1 className="text-3xl font-bold">{course.title}</h1>
           <p className="mt-2 text-muted-foreground">{course.description}</p>
-
+  
           <div className="mt-6">
             <div className="flex items-start">
               <div className="mr-2 mt-0.5 h-5 w-5 flex items-center justify-center rounded-full bg-muted text-muted-foreground">
@@ -256,7 +256,7 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
               </div>
             </div>
           </div>
-
+  
           <div className="mt-6">
             <div className="mb-2 flex justify-between">
               <h3 className="font-medium">Course Progress</h3>
@@ -271,7 +271,7 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
             </p>
           </div>
         </div>
-
+  
         <Card>
           <CardHeader>
             <CardTitle>Course QR Code</CardTitle>
@@ -296,14 +296,10 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
             <p className="text-center text-sm text-muted-foreground">
               This QR code contains information about the course, student, and enrollment details.
             </p>
-            <Button variant="outline" className="mt-4 w-full" onClick={downloadQRCode}>
-              <Download className="mr-2 h-4 w-4" />
-              Download QR Code
-            </Button>
           </CardContent>
         </Card>
       </div>
-
+  
       <div className="mt-8">
         <Card>
           <CardHeader>
@@ -316,36 +312,42 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                 <thead>
                   <tr className="border-b">
                     <th className="py-3 text-left font-medium">Date</th>
-                    <th className="py-3 text-left font-medium">Topic</th>
                     <th className="py-3 text-left font-medium">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {course.classes.map((classItem, index) => {
-                    const classDate = new Date(classItem.date)
-                    const today = new Date()
-                    const isUpcoming = classDate > today
-
-                    return (
-                      <tr key={index} className="border-b">
-                        <td className="py-3">{classDate.toLocaleDateString()}</td>
-                        <td className="py-3">{classItem.topic}</td>
-                        <td className="py-3">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                              classItem.attended
-                                ? "bg-green-100 text-green-800"
-                                : isUpcoming
-                                  ? "bg-blue-100 text-blue-800"
-                                  : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {classItem.attended ? "Attended" : isUpcoming ? "Upcoming" : "Absent"}
-                          </span>
-                        </td>
-                      </tr>
-                    )
-                  })}
+                  {course.attendanceRecords && course.attendanceRecords.length > 0 ? (
+                    course.attendanceRecords.map((attendanceRecord, index) => {
+                      const classDate = new Date(attendanceRecord.attendanceDate)
+                      const today = new Date()
+                      const isUpcoming = classDate > today
+  
+                      return (
+                        <tr key={index} className="border-b">
+                          <td className="py-3">{classDate.toLocaleDateString()}</td>
+                          <td className="py-3">
+                            <span
+                              className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                                attendanceRecord.status
+                                  ? "bg-green-100 text-green-800"
+                                  : isUpcoming
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {attendanceRecord.status ? "Attended" : isUpcoming ? "Upcoming" : "Absent"}
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="py-3 text-center text-sm text-muted-foreground">
+                        No classes available.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -354,5 +356,6 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
       </div>
     </div>
   )
+  
 }
 

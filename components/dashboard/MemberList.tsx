@@ -1,12 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-
-interface Member {
-  id: number
-  name: string
-  contact: string
-  role: string
-}
+import {Member} from '@/types/member'
 
 interface MemberListProps {
   title: string
@@ -16,11 +10,11 @@ interface MemberListProps {
 
 export default function MemberList({ title, members, onSelectMember }: MemberListProps) {
   return (
-    <Card className="h-[400px] bg-white">
+    <Card className="h-5/6 bg-white">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent className="h-[320px] overflow-auto">
+      <CardContent className="h-5/6 overflow-auto">
         <Table>
           <TableHeader>
             <TableRow>
