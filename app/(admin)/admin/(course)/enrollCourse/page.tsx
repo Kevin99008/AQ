@@ -237,11 +237,6 @@ export default function EnrollmentPage() {
               </RadioGroup>
 
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={handleBack}>
-                Back
-              </Button>
-            </CardFooter>
           </>
         )}
 
@@ -268,19 +263,18 @@ export default function EnrollmentPage() {
               <div className="space-y-3 max-h-[400px] overflow-y-auto">
                 {filteredCourse.map((course) => (
                   <div
-                    key={course.id}
-                    className="p-3 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => handleCourseSelect(course)}
-                  >
+                  key={course.id}
+                  className={`p-3 rounded-md cursor-pointer transition-colors hover:shadow-md
+                    ${course.type == 1 ? "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200" : 
+                      course.type === 2 ? "bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200" : 
+                      "bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200"}`}
+                  onClick={() => handleCourseSelect(course)}
+                >
                     <div className="flex justify-between items-start mb-1">
                       <h3 className="font-medium">{course.courseName}</h3>
-                      <Badge>{course.level}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">{course.description}</p>
                     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span>Category: {course.description}</span>
-                      <span>•</span>
-                      <span>Level: {course.level}</span>
                     </div>
                   </div>
                 ))}
@@ -370,7 +364,7 @@ export default function EnrollmentPage() {
                   <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-2">
                     <span>Quota: {selectedCourse.quota}</span>
                     <span>•</span>
-                    <span>Level: {selectedCourse.level}</span>
+                    <span>Level: {selectedCourse.type}</span>
                   </div>
                 </div>
 

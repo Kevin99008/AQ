@@ -1,6 +1,4 @@
 "use client"
-
-import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -12,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
@@ -19,14 +18,15 @@ import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 const formSchema = z.object({
   name: z.string().min(3, { message: "Course name must be at least 3 characters" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
-  numberOfClasses: z.coerce.number().int().min(1, { message: "Course must have at least 1 class" }),
-  levelId: z.string({ required_error: "Please select a course level" }), // Change courseGroup to levelId
+  classesOption: z.enum(["5", "10", "custom"], { required_error: "Please select number of classes" }),
+  customClasses: z.coerce.number().int().min(1, { message: "Course must have at least 1 class" }).optional(),
+  levelId: z.string({ required_error: "Please select a course level" }),
 })
 
-const courseLevels = [
-  { id: "1", name: "Beginner" },
-  { id: "2", name: "Intermediate" },
-  { id: "3", name: "Advanced" },
+const classTypes = [
+  { id: "1", name: "Aquakids" },
+  { id: "2", name: "Playsound" },
+  { id: "3", name: "Other" },
 ]
 
 export default function CreateCoursePage() {
@@ -38,19 +38,32 @@ export default function CreateCoursePage() {
     defaultValues: {
       name: "",
       description: "",
-      numberOfClasses: 10,
+      classesOption: "10",
+      customClasses: undefined,
       levelId: "",
     },
   })
+
+  // Watch the classesOption field to conditionally render the custom input
+  const classesOption = form.watch("classesOption")
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
 
     try {
+      // Determine the actual number of classes based on the selection
+      const numberOfClasses =
+        values.classesOption === "custom" ? values.customClasses : Number.parseInt(values.classesOption, 10)
+
+      if (!numberOfClasses) {
+        throw new Error("Number of classes is required")
+      }
+
       const response = await apiFetch("/api/courses/create/", "POST", {
         courseName: values.name,
         description: values.description,
-        levelId: values.levelId,  // Just sending the levelId, not the entire level object
+        levelId: values.levelId,
+        numberOfClasses: numberOfClasses,
       })
 
       if (response === TOKEN_EXPIRED) throw new Error("Token expired. Please log in again.")
@@ -64,11 +77,10 @@ export default function CreateCoursePage() {
       setIsSubmitting(false)
     }
   }
-  
 
   return (
     <div className="container py-10 place-items-center">
-      <Card>
+      <Card className="w-2/3">
         <CardHeader>
           <CardTitle className="text-2xl">Create New Course</CardTitle>
           <CardDescription>Fill in the details below to create a new course.</CardDescription>
@@ -106,34 +118,82 @@ export default function CreateCoursePage() {
 
               <FormField
                 control={form.control}
-                name="numberOfClasses"
+                name="classesOption"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="space-y-3">
                     <FormLabel>Number of Classes</FormLabel>
                     <FormControl>
-                      <Input type="number" min="1" {...field} />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-1"
+                      >
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="5" />
+                          </FormControl>
+                          <FormLabel className="font-normal">5 Classes</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="10" />
+                          </FormControl>
+                          <FormLabel className="font-normal">10 Classes</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="custom" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Custom</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {classesOption === "custom" && (
+                <FormField
+                  control={form.control}
+                  name="customClasses"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Custom Number of Classes</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="1"
+                          placeholder="Enter number of classes"
+                          {...field}
+                          onChange={(e) => {
+                            const value = e.target.value === "" ? undefined : Number.parseInt(e.target.value, 10)
+                            field.onChange(value)
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
               <FormField
                 control={form.control}
                 name="levelId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Course Level</FormLabel>
+                    <FormLabel>Type of class</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a course level" />
+                          <SelectValue placeholder="Select a type of class" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {courseLevels.map((level) => (
-                          <SelectItem key={level.id} value={level.id}>
-                            {level.name}
+                        {classTypes.map((type) => (
+                          <SelectItem key={type.id} value={type.id}>
+                            {type.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -157,3 +217,4 @@ export default function CreateCoursePage() {
     </div>
   )
 }
+
