@@ -32,3 +32,11 @@ export interface TeacherRaw {
   name: string;
   username: string;
 }
+
+export interface StudentCertRaw {
+  id: number;
+  name: string;
+  birthdate: string;
+  username: string
+  user_id: number
+}
