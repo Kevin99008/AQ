@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
-
+import { CourseRaw } from "@/types/course"
 const formSchema = z.object({
   name: z.string().min(3, { message: "Course name must be at least 3 characters" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
@@ -59,10 +59,10 @@ export default function CreateCoursePage() {
         throw new Error("Number of classes is required")
       }
 
-      const response = await apiFetch("/api/courses/create/", "POST", {
+      const response = await apiFetch<CourseRaw>("/api/courses/create/", "POST", {
         courseName: values.name,
         description: values.description,
-        levelId: values.levelId,
+        typeId: values.levelId,
         numberOfClasses: numberOfClasses,
       })
 

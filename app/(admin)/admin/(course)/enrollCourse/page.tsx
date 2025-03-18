@@ -76,6 +76,22 @@ export default function EnrollmentPage() {
       (teacher.username?.toLowerCase() || "").includes((searchTeacherQuery || "").toLowerCase()),
   )
 
+  const typeMap: Record<number, CourseRaw["type"]> = {
+    1: "AquaKids",
+    2: "Playsound",
+    3: "Other",
+  };
+  
+  function transformCourseResponse(response: any): CourseRaw {
+    return {
+      id: response.id,
+      courseName: response.courseName,
+      description: response.description,
+      type: typeMap[response.type] || "Other", // Default to "Other" if unknown
+      quota: response.quota,
+    };
+  }
+
   // Fetch users and courses on initial load
   useEffect(() => {
     async function loadData() {
@@ -89,7 +105,8 @@ export default function EnrollmentPage() {
 
         const coursesData = await apiFetch<CourseRaw[]>('/api/courses/');
         if (coursesData !== TOKEN_EXPIRED) {
-          setCourses(coursesData);  // Set data only if the token is not expired
+          const transformedCourses = coursesData.map(transformCourseResponse);
+          setCourses(transformedCourses);  // Set data only if the token is not expired
         }
        
         const teachersData = await apiFetch<TeacherRaw[]>('/api/teachersreforge/');
@@ -265,8 +282,8 @@ export default function EnrollmentPage() {
                   <div
                   key={course.id}
                   className={`p-3 rounded-md cursor-pointer transition-colors hover:shadow-md
-                    ${course.type == 1 ? "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200" : 
-                      course.type === 2 ? "bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200" : 
+                    ${course.type === "AquaKids" ? "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200" : 
+                      course.type === "Playsound" ? "bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200" : 
                       "bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200"}`}
                   onClick={() => handleCourseSelect(course)}
                 >
@@ -364,7 +381,7 @@ export default function EnrollmentPage() {
                   <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-2">
                     <span>Quota: {selectedCourse.quota}</span>
                     <span>•</span>
-                    <span>Level: {selectedCourse.type}</span>
+                    <span>Type: {selectedCourse.type}</span>
                   </div>
                 </div>
 

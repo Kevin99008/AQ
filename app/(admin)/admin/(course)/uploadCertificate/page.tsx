@@ -49,6 +49,21 @@ export default function CertificatePage() {
 
   )
 
+  const typeMap: Record<number, CourseRaw["type"]> = {
+    1: "AquaKids",
+    2: "Playsound",
+    3: "Other",
+  };
+  
+  function transformCourseResponse(response: any): CourseRaw {
+    return {
+      id: response.id,
+      courseName: response.courseName,
+      description: response.description,
+      type: typeMap[response.type] || "Other", // Default to "Other" if unknown
+      quota: response.quota,
+    };
+  }
   // Fetch users and courses on initial load
   useEffect(() => {
     async function loadData() {
@@ -62,7 +77,8 @@ export default function CertificatePage() {
 
         const coursesData = await apiFetch<CourseRaw[]>('/api/courses/');
         if (coursesData !== TOKEN_EXPIRED) {
-          setCourses(coursesData);  // Set data only if the token is not expired
+          const transformedCourses = coursesData.map(transformCourseResponse);
+          setCourses(transformedCourses);  // Set data only if the token is not expired
         }
 
       } catch (err: any) {
@@ -256,13 +272,11 @@ export default function CertificatePage() {
                   >
                     <div className="flex justify-between items-start mb-1">
                       <h3 className="font-medium">{course.courseName}</h3>
-                      <Badge>{course.level}</Badge>
+                      <Badge>Type: {course.type}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">{course.description}</p>
                     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                       <span>Category: {course.description}</span>
-                      <span>•</span>
-                      <span>Level: {course.level}</span>
                     </div>
                   </div>
                 ))}
@@ -300,7 +314,7 @@ export default function CertificatePage() {
                   <p>{selectedCourse.courseName}</p>
                   <p className="text-sm text-muted-foreground">{selectedCourse.description}</p>
                   <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-2">
-                    <span>Level: {selectedCourse.level}</span>
+                    <span>Type: {selectedCourse.type}</span>
                   </div>
                 </div>
 
