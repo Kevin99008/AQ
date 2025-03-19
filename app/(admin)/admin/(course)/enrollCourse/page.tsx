@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 import { StepIndicator } from "@/components/dashboard/step-indicator"
 import type { StudentRaw, TeacherRaw } from "@/types/user"
@@ -396,12 +395,24 @@ export default function EnrollmentPage() {
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar mode="single" selected={date} onSelect={(newDate) => newDate && setDate(newDate)}
-                        className="!opacity-100 bg-background bg-white"
+                        className="rounded-md border"
                         classNames={{
-                          // Override any specific classes here
-                          day_selected: "bg-blue-500 text-white hover:bg-blue-600 hover:text-white",
-                          // Add more overrides as needed
-                        }} 
+                          day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+                          day_today: "bg-accent text-accent-foreground",
+                          day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+                          day_disabled: "text-muted-foreground opacity-50",
+                          day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                          day_hidden: "invisible",
+                          caption: "flex justify-center pt-1 relative items-center",
+                          caption_label: "text-sm font-medium",
+                          nav: "space-x-1 flex items-center",
+                          nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                          table: "w-full border-collapse space-y-1",
+                          head_row: "flex",
+                          head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                          row: "flex w-full mt-2",
+                          cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                        }}
                         />
                     </PopoverContent>
                   </Popover>

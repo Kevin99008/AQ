@@ -7,10 +7,19 @@ import { Home, User, BookOpen, GraduationCap, Menu, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import useUserSession from "@/stores/user";
+import { useRouter } from "next/navigation"
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+
+  const { push } = useRouter();
+
+  const handleLogout = () => {
+    useUserSession.getState().logout()
+    push("/login")
+  }
 
   const NavItems = () => (
     <ul className="space-y-2">
@@ -67,14 +76,10 @@ export default function Sidebar() {
         </Link>
       </li>
       <li className="mt-auto pt-4">
-        <Link
-          href="/"
-          className="flex items-center space-x-2 p-2 rounded hover:bg-destructive/10 text-destructive"
-          onClick={() => setIsOpen(false)}
-        >
+        <Button onClick={handleLogout} className="flex items-center space-x-2 p-2 rounded hover:bg-red-500 w-full">
           <LogOut size={20} />
           <span>Logout</span>
-        </Link>
+        </Button>
       </li>
     </ul>
   )

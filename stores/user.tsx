@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { setCookie, getCookie, deleteCookie } from '@/utils/cookies';
 
 type User = {
+  id: number
   username: string;
   role: string;
 };
