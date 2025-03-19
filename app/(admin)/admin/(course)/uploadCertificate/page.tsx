@@ -152,10 +152,13 @@ export default function CertificatePage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      const fileNameWithUnderscores = file.name.replace(/\s+/g, '_');
+      const newFile = new File([file], fileNameWithUnderscores, { type: file.type });
+  
       setNewItem((prevItem) => ({
         ...prevItem,
-        imageUrl: URL.createObjectURL(file), // Preview image
-        file: file, // Store file for FormData
+        imageUrl: URL.createObjectURL(newFile), // Preview image
+        file: newFile, // Store new file for FormData
       }));
     } else {
       setNewItem((prevItem) => ({
