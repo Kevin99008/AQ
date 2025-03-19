@@ -1,11 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+"use client"
 
-interface AttendanceRecord {
-  id: number
-  name: string
-  timestamp: string
-  course: string
-}
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import type { AttendanceRecord } from "@/types/dashboard"
+import { X } from "lucide-react"
 
 interface AttendanceHistoryProps {
   record: AttendanceRecord
@@ -13,25 +12,70 @@ interface AttendanceHistoryProps {
 }
 
 export default function AttendanceHistory({ record, onClose }: AttendanceHistoryProps) {
+  // Function to get badge color based on course type
+  const getBadgeColor = (courseType: string) => {
+    switch (courseType) {
+      case "AquaKids":
+        return "bg-blue-100 text-blue-800"
+      case "Playsound":
+        return "bg-purple-100 text-purple-800"
+      case "Other":
+        return "bg-amber-100 text-amber-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
   return (
-    <Dialog open={!!record} onOpenChange={onClose}>
-      <DialogContent className="bg-white">
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{record.name}</DialogTitle>
-          <DialogDescription>Attendance History</DialogDescription>
+          <DialogTitle className="flex items-center justify-between">
+            Attendance Details
+            <DialogClose asChild>
+            </DialogClose>
+          </DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <span className="font-bold">ID:</span>
-            <span className="col-span-3">{record.id}</span>
+        <div className="space-y-4 py-2">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="text-sm font-medium">Name:</div>
+            <div className="text-sm">{record.name}</div>
+
+            <div className="text-sm font-medium">Course:</div>
+            <div className="text-sm">{record.course}</div>
+
+            {record.courseType && (
+              <>
+                <div className="text-sm font-medium">Type:</div>
+                <div className="text-sm">
+                  <Badge className={getBadgeColor(record.courseType)} variant="outline">
+                    {record.courseType}
+                  </Badge>
+                </div>
+              </>
+            )}
+
+            <div className="text-sm font-medium">Time:</div>
+            <div className="text-sm">{record.timestamp}</div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <span className="font-bold">Timestamp:</span>
-            <span className="col-span-3">{record.timestamp}</span>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <span className="font-bold">Course:</span>
-            <span className="col-span-3">{record.course}</span>
+
+          {/* You can add more attendance history details here */}
+          <div className="rounded-md bg-muted p-4">
+            <h4 className="mb-2 text-sm font-medium">Recent Attendance</h4>
+            <ul className="space-y-2 text-sm">
+              <li className="flex justify-between">
+                <span className="text-muted-foreground">Yesterday</span>
+                <span>Present</span>
+              </li>
+              <li className="flex justify-between">
+                <span className="text-muted-foreground">2 days ago</span>
+                <span>Present</span>
+              </li>
+              <li className="flex justify-between">
+                <span className="text-muted-foreground">3 days ago</span>
+                <span>Absent</span>
+              </li>
+            </ul>
           </div>
         </div>
       </DialogContent>

@@ -1,4 +1,5 @@
 export interface AttendanceRecord {
+    courseType: any;
     id: number;
     name: string;
     timestamp: string;
@@ -21,9 +22,9 @@ export interface AttendanceRecord {
   }
   
   export interface StatisticsData {
-    totalMembers: number;
-    activeMembers: number;
-    inactiveMembers: number;
+    totalStudent: number;
+    activeStudent: number;
+    inactiveStudent: number;
     newStudents: number;
   }
   

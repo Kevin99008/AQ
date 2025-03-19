@@ -1,41 +1,50 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+"use client"
 
-interface PieChartData {
-  name: string;
-  value: number;
+import { PieChart, Pie, Cell } from "recharts"
+import type { PieChartData } from "@/types/dashboard"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+
+interface MembershipPieChartProps {
+  data: PieChartData[]
 }
 
-const COLORS = ["#0088FE", "#00C49F"]
+export default function MembershipPieChart({ data }: MembershipPieChartProps) {
+  // Custom colors for the pie chart segments
+  const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))"]
 
-export default function MembershipPieChart({ data }: { data: PieChartData[] }) {
   return (
-    <Card className="h-[400px] bg-white">
-      <CardHeader>
-        <CardTitle>Membership Overview</CardTitle>
-      </CardHeader>
-      <CardContent className="h-[320px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              outerRadius={80}
-              fill="#8884d8"
-              dataKey="value"
-              nameKey="name"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
+    <ChartContainer
+      config={{
+        teacher: {
+          label: "Teacher",
+          color: "hsl(var(--chart-1))",
+        },
+        student: {
+          label: "Student",
+          color: "hsl(var(--chart-2))",
+        },
+      }}
+      className="h-[250px]"
+    >
+      <PieChart>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          labelLine={false}
+          outerRadius={80}
+          innerRadius={40}
+          dataKey="value"
+          nameKey="name"
+          paddingAngle={2}
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="transparent" />
+          ))}
+        </Pie>
+        <ChartTooltip content={<ChartTooltipContent />} />
+      </PieChart>
+    </ChartContainer>
   )
 }
+
