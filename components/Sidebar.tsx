@@ -2,12 +2,20 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Home, UserPlus, Users, BookOpen, Menu, ScanFace, LogOut, WavesLadder, Music4, BookA, GraduationCap, BookPlus, ArchiveRestore, Pencil } from "lucide-react"
+import { Home, UserPlus, Users, BookOpen, Menu, ScanFace, LogOut, WavesLadder, Music4, BookA, GraduationCap, BookPlus, ArchiveRestore, Pencil, Settings2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import useUserSession from "@/stores/user";
+import { useRouter } from "next/navigation"
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
+  const { push } = useRouter();
+
+  const handleLogout = () => {
+    useUserSession.getState().logout()
+    push("/login")
+  }
 
   const NavItems = () => (
     <ul className="space-y-2">
@@ -43,9 +51,21 @@ export default function Sidebar() {
         </Link>
       </li>
       <li>
+        <Link href="/admin/modifyAttendance" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
+          <Settings2 size={20} />
+          <span>edit Attendance</span>
+        </Link>
+      </li>
+      <li>
         <Link href="/admin/createAccount" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
           <UserPlus size={20} />
           <span>Create Account</span>
+        </Link>
+      </li>
+      <li>
+        <Link href="/admin/createTeacher" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
+          <Pencil size={20} />
+          <span>Create Teacher</span>
         </Link>
       </li>
       <li>
@@ -87,10 +107,10 @@ export default function Sidebar() {
       </li>
       <li className="h-1 bg-white rounded-2xl"></li>
       <li>
-        <Link href="/" className="flex items-center space-x-2 p-2 rounded hover:bg-red-500">
+        <Button onClick={handleLogout} className="flex items-center space-x-2 p-2 rounded hover:bg-red-500 w-full">
           <LogOut size={20} />
           <span>Logout</span>
-        </Link>
+        </Button>
       </li>
     </ul>
   )
