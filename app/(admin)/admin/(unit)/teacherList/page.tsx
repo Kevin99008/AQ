@@ -51,8 +51,8 @@ export default function MemberListPage() {
           last_name: formData.lastName,
           username: formData.username,
           contact: formData.contact,
-          password: formData.contact,
-        })
+          password: `${formData.firstName[0]}${formData.lastName[0]}${formData.contact}`,
+        })        
   
         if (response === TOKEN_EXPIRED) {
           push("/login")
@@ -116,69 +116,61 @@ const filteredTeachers = teachers.filter(
           />
           <MemberList title="Teachers List" members={filteredTeachers} onSelectMember={setSelectedMember} />
         </div>
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>Create Account For Teacher</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contact">Phone number</Label>
-                <Input
-                  id="contact"
-                  name="contact"
-                  type="tel"
-                  value={formData.contact}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full bg-black text-white">
-                Create Account
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        <div>
+          <Card className="max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle>Create Account For Teacher</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contact">Phone number</Label>
+                  <Input
+                    id="contact"
+                    name="contact"
+                    type="tel"
+                    value={formData.contact}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full bg-black text-white">
+                  Create Account
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
       {selectedMember && <MemberDetails member={selectedMember} onClose={() => setSelectedMember(null)} />}
     </div>

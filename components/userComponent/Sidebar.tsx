@@ -28,7 +28,7 @@ export default function Sidebar() {
           href="/home"
           className={cn(
             "flex items-center space-x-2 p-2 rounded hover:bg-primary/10",
-            pathname === "/home" ? "bg-primary/10 text-primary" : "",
+            pathname === "/home" ? "bg-primary/50 text-white" : "",
           )}
           onClick={() => setIsOpen(false)}
         >
@@ -41,7 +41,7 @@ export default function Sidebar() {
           href="/home/progress"
           className={cn(
             "flex items-center space-x-2 p-2 rounded hover:bg-primary/10",
-            pathname === "/home/progress" || pathname.startsWith("/home/progress/") ? "bg-primary/10 text-primary" : "",
+            pathname === "/home/progress" || pathname.startsWith("/home/progress/") ? "bg-primary/50 text-white" : "",
           )}
           onClick={() => setIsOpen(false)}
         >
@@ -54,7 +54,7 @@ export default function Sidebar() {
           href="/home/completed"
           className={cn(
             "flex items-center space-x-2 p-2 rounded hover:bg-primary/10",
-            pathname === "/home/completed" || pathname.startsWith("/home/completed/") ? "bg-primary/10 text-primary" : "",
+            pathname === "/home/completed" || pathname.startsWith("/home/completed/") ? "bg-primary/50 text-white" : "",
           )}
           onClick={() => setIsOpen(false)}
         >
@@ -67,7 +67,7 @@ export default function Sidebar() {
           href="/home/profile"
           className={cn(
             "flex items-center space-x-2 p-2 rounded hover:bg-primary/10",
-            pathname === "/home/profile" ? "bg-primary/10 text-primary" : "",
+            pathname === "/home/profile" ? "bg-primary/50 text-white" : "",
           )}
           onClick={() => setIsOpen(false)}
         >

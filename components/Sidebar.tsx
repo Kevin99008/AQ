@@ -20,6 +20,13 @@ export default function Sidebar() {
   const NavItems = () => (
     <ul className="space-y-2">
       <li>
+        <Link href="/admin/checkAttendance" className="flex items-center space-x-2 px-2 py-4 place-content-center bg-green-500 rounded hover:bg-green-700">
+          <ScanFace size={20} />
+          <span>Check Attendance</span>
+        </Link>
+      </li>
+      <li className="h-1 bg-white rounded-2xl"></li>
+      <li>
         <Link href="/admin/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
           <Home size={20} />
           <span>Dashboard</span>
@@ -45,12 +52,6 @@ export default function Sidebar() {
       </li>
       <li className="h-1 bg-white rounded-2xl"></li>
       <li>
-        <Link href="/admin/checkAttendance" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
-          <ScanFace size={20} />
-          <span>Check Attendance</span>
-        </Link>
-      </li>
-      <li>
         <Link href="/admin/modifyAttendance" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
           <Settings2 size={20} />
           <span>edit Attendance</span>
@@ -60,12 +61,6 @@ export default function Sidebar() {
         <Link href="/admin/createAccount" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
           <UserPlus size={20} />
           <span>Create Account</span>
-        </Link>
-      </li>
-      <li>
-        <Link href="/admin/createTeacher" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
-          <Pencil size={20} />
-          <span>Create Teacher</span>
         </Link>
       </li>
       <li>

@@ -44,7 +44,7 @@ export default function CreateAccountPage() {
         last_name: formData.lastName,
         username: formData.username,
         contact: formData.contact,
-        password: formData.contact,
+        password: `${formData.firstName[0]}${formData.lastName[0]}${formData.contact}`,
       })
 
       if (response === TOKEN_EXPIRED) {
@@ -102,16 +102,6 @@ export default function CreateAccountPage() {
                 id="username"
                 name="username"
                 value={formData.username}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                value={formData.password}
                 onChange={handleChange}
                 required
               />

@@ -22,8 +22,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 // Available time slots
 const timeSlots = [
-  "08:00 AM",
-  "09:00 AM",
   "10:00 AM",
   "11:00 AM",
   "12:00 PM",
@@ -32,7 +30,6 @@ const timeSlots = [
   "03:00 PM",
   "04:00 PM",
   "05:00 PM",
-  "06:00 PM",
 ]
 
 export default function EnrollmentPage() {
