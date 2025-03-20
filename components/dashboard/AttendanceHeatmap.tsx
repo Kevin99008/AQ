@@ -8,7 +8,7 @@ interface AttendanceHeatmapProps {
 
 export default function AttendanceHeatmap({ courseType = "All" }: AttendanceHeatmapProps) {
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-  const timeSlots = ["9am", "11am", "1pm", "3pm", "5pm"] // Time slots
+  const timeSlots = ["9am","10am", "11am", "12ppm", "1pm", "2pm", "3pm", "4pm", "5pm"] // Time slots
 
   // State for attendance data
   const [heatmapData, setHeatmapData] = useState<{ [key: string]: { [key: string]: number } }>({})
