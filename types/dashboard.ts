@@ -13,6 +13,8 @@ export interface AttendanceRecord {
   }
   
   export interface CourseData {
+    capacity: number;
+    attendance: number;
     month: string;
     courses: number;
   }
@@ -27,5 +29,12 @@ export interface AttendanceRecord {
     activeStudent: number;
     inactiveStudent: number;
     newStudents: number;
+  }
+  
+  export interface CoursePopularityData {
+    name: string;
+    popularity: number;
+    students: number;
+    type: string;
   }
   

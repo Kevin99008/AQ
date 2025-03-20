@@ -1,55 +1,96 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import type { PieChartData } from "@/types/dashboard";
+"use client"
+
+import { useState, useEffect } from "react"
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
+import type { PieChartData } from "@/types/dashboard"
+import { TrendingUp, TrendingDown, Users, UserCheck, UserMinus } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 
 interface MembershipDistributionProps {
-  data: PieChartData[];
+  courseType: string
 }
 
-export default function MembershipDistribution({ data }: MembershipDistributionProps) {
-  // Predefined HEX color codes for the pie chart segments
-  const COLORS = [
-    "#36A2EB", // Blue
-    "#FF9F40", // Orange
-  ];
+export default function MembershipDistribution({ courseType }: MembershipDistributionProps) {
+  const [pieChartData, setPieChartData] = useState<PieChartData[]>([
+    { name: "Student", value: 0 },
+    { name: "Teacher", value: 0 },
+  ])
+
+  useEffect(() => {
+    // Fetch pie chart data based on the selected courseType
+    const fetchData = async () => {
+      try {
+        const pieChartResponse = await apiFetch<PieChartData[]>(`/api/static/pie?courseType=${courseType}`)
+        if (pieChartResponse !== TOKEN_EXPIRED) {
+          if (Array.isArray(pieChartResponse) && pieChartResponse.length > 0) {
+            setPieChartData(pieChartResponse)
+          } else {
+            console.error("Invalid or empty response from API.")
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch pie chart data:", error)
+      }
+    }
+
+    fetchData()
+  }, [courseType])
+
+  // Custom colors for the pie chart segments
+  const COLORS = [    "#36A2EB", 
+    "#FF9F40",]
 
   // Calculate percentages for the summary
-  const total = data.reduce((sum, item) => sum + item.value, 0);
-  const percentages = data.map((item) => ({
+  const total = pieChartData.reduce((sum, item) => sum + item.value, 0)
+  const percentages = pieChartData.map((item) => ({
     name: item.name,
     value: item.value,
     percentage: Math.round((item.value / total) * 100),
-  }));
+  }))
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 min-h-[180px] w-full">
-        <ResponsiveContainer width="100%" height={180}>
+      {courseType !== "All" && (
+        <div className="mb-3">
+          <Badge
+            className={`
+              ${
+                courseType === "AquaKids"
+                  ? "bg-blue-100 text-blue-800"
+                  : courseType === "Playsound"
+                    ? "bg-purple-100 text-purple-800"
+                    : "bg-amber-100 text-amber-800"
+              }
+            `}
+          >
+            {courseType}
+          </Badge>
+        </div>
+      )}
+
+      {/* Increased height for the pie chart container */}
+      <div className="flex-1 min-h-[220px] w-full">
+        <ResponsiveContainer width="100%" height={220}>
           <PieChart>
             <Pie
-              data={data}
+              data={pieChartData}
               cx="50%"
               cy="50%"
               labelLine={false}
-              outerRadius={70}
-              innerRadius={30}
+              // Increased outer and inner radius for a bigger chart
+              outerRadius={90}
+              innerRadius={40}
               dataKey="value"
               nameKey="name"
               paddingAngle={2}
             >
-              {data.map((entry, index) => (
+              {pieChartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="transparent" />
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number, name: string) => {
-                if (value === null || value === undefined || total === null || total === undefined) {
-                  return [`${value}`, name];
-                }
-                return [
-                  `${Number(value)} (${Math.round((Number(value) / Number(total)) * 100)}%)`,
-                  name,
-                ];
-              }}
+              formatter={(value, name) => [`${value} (${Math.round((value as number / total as number) * 100)}%)`, name]}
               contentStyle={{ borderRadius: "8px", padding: "8px 12px", fontSize: "12px" }}
             />
           </PieChart>
@@ -77,5 +118,5 @@ export default function MembershipDistribution({ data }: MembershipDistributionP
         </div>
       </div>
     </div>
-  );
+  )
 }

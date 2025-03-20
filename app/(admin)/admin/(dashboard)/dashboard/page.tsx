@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import StatisticsOverview from "@/components/dashboard/StatisticsOverview"
 import MembershipDistribution from "@/components/dashboard/MembershipDistribution"
-import EnrollmentTrends from "@/components/dashboard/EnrollmentTrends"
 import CoursePerformance from "@/components/dashboard/CoursePerformance"
 import AttendanceLog from "@/components/dashboard/AttendanceLog"
 import AttendanceHistory from "@/components/dashboard/AttendanceHistory"
@@ -25,20 +24,13 @@ import { useRouter } from "next/navigation"
 export default function DashboardAdmin() {
   const [selectedGroup, setSelectedGroup] = useState<string>("All")
   const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(null)
-  const [studentData, setStudentData] = useState<StudentData[]>([])
-  const [courseData, setCourseData] = useState<CourseData[]>([])
   const [countStudentData, setcountStudentData] = useState<StatisticsData>({
     totalStudent: 0,
     activeStudent: 0,
     inactiveStudent: 0,
     newStudents: 0,
   })
-  const [pieChartData, setPieData] = useState<PieChartData[]>([
-    { name: "Teacher", value: 0 },
-    { name: "Student", value: 0 },
-  ])
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
-  const { push } = useRouter()
 
   useEffect(() => {
     // Fetch data based on the selected group
@@ -50,25 +42,10 @@ export default function DashboardAdmin() {
           setcountStudentData(countStudentResponse)
         }
 
-        // Fetch pie chart data
-        const pieChartResponse = await apiFetch<PieChartData[]>(`/api/static/pie`)
-        if (pieChartResponse !== TOKEN_EXPIRED) {
-          setPieData(pieChartResponse)
-        }
-
         const attendanceResponse = await apiFetch<AttendanceRecord[]>(`/api/attendance-log/?sortNewestFirst=true`)
         if (attendanceResponse !== TOKEN_EXPIRED) {
           setAttendanceRecords(attendanceResponse) // Now passing an array
         }
-        // Get mock data for the selected group
-        // const fetchedStudentData = getMockDataByGroup(selectedGroup, "studentData")
-        // setStudentData(fetchedStudentData)
-
-        // const fetchedCourseData = getMockDataByGroup(selectedGroup, "courseData")
-        // setCourseData(fetchedCourseData)
-
-        // const fetchedAttendanceRecords = getMockDataByGroup(selectedGroup, "attendanceRecords")
-        // setAttendanceRecords(fetchedAttendanceRecords)
       } catch (error) {
         console.error("Failed to fetch data:", error)
       }
@@ -137,48 +114,38 @@ export default function DashboardAdmin() {
         </div>
       </div>
 
-      {/* Enrollment & Membership Section */}
+      {/* Course Analytics & Membership Section */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-3">Enrollment & Member</h2>
+        <h2 className="text-lg font-semibold mb-3">Course Analytics & Membership</h2>
         <div className="grid gap-4 md:grid-cols-3">
           <div className="md:col-span-2">
             <Card className="h-full">
               <CardHeader className="pb-2">
-                <CardTitle className="text-md font-medium">Enrollment Trends</CardTitle>
-                <CardDescription>New and returning students over time</CardDescription>
+                <CardTitle className="text-md font-medium">
+                  Course Analytics {selectedGroup !== "All" && `- ${selectedGroup}`}
+                </CardTitle>
+                <CardDescription>Course performance and popularity metrics</CardDescription>
               </CardHeader>
               <CardContent>
-                <EnrollmentTrends data={studentData} />
+                <CoursePerformance courseType={selectedGroup} />
               </CardContent>
             </Card>
           </div>
           <div>
             <Card className="h-full">
               <CardHeader className="pb-2">
-                <CardTitle className="text-md font-medium">Member Distribution</CardTitle>
-                <CardDescription>Teacher vs Student ratio</CardDescription>
+                <CardTitle className="text-md font-medium">
+                  Members {selectedGroup !== "All" && `- ${selectedGroup}`}
+                </CardTitle>
+                <CardDescription>Distribution and trends</CardDescription>
               </CardHeader>
               <CardContent>
-                <MembershipDistribution data={pieChartData} />
+                <MembershipDistribution courseType={selectedGroup} />
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-
-      {/* Course Performance Section */}
-      {/* <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-3">Course Performance</h2>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-md font-medium">Course Analytics</CardTitle>
-            <CardDescription>Course offerings, attendance rates, and capacity utilization</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CoursePerformance data={courseData} />
-          </CardContent>
-        </Card>
-      </div> */}
 
       {selectedAttendance && (
         <AttendanceHistory record={selectedAttendance} onClose={() => setSelectedAttendance(null)} />
