@@ -137,7 +137,7 @@ export default function CreateCoursePage() {
       name: "",
       description: "",
       classesOption: "10",
-      customClasses: undefined,
+      customClasses: 0,
       levelId: "",
       price: 0,
     },
@@ -162,7 +162,7 @@ export default function CreateCoursePage() {
         courseName: values.name,
         description: values.description,
         typeId: values.levelId,
-        numberOfClasses: numberOfClasses,
+        quota: numberOfClasses,
         price: values.price,
       })
 
@@ -281,9 +281,13 @@ export default function CreateCoursePage() {
                     ฿{typeof course.price === "number" ? course.price.toFixed(2) : course.price}
                   </Badge>
                 </div>
-
+                <div className="flex justify-between items-center mb-2">
                 <p className="text-sm text-muted-foreground ml-6">{course.description}</p>
+                <Badge className={cn("text-xs font-medium", config.badgeColor)}>Course Quota: {course.quota}</Badge>
+                  
+                </div>
               </div>
+
             )
           })}
           </div>
@@ -375,9 +379,10 @@ export default function CreateCoursePage() {
                           min="1"
                           placeholder="Enter number of classes"
                           {...field}
+                          value={field.value ?? ""}
                           onChange={(e) => {
-                            const value = e.target.value === "" ? undefined : Number.parseInt(e.target.value, 10)
-                            field.onChange(value)
+                            const value = e.target.value;
+                            field.onChange(value === "" ? null : Number(value)); // Allow clearing the input
                           }}
                         />
                       </FormControl>
