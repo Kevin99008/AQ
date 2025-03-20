@@ -2,6 +2,7 @@ export interface AttendanceRecord {
     courseType: any;
     id: number;
     name: string;
+    studentId: number;
     timestamp: string;
     course: string;
   }

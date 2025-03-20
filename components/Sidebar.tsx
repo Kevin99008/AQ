@@ -32,24 +32,6 @@ export default function Sidebar() {
           <span>Dashboard</span>
         </Link>
       </li>
-      <li>
-        <Link href="/admin/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
-          <WavesLadder size={20} />
-          <span>Aquakids</span>
-        </Link>
-      </li>
-      <li>
-        <Link href="/admin/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
-          <Music4 size={20} />
-          <span>Playsound</span>
-        </Link>
-      </li>
-      <li>
-        <Link href="/admin/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">
-          <BookA size={20} />
-          <span>Other</span>
-        </Link>
-      </li>
       <li className="h-1 bg-white rounded-2xl"></li>
       <li>
         <Link href="/admin/modifyAttendance" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-700">

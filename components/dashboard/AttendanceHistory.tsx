@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import type { AttendanceRecord } from "@/types/dashboard"
 import { X } from "lucide-react"
+import { useState, useEffect } from "react"
+
+interface RecentAttendanceRecord {
+  timestamp: string
+  relativeTime: string
+  status: string
+}
 
 interface AttendanceHistoryProps {
   record: AttendanceRecord
@@ -26,6 +33,24 @@ export default function AttendanceHistory({ record, onClose }: AttendanceHistory
     }
   }
 
+  // State for recent attendance data
+  const [recentAttendance, setRecentAttendance] = useState<RecentAttendanceRecord[]>([])
+
+  // Fetch recent attendance data from API
+  useEffect(() => {
+    const fetchRecentAttendance = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/attendance-recent/?studentId=${record.studentId}`)
+        const data = await response.json()
+        setRecentAttendance(data)
+      } catch (error) {
+        console.error("Error fetching recent attendance:", error)
+      }
+    }
+
+    fetchRecentAttendance()
+  }, [record.studentId])
+
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
@@ -40,6 +65,9 @@ export default function AttendanceHistory({ record, onClose }: AttendanceHistory
           <div className="grid grid-cols-2 gap-2">
             <div className="text-sm font-medium">Name:</div>
             <div className="text-sm">{record.name}</div>
+
+            <div className="text-sm font-medium">Student Id:</div>
+            <div className="text-sm">{record.studentId}</div>
 
             <div className="text-sm font-medium">Course:</div>
             <div className="text-sm">{record.course}</div>
@@ -59,22 +87,16 @@ export default function AttendanceHistory({ record, onClose }: AttendanceHistory
             <div className="text-sm">{record.timestamp}</div>
           </div>
 
-          {/* You can add more attendance history details here */}
+          {/* Display recent attendance history */}
           <div className="rounded-md bg-muted p-4">
             <h4 className="mb-2 text-sm font-medium">Recent Attendance</h4>
             <ul className="space-y-2 text-sm">
-              <li className="flex justify-between">
-                <span className="text-muted-foreground">Yesterday</span>
-                <span>Present</span>
-              </li>
-              <li className="flex justify-between">
-                <span className="text-muted-foreground">2 days ago</span>
-                <span>Present</span>
-              </li>
-              <li className="flex justify-between">
-                <span className="text-muted-foreground">3 days ago</span>
-                <span>Absent</span>
-              </li>
+              {recentAttendance.map((attendance) => (
+                <li key={attendance.timestamp} className="flex justify-between">
+                  <span className="text-muted-foreground">{attendance.relativeTime}</span>
+                  <span>{attendance.status}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -82,4 +104,3 @@ export default function AttendanceHistory({ record, onClose }: AttendanceHistory
     </Dialog>
   )
 }
-
