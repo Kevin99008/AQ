@@ -81,7 +81,22 @@ export default function DashboardAdmin() {
       {/* Key Metrics Section */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-3 px-1">Key Metrics</h2>
-        <StatisticsOverview countStudentData={countStudentData}/>
+        <div>
+          <StatisticsOverview countStudentData={countStudentData}/>
+        </div>
+        <div className="mt-4">
+            <Card className="h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-md font-medium">
+                  Members {selectedGroup !== "All" && `- ${selectedGroup}`}
+                </CardTitle>
+                <CardDescription>Distribution and trends</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <MembershipDistribution courseType={selectedGroup} />
+              </CardContent>
+            </Card>
+          </div>
       </div>
 
       {/* Attendance Section */}
@@ -111,39 +126,6 @@ export default function DashboardAdmin() {
               <AttendanceHeatmap courseType={selectedGroup} />
             </CardContent>
           </Card>
-        </div>
-      </div>
-
-      {/* Course Analytics & Membership Section */}
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-3">Course Analytics & Membership</h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="md:col-span-2">
-            <Card className="h-full">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-md font-medium">
-                  Course Analytics {selectedGroup !== "All" && `- ${selectedGroup}`}
-                </CardTitle>
-                <CardDescription>Course performance and popularity metrics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CoursePerformance courseType={selectedGroup} />
-              </CardContent>
-            </Card>
-          </div>
-          <div>
-            <Card className="h-full">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-md font-medium">
-                  Members {selectedGroup !== "All" && `- ${selectedGroup}`}
-                </CardTitle>
-                <CardDescription>Distribution and trends</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <MembershipDistribution courseType={selectedGroup} />
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
 

@@ -15,6 +15,25 @@ interface AttendanceLogProps {
   courseType: string
 }
 
+const formatTimestamp = (timestamp: string) => {
+  // Append "+07:00" to indicate Thai time (UTC+7)
+  const thaiTimeTimestamp = `${timestamp}+07:00`;
+  
+  // Create a Date object with the adjusted timestamp
+  const date = new Date(thaiTimeTimestamp);
+
+  // Format date for Thai locale and timezone
+  return date.toLocaleString("th-TH", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false, // Use 24-hour format
+  });
+};
+
 export default function AttendanceLog({
   records,
   onSelectAttendance,
@@ -126,8 +145,8 @@ export default function AttendanceLog({
                       </TableCell>
                     )}
                     <TableCell>
-                      <span className="sm:hidden">{record.timestamp.split(" ")[1]}</span>
-                      <span className="hidden sm:inline">{record.timestamp}</span>
+                      <span className="sm:hidden">{formatTimestamp(record.timestamp).split(",")[1]}</span>
+                      <span className="hidden sm:inline">{formatTimestamp(record.timestamp)}</span>
                     </TableCell>
                   </TableRow>
                 ))

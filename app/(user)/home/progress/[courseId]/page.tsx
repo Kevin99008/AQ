@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import Image from "next/image"
-import { ArrowLeft, Download, AlertCircle } from "lucide-react"
-import QRCode from "qrcode"
+import { ArrowLeft, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -51,21 +49,6 @@ export default function SessionDetailPage() {
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
-
-  // Generate QR code
-  useEffect(() => {
-    if (student && course) {
-      const qrData = JSON.stringify({
-        studentId,
-        courseTitle: course.title,
-      });
-
-      QRCode.toDataURL(qrData)
-        .then((url) => setQrCodeDataUrl(url))
-        .catch((err) => console.error("Failed to generate QR code:", err));
-    }
-  }, [student, course, studentId, courseId]);
 
   // Fetch course details + attendance records
   useEffect(() => {
@@ -223,16 +206,6 @@ export default function SessionDetailPage() {
     )
   }
 
-  // Function to download QR code
-  const downloadQRCode = () => {
-    const link = document.createElement("a")
-    link.href = qrCodeDataUrl
-    link.download = `qrcode-${course.title}-${student.name}.png`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
       <Button variant="ghost" className="mb-6" onClick={() => router.push("/home/progress")}>
@@ -271,33 +244,6 @@ export default function SessionDetailPage() {
             </p>
           </div>
         </div>
-  
-        <Card>
-          <CardHeader>
-            <CardTitle>Course QR Code</CardTitle>
-            <CardDescription>Scan for attendance and details</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center">
-            <div className="mb-4 overflow-hidden rounded-lg border bg-white p-1">
-              {qrCodeDataUrl ? (
-                <Image
-                  src={qrCodeDataUrl || "/placeholder.svg"}
-                  alt="Course QR Code"
-                  width={200}
-                  height={200}
-                  className="h-48 w-48"
-                />
-              ) : (
-                <div className="h-48 w-48 flex items-center justify-center bg-gray-100">
-                  <p className="text-sm text-gray-500">Generating QR code...</p>
-                </div>
-              )}
-            </div>
-            <p className="text-center text-sm text-muted-foreground">
-              This QR code contains information about the course, student, and enrollment details.
-            </p>
-          </CardContent>
-        </Card>
       </div>
   
       <div className="mt-8">
