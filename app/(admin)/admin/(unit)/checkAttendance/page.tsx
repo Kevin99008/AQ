@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Camera, AlertCircle, RefreshCw, CheckCircle } from "lucide-react"
+import { Camera, AlertCircle, RefreshCw, CheckCircle } from 'lucide-react'
 import { Html5QrcodeScanner } from "html5-qrcode"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 
@@ -106,27 +106,32 @@ export default function CheckAttendance() {
 
   const handleCheckAttendance = async () => {
     try {
-      setIsSubmitting(true)
-      setError(null)
-  
-      // Prepare the data to send
-      const dataToSend = parsedContent || { rawContent: qrContent }
-  
-      // Make the API call using apiFetch
-      const result = await apiFetch("/api/attendance-update/", "POST", dataToSend);
-  
-      if (result === TOKEN_EXPIRED) {
-        console.log("Session expired. Cannot update attendance.");
+      // Validate that parsedContent has the expected format with student_id
+      if (!parsedContent || !parsedContent.student_id) {
+        setError("Invalid QR code format. Expected {\"student_id\": number}");
         return;
       }
-  
-      setSuccess("Attendance successfully recorded!")
-      console.log("Attendance updated:", result)
+
+      const studentId = parsedContent.student_id;
+      
+      setIsSubmitting(true);
+      setError(null);
+
+      // Make the API call using apiFetch with the extracted studentId
+      const result = await apiFetch(`/api/attendance-update/?student_id=${studentId}`, "PATCH");
+
+      if (result === TOKEN_EXPIRED) {
+        setError("Session expired. Cannot update attendance.");
+        return;
+      }
+
+      setSuccess("Attendance successfully recorded!");
+      console.log("Attendance updated:", result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update attendance")
-      console.error("Error updating attendance:", err)
+      setError(err instanceof Error ? err.message : "Failed to update attendance");
+      console.error("Error updating attendance:", err);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
@@ -221,12 +226,22 @@ export default function CheckAttendance() {
                 </div>
               )}
 
+              {parsedContent && !parsedContent.student_id && (
+                <Alert className="mt-4 bg-yellow-50 border-yellow-200">
+                  <AlertCircle className="h-4 w-4 text-yellow-600" />
+                  <AlertTitle>Invalid Format</AlertTitle>
+                  <AlertDescription>
+                    The scanned QR code doesn't contain a valid student_id. Please scan a valid student QR code.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Check Attendance Button */}
               <div className="flex justify-center mt-6">
                 <Button
                   onClick={handleCheckAttendance}
                   className="bg-green-600 hover:bg-green-700 text-white w-full py-6 text-lg"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !parsedContent || !parsedContent.student_id}
                 >
                   {isSubmitting ? (
                     <>
@@ -248,4 +263,3 @@ export default function CheckAttendance() {
     </div>
   )
 }
-
