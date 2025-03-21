@@ -212,6 +212,7 @@ export default function CertificatePage() {
               </div>
 
               <RadioGroup className="space-y-3">
+              <div className="space-y-3 max-h-[400px] overflow-y-auto ">
                 {filteredStudent.map((student) => (
                   <div key={student.id} className="flex items-center space-x-2">
                     <RadioGroupItem
@@ -235,6 +236,7 @@ export default function CertificatePage() {
                     </Label>
                   </div>
                 ))}
+                </div>
               </RadioGroup>
 
             </CardContent>

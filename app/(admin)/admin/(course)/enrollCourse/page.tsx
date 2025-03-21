@@ -303,12 +303,12 @@ export default function EnrollmentPage() {
       const studentId = selectedStudent.id
       const courseId = selectedCourse.id
       const teacherId = selectedTeacher.id
-
+      const courseName = selectedCourse.courseName
       const bangkokOffset = 7 * 60;
       const selecteddate = new Date(date.getTime() + bangkokOffset * 60 * 1000);
       const formattedDate = encodeURIComponent(selecteddate.toISOString());
       const time = selectedTime
-      const url = `/admin/enrollCourse/payment?amount=${amount}&date=${formattedDate}&studentId=${studentId}&courseId=${courseId}&teacherId=${teacherId}&time=${time}`;
+      const url = `/admin/enrollCourse/payment?amount=${amount}&date=${formattedDate}&studentId=${studentId}&courseId=${courseId}&teacherId=${teacherId}&time=${time}&courseName=${courseName}`;
       push(url);
 
     } catch (error) {
@@ -372,29 +372,31 @@ export default function EnrollmentPage() {
               </div>
 
               <RadioGroup className="space-y-3">
-                {filteredStudent.map((student) => (
-                  <div key={student.id} className="flex items-center space-x-2">
-                    <RadioGroupItem
-                      value={student.id.toString()}
-                      id={`student-${student.id}`}
-                      onClick={() => handleStudentSelect(student)}
-                    />
-                    <Label
-                      htmlFor={`student-${student.id}`}
-                      className="flex flex-1 items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-muted/50"
-                    >
-                      <div>
-                        <p className="font-medium">{student.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Username: {student.username}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Born: {new Date(student.birthdate).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </Label>
-                  </div>
-                ))}
+                <div className="space-y-3 max-h-[400px] overflow-y-auto ">
+                  {filteredStudent.map((student) => (
+                    <div key={student.id} className="flex items-center space-x-2 ">
+                      <RadioGroupItem
+                        value={student.id.toString()}
+                        id={`student-${student.id}`}
+                        onClick={() => handleStudentSelect(student)}
+                      />
+                      <Label
+                        htmlFor={`student-${student.id}`}
+                        className="flex flex-1 items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-muted/50"
+                      >
+                        <div>
+                          <p className="font-medium">{student.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Username: {student.username}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Born: {new Date(student.birthdate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </RadioGroup>
 
             </CardContent>
@@ -459,45 +461,47 @@ export default function EnrollmentPage() {
                 </DropdownMenu>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredCourse.map((course) => {
-                  // Get config for this course type or use default
-                  const config = typeConfig[course.type] || typeConfig["Other"]
+              <div className="space-y-3 max-h-[400px] overflow-y-auto ">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {filteredCourse.map((course) => {
+                    // Get config for this course type or use default
+                    const config = typeConfig[course.type] || typeConfig["Other"]
 
-                  return (
-                    <Card key={course.id} className={cn("overflow-hidden border-t-4 hover:shadow-lg", config.bgColor)} onClick={() => handleCourseSelect(course)}>
-                      <div className="relative">
-                        {/* Price tag without hover effect */}
-                        <div className="absolute right-0 top-0 z-10">
-                          <div className="relative">
-                            <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white font-bold px-4 py-2 rounded-bl-lg shadow-md">
-                              ฿{typeof course.price === "number" ? course.price.toFixed(2) : course.price}
+                    return (
+                      <Card key={course.id} className={cn("overflow-hidden border-t-4 hover:shadow-lg", config.bgColor)} onClick={() => handleCourseSelect(course)}>
+                        <div className="relative">
+                          {/* Price tag without hover effect */}
+                          <div className="absolute right-0 top-0 z-10">
+                            <div className="relative">
+                              <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white font-bold px-4 py-2 rounded-bl-lg shadow-md">
+                                ฿{typeof course.price === "number" ? course.price.toFixed(2) : course.price}
+                              </div>
+                              <div className="absolute -bottom-2 -left-2 h-2 w-2 bg-slate-900 clip-corner"></div>
                             </div>
-                            <div className="absolute -bottom-2 -left-2 h-2 w-2 bg-slate-900 clip-corner"></div>
                           </div>
+
+                          <CardHeader className="pb-0 pt-6">
+                            <div className="flex items-center gap-2">
+                              {config.icon}
+                              <h3 className="text-lg font-semibold">{course.courseName}</h3>
+                            </div>
+                          </CardHeader>
                         </div>
 
-                        <CardHeader className="pb-0 pt-6">
-                          <div className="flex items-center gap-2">
-                            {config.icon}
-                            <h3 className="text-lg font-semibold">{course.courseName}</h3>
+                        <CardContent className="pt-4">
+                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{course.description}</p>
+
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            <Badge className={cn("flex items-center gap-1 border-0", config.color)}>
+                              {config.icon}
+                              <span>{course.type}</span>
+                            </Badge>
                           </div>
-                        </CardHeader>
-                      </div>
-
-                      <CardContent className="pt-4">
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{course.description}</p>
-
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          <Badge className={cn("flex items-center gap-1 border-0", config.color)}>
-                            {config.icon}
-                            <span>{course.type}</span>
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
@@ -529,6 +533,7 @@ export default function EnrollmentPage() {
               </div>
 
               <RadioGroup className="space-y-3">
+              <div className="space-y-3 max-h-[400px] overflow-y-auto ">
                 {filteredTeacger.map((teacher) => (
                   <div key={teacher.id} className="flex items-center space-x-2">
                     <RadioGroupItem
@@ -549,6 +554,7 @@ export default function EnrollmentPage() {
                     </Label>
                   </div>
                 ))}
+                </div>
               </RadioGroup>
 
             </CardContent>
