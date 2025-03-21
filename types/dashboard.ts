@@ -1,6 +1,8 @@
 export interface AttendanceRecord {
+    courseType: any;
     id: number;
     name: string;
+    studentId: number;
     timestamp: string;
     course: string;
   }
@@ -11,6 +13,8 @@ export interface AttendanceRecord {
   }
   
   export interface CourseData {
+    capacity: number;
+    attendance: number;
     month: string;
     courses: number;
   }
@@ -21,9 +25,16 @@ export interface AttendanceRecord {
   }
   
   export interface StatisticsData {
-    totalMembers: number;
-    activeMembers: number;
-    inactiveMembers: number;
+    totalStudent: number;
+    activeStudent: number;
+    inactiveStudent: number;
     newStudents: number;
+  }
+  
+  export interface CoursePopularityData {
+    name: string;
+    popularity: number;
+    students: number;
+    type: string;
   }
   

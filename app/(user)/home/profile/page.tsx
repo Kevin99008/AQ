@@ -1,58 +1,62 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { User, AlertCircle } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { User, AlertCircle, QrCode } from "lucide-react"
 import { format } from "date-fns"
-import { apiFetch, TOKEN_EXPIRED } from "@/utils/api";
+import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 // Types for the API responses
 interface UserProfile {
-  id: string;
-  username: string;
-  email: string;
-  contact: string;
+  id: string
+  username: string
+  email: string
+  contact: string
   students: {
-    id: string;
-    name: string;
-    birthdate: Date;
-  }[];
+    id: string
+    name: string
+    birthdate: Date
+  }[]
 }
 
 // Function to calculate age in years
 const calculateAge = (birthdate: Date): number => {
-  const today = new Date();
-  let age = today.getFullYear() - birthdate.getFullYear();
-  const monthDifference = today.getMonth() - birthdate.getMonth();
+  const today = new Date()
+  let age = today.getFullYear() - birthdate.getFullYear()
+  const monthDifference = today.getMonth() - birthdate.getMonth()
 
   if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthdate.getDate())) {
-    age--;
+    age--
   }
 
-  return age;
-};
+  return age
+}
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null)
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   // Fetch user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
 
       try {
-        const data = await apiFetch<UserProfile>("/api/profile");
+        const data = await apiFetch<UserProfile>("/api/profile")
 
         if (data === TOKEN_EXPIRED) {
-          setError("Session expired. Please log in again.");
-          return;
+          setError("Session expired. Please log in again.")
+          return
         }
 
         // Convert string dates to Date objects and rename children to students
@@ -62,19 +66,46 @@ export default function ProfilePage() {
             ...student,
             birthdate: new Date(student.birthdate),
           })),
-        };
+        }
 
-        setUser(formattedData);
+        setUser(formattedData)
       } catch (err) {
-        console.error("Failed to fetch profile:", err);
-        setError("Failed to load profile data. Please try again later.");
+        console.error("Failed to fetch profile:", err)
+        setError("Failed to load profile data. Please try again later.")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchUserProfile();
-  }, []);
+    fetchUserProfile()
+  }, [])
+
+  // Generate QR code for student
+  const generateQRCode = useCallback(async (studentId: string) => {
+    setSelectedStudent(studentId)
+    setQrCodeDataUrl(null)
+
+    try {
+      // Dynamic import of QRCode library to avoid SSR issues
+      const QRCode = (await import("qrcode")).default
+
+      const qrData = JSON.stringify({
+        student_id: studentId,
+      })
+
+      const url = await QRCode.toDataURL(qrData)
+      setQrCodeDataUrl(url)
+    } catch (err) {
+      console.error("Failed to generate QR code:", err)
+    }
+  }, [])
+
+  // Generate QR code when dialog opens for a student
+  useEffect(() => {
+    if (dialogOpen && selectedStudent) {
+      generateQRCode(selectedStudent)
+    }
+  }, [dialogOpen, selectedStudent, generateQRCode])
 
   // Loading state
   if (loading) {
@@ -232,11 +263,56 @@ export default function ProfilePage() {
             <CardContent className="space-y-4">
               {user.students.map((student) => (
                 <div key={student.id} className="rounded-lg border p-4">
-                  <div>
-                    <h3 className="font-medium">{student.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Birthdate: {format(student.birthdate, "PPP")} ({calculateAge(student.birthdate)} years old)
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium">{student.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Birthdate: {format(student.birthdate, "PPP")} ({calculateAge(student.birthdate)} years old)
+                      </p>
+                    </div>
+                    <Dialog
+                      open={dialogOpen && selectedStudent === student.id}
+                      onOpenChange={(open) => {
+                        setDialogOpen(open)
+                        if (open) {
+                          setSelectedStudent(student.id)
+                        }
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedStudent(student.id)
+                          }}
+                        >
+                          <QrCode className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Student QR Code</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex flex-col items-center justify-center p-6">
+                          {qrCodeDataUrl ? (
+                            <div className="flex flex-col items-center gap-4">
+                              <img
+                                src={qrCodeDataUrl || "/placeholder.svg"}
+                                alt="Student QR Code"
+                                className="h-64 w-64"
+                              />
+                              <p className="text-sm text-muted-foreground">Student Name: {student.name}</p>
+                              <p className="text-sm text-muted-foreground">Student ID: {student.id}</p>
+                            </div>
+                          ) : (
+                            <div className="flex h-64 w-64 items-center justify-center">
+                              <p>Generating QR code...</p>
+                            </div>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               ))}

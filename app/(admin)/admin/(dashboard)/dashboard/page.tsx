@@ -1,116 +1,156 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import StatisticsOverview from "@/components/dashboard/StatisticsOverview";
-import MembershipPieChart from "@/components/dashboard/MembershipPieChart";
-import NewStudentsBarChart from "@/components/dashboard/NewStudentsBarChart";
-import NewCoursesBarChart from "@/components/dashboard/NewCoursesBarChart";
-import AttendanceLog from "@/components/dashboard/AttendanceLog";
-import AttendanceHistory from "@/components/dashboard/AttendanceHistory";
-import { AttendanceRecord, StudentData, CourseData, PieChartData, StatisticsData } from "@/types/dashboard";
-import { apiFetch, TOKEN_EXPIRED } from "@/utils/api";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react"
+import { ChevronDown, Filter } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import StatisticsOverview from "@/components/dashboard/StatisticsOverview"
+import MembershipDistribution from "@/components/dashboard/MembershipDistribution"
+import CoursePerformance from "@/components/dashboard/CoursePerformance"
+import AttendanceLog from "@/components/dashboard/AttendanceLog"
+import AttendanceHistory from "@/components/dashboard/AttendanceHistory"
+import AttendanceHeatmap from "@/components/dashboard/AttendanceHeatmap"
+import type { AttendanceRecord, StudentData, CourseData, PieChartData, StatisticsData } from "@/types/dashboard"
+import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
+import { useRouter } from "next/navigation"
 
 export default function DashboardAdmin() {
-  const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(null);
-  const [studentData, setStudentData] = useState<StudentData[]>([]);
-  const [courseData, setCourseData] = useState<CourseData[]>([]);
-  const [lastMonthData, setLastMonthData] = useState<StatisticsData>({
-    totalMembers: 0,
-    activeMembers: 0,
-    inactiveMembers: 0,
-    newStudents: 0
-  });
-  const [thisMonthData, setThisMonthData] = useState<StatisticsData>({
-    totalMembers: 0,
-    activeMembers: 0,
-    inactiveMembers: 0,
-    newStudents: 0
-  });
-  const [pieChartData, setPieData] = useState<PieChartData[]>([
-    { name: "Teacher", value: 0 },
-    { name: "Student", value: 0 }
-  ]);
-  const { push } = useRouter();
-  
+  const [selectedGroup, setSelectedGroup] = useState<string>("All")
+  const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(null)
+  const [countStudentData, setcountStudentData] = useState<StatisticsData>({
+    totalStudent: 0,
+    activeStudent: 0,
+    inactiveStudent: 0,
+    newStudents: 0,
+  })
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
+
   useEffect(() => {
-    // Simulated data fetching; replace this with your actual API call
+    // Fetch data based on the selected group
     const fetchData = async () => {
       try {
-        // Fetching last month and this month data
-        const lastMonthResponse = await apiFetch<StatisticsData>('/api/static/count/');
-        if (lastMonthResponse !== TOKEN_EXPIRED) {
-          setLastMonthData(lastMonthResponse);  // Set data only if the token is not expired
+        // Fetch statistics data
+        const countStudentResponse = await apiFetch<StatisticsData>(`/api/static/count`)
+        if (countStudentResponse !== TOKEN_EXPIRED) {
+          setcountStudentData(countStudentResponse)
         }
-  
-        const thisMonthResponse = await apiFetch<StatisticsData>('/api/static/count/');
-        if (thisMonthResponse !== TOKEN_EXPIRED) {
-          setThisMonthData(thisMonthResponse);  // Set data only if the token is not expired
-        }
-  
-        const pieChartResponse = await apiFetch<PieChartData[]>('/api/static/pie');
-        if (pieChartResponse !== TOKEN_EXPIRED) {
-          setPieData(pieChartResponse);  // Set data only if the token is not expired
-        }
-  
-        // Using static data for now
-        const fetchedStudentData: StudentData[] = [
-          { month: "Jan", students: 12 },
-          { month: "Feb", students: 19 },
-        ];
-        setStudentData(fetchedStudentData);
-  
-        const fetchedCourseData: CourseData[] = [
-          { month: "Jan", courses: 4 },
-          { month: "Feb", courses: 3 },
-        ];
-        setCourseData(fetchedCourseData);
-  
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
-      }
-    };
-  
-    fetchData();
-  }, []);
-  
 
-  const attendanceRecords = [
-    { id: 1, name: "John Doe", timestamp: "2025-01-18 10:00 AM", course: "Mathematics 101" },
-    { id: 2, name: "Jane Smith", timestamp: "2025-01-18 10:15 AM", course: "Physics 202" },
-    { id: 3, name: "Alice Johnson", timestamp: "2025-01-18 10:30 AM", course: "Chemistry 301" },
-    { id: 4, name: "Bob Brown", timestamp: "2025-01-18 10:45 AM", course: "Biology 102" },
-    { id: 5, name: "Charlie Davis", timestamp: "2025-01-18 11:00 AM", course: "English Literature 201" },
-    { id: 6, name: "Eva White", timestamp: "2025-01-18 11:15 AM", course: "Computer Science 401" },
-    { id: 7, name: "Frank Miller", timestamp: "2025-01-18 11:30 AM", course: "History 301" },
-    { id: 8, name: "Grace Taylor", timestamp: "2025-01-18 11:45 AM", course: "Art 101" },
-  ];
+        const attendanceResponse = await apiFetch<AttendanceRecord[]>(`/api/attendance-log/?sortNewestFirst=true`)
+        if (attendanceResponse !== TOKEN_EXPIRED) {
+          setAttendanceRecords(attendanceResponse) // Now passing an array
+        }
+      } catch (error) {
+        console.error("Failed to fetch data:", error)
+      }
+    }
+
+    fetchData()
+  }, [selectedGroup])
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-100 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+    <div className="p-4 bg-background min-h-screen">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-full sm:w-auto">
+              <Filter className="mr-2 h-4 w-4" />
+              {selectedGroup}
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[200px]">
+            <DropdownMenuRadioGroup value={selectedGroup} onValueChange={setSelectedGroup}>
+              <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="AquaKids">AquaKids</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="Playsound">Playsound</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="Other">Other</DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <div className="md:col-span-2 lg:col-span-4">
-          <StatisticsOverview lastMonthData={lastMonthData} thisMonthData={thisMonthData} />      
-        </div>
-        <div className="md:col-span-2 lg:col-span-2">
-          <NewStudentsBarChart data={studentData} />
-        </div>
-        <div className="md:col-span-2 lg:col-span-2">
-          <NewCoursesBarChart data={courseData} />
-        </div>
-        <div className="md:col-span-2 lg:col-span-2">
-          <AttendanceLog records={attendanceRecords} onSelectAttendance={setSelectedAttendance} />
-        </div>
-        <div className="md:col-span-2 lg:col-span-2 ">
-          <MembershipPieChart data={pieChartData}/>
+
+      {/* Key Metrics Section */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-3 px-1">Key Metrics</h2>
+        <StatisticsOverview countStudentData={countStudentData}/>
+      </div>
+
+      {/* Attendance Section */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-3">Attendance</h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-md font-medium">Recent Attendance</CardTitle>
+              <CardDescription>Search and view latest attendance records</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AttendanceLog
+                records={attendanceRecords}
+                onSelectAttendance={setSelectedAttendance}
+                sortNewestFirst={true}
+                courseType={selectedGroup}
+              />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-md font-medium">Attendance Patterns</CardTitle>
+              <CardDescription>Weekly attendance heatmap</CardDescription>
+            </CardHeader>
+            <CardContent className="px-2 sm:px-6">
+              <AttendanceHeatmap courseType={selectedGroup} />
+            </CardContent>
+          </Card>
         </div>
       </div>
+
+      {/* Course Analytics & Membership Section */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-3">Course Analytics & Membership</h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="md:col-span-2">
+            <Card className="h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-md font-medium">
+                  Course Analytics {selectedGroup !== "All" && `- ${selectedGroup}`}
+                </CardTitle>
+                <CardDescription>Course performance and popularity metrics</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CoursePerformance courseType={selectedGroup} />
+              </CardContent>
+            </Card>
+          </div>
+          <div>
+            <Card className="h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-md font-medium">
+                  Members {selectedGroup !== "All" && `- ${selectedGroup}`}
+                </CardTitle>
+                <CardDescription>Distribution and trends</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <MembershipDistribution courseType={selectedGroup} />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
       {selectedAttendance && (
         <AttendanceHistory record={selectedAttendance} onClose={() => setSelectedAttendance(null)} />
       )}
     </div>
-  );
+  )
 }
+
