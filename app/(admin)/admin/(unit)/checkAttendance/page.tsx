@@ -111,20 +111,23 @@ export default function CheckAttendance() {
         setError("Invalid QR code format. Expected {\"student_id\": number}");
         return;
       }
-
+  
       const studentId = parsedContent.student_id;
       
       setIsSubmitting(true);
       setError(null);
-
-      // Make the API call using apiFetch with the extracted studentId
-      const result = await apiFetch(`/api/attendance-update/?student_id=${studentId}`, "PATCH");
-
+  
+      // Prepare the data to send in the body
+      const dataToSend = { student_id: studentId };
+  
+      // Make the API call using apiFetch with the extracted studentId in the body
+      const result = await apiFetch("/api/attendance-update/", "PATCH", dataToSend);
+  
       if (result === TOKEN_EXPIRED) {
         setError("Session expired. Cannot update attendance.");
         return;
       }
-
+  
       setSuccess("Attendance successfully recorded!");
       console.log("Attendance updated:", result);
     } catch (err) {
