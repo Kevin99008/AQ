@@ -30,14 +30,22 @@
   }
 
   .playSound{
-    background: linear-gradient(to bottom right, #ffafbd, #ffc3a0);
+    background: linear-gradient(to bottom right, #ff6d85, #ffc3a0);
+  }
+
+  .artplay{
+    background: linear-gradient(to bottom right, #e5adff, #4486ff);
+  }
+
+  .taekwondo{
+    background: linear-gradient(to bottom right, #ff9036, #ffdead);
   }
   
   .default{
     background: linear-gradient(to right, #d29efa, #f3a3be);
   }
 
-  .aquaKids, .playSound *{
+  .aquaKids, .playSound, .other, .artplay, .taekwondo *{
     text-shadow: 2px 0.5px 10px gray; /* Black shadow with blur */
     color: white;  
   }

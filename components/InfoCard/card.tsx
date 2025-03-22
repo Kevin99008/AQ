@@ -21,7 +21,9 @@ export default function Card({ title, detail, description, logo, previewImage }:
     // Determine which class to use based on the title
     const titleClass = title === "AquaKids" ? classes.aquaKids : 
                        title === "PlaySound" ? classes.playSound : 
-                       classes.defaultTitle; // Default class if no match
+                       title === "ArtPlay" ? classes.artplay : 
+                       title === "Taekwondo" ? classes.taekwondo : 
+                       classes.default; // Default class if no match
 
     return (
         <>
