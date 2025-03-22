@@ -1,6 +1,6 @@
 import classes from "./page.module.css"
 import ImageBackground from "@/components/images/imageBackground";
-import Card from "@/components/infoCard/card";
+import Card from "@/components/InfoCard/info-card";
 
 import aquakidsLogo from "@/assets/logo.png";
 import playsoundLogo from "@/assets/logo2.png";

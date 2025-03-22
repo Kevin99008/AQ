@@ -1,7 +1,7 @@
 import ImagePreview from "../images/imagePreview";
 import classes from "./card.module.css";
 import Image from "next/image";
-import DetailCard from "../InfoCard/detail-card"; // Use correct casing
+import DetailCard from "./detail-card"; // Use correct casing
 
 
 interface DescriptionDetail {
