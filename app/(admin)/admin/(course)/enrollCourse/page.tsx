@@ -194,7 +194,7 @@ export default function EnrollmentPage() {
       endTime: response.end_time,  // Assuming `end_time` is the correct field in the response
       instructor: response.teacher_name,  // Assuming `teacher_name` is the correct field in the response
       student: response.student_name,
-      color: response.is_owner ? "bg-green-500" : 'bg-grey-500',  // Set color based on is_owner
+      color: response.is_owner ? "bg-green-500" : 'bg-gray-500',  // Set color based on is_owner
     };
   }
 

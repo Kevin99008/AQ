@@ -14,6 +14,8 @@ import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import 'react-toastify/dist/ReactToastify.css';
+import { ClassCalendar } from "@/components/timeline/class-calendar"
+import type { ClassRaw , AttendanceRaw } from "@/types/course"
 // Define types based on the JSON structure
 interface Attendance {
     id: number
@@ -76,6 +78,8 @@ export default function ModifyAttendancePage() {
     const [isInputVisible, setIsInputVisible] = useState(false);
     const [selectedTime, setSelectedTime] = useState<string>("")
     const [date, setDate] = useState(new Date())
+    const [calendarDate, setCalendarDate] = useState<Date | undefined>(new Date())
+    const [classes, setClasses] = useState<ClassRaw[]>([])
 
     const filteredStudent = studentsData.filter(
         (student) =>
@@ -137,13 +141,42 @@ export default function ModifyAttendancePage() {
         setView("sessions")
     }
 
-    const handleCancel = () => {
+    function transformClassResponse(response: AttendanceRaw): ClassRaw {
+        return {
+          id: response.id,
+          title: response.course_name,
+          date: response.attendance_date,  // Assuming `session_date` is the correct field in the response
+          startTime: response.start_time,  // Assuming `start_time` is the correct field in the response
+          endTime: response.end_time,  // Assuming `end_time` is the correct field in the response
+          instructor: response.teacher_name,  // Assuming `teacher_name` is the correct field in the response
+          student: response.student_name,
+          color: response.is_owner ? "bg-green-500" : 'bg-gray-500',  // Set color based on is_owner
+        };
+      }
+
+    const handleCancel = async () => {
         if (isInputVisible === true) {
             setIsInputVisible(false);
             setSelectedTime("")
             setDate(new Date())
+            setClasses([])
         } else {
             setIsInputVisible(true);
+            if (!selectedStudent || !selectedSession) return
+            try {
+                const classData = await apiFetch<AttendanceRaw[]>(`/api/attendacne-but-modify/?student_id=${selectedStudent.id}&session_id=${selectedSession.id}`);
+                if (classData !== TOKEN_EXPIRED) {
+                    const transformedClasses = classData.map(transformClassResponse);
+                    setClasses(transformedClasses);  // Set data only if the token is not expired
+                }
+            } catch (err: any) {
+                if (err instanceof Error) {
+                    toast.error(err.message);
+                } else {
+                    toast.error("Something went wrong");
+                }
+            }
+
         }
     };
 
@@ -464,6 +497,9 @@ export default function ModifyAttendancePage() {
                             {isInputVisible && (
                                 <div className="mt-4 mb-8">
                                     <div className="p-3 border rounded-md bg-muted/50">
+                                        <div className="md:col-span-2">
+                                            <ClassCalendar classes={classes} date={calendarDate} setDate={setCalendarDate} onSelectClass={(selected) => console.log("Selected class:", selected)} />
+                                        </div>
                                         <h3 className="font-medium mb-1">Start Date</h3>
                                         <Popover>
                                             <PopoverTrigger asChild>
