@@ -3,14 +3,11 @@ import { ArrowRight, BookOpen, GraduationCap, User } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { UserAvatar } from "@/components/userComponent/user-avatar"
+
 
 export default function HomePage() {
   return (
     <div className="container mx-auto">
-      <div className="flex justify-end mb-6">
-        <UserAvatar />
-      </div>
 
       <div className="flex flex-col items-center justify-center space-y-4 text-center">
         <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">AquaCube Course Management</h1>

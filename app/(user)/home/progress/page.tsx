@@ -7,7 +7,6 @@ import { apiFetch, TOKEN_EXPIRED } from "@/utils/api";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { StudentSelector } from "@/components/userComponent/student-selector"
-import { UserAvatar } from "@/components/userComponent/user-avatar"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -88,10 +87,6 @@ export default function ProgressPage() {
   if (loading && !courses.length && !Students.length) {
     return (
       <div className="container mx-auto">
-        <div className="flex justify-end mb-6">
-          <UserAvatar />
-        </div>
-
         <div className="mb-8">
           <Skeleton className="h-10 w-64 mb-2" />
           <Skeleton className="h-5 w-96" />
@@ -134,10 +129,6 @@ export default function ProgressPage() {
 
   return (
     <div className="container mx-auto">
-      <div className="flex justify-end mb-6">
-        <UserAvatar />
-      </div>
-
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Course Progress</h1>

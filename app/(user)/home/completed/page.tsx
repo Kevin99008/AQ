@@ -7,7 +7,6 @@ import { Award, AlertCircle, ZoomIn, X } from "lucide-react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { StudentSelector } from "@/components/userComponent/student-selector"
 import { Button } from "@/components/ui/button"
-import { UserAvatar } from "@/components/userComponent/user-avatar"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
@@ -118,10 +117,6 @@ export default function CertificatesPage() {
   if (loading && !certificates.length && !students.length) {
     return (
       <div className="container mx-auto">
-        <div className="flex justify-end mb-6">
-          <UserAvatar />
-        </div>
-
         <div className="mb-8">
           <Skeleton className="h-10 w-64 mb-2" />
           <Skeleton className="h-5 w-96" />
@@ -156,9 +151,6 @@ export default function CertificatesPage() {
 
   return (
     <div className="container mx-auto">
-      <div className="flex justify-end mb-6">
-        <UserAvatar />
-      </div>
 
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
