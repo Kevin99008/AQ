@@ -125,8 +125,9 @@ export default function CertificatePage() {
     
     const formData = new FormData();
     formData.append("certificate_image", newItem.file);
-    formData.append("user", selectedStudent.user_id.toString());
+    formData.append("student", selectedStudent.id.toString());
     formData.append("course", selectedCourse.id.toString());
+    formData.append("user", selectedStudent.user_id.toString());
 
     try {
       const response = await apiFetchFormData<LogResponse>("/api/certificates-upload/", "POST", formData);
