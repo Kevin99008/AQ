@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Search } from "lucide-react"
+import { Search, Filter, Droplets, Music, Sparkles } from "lucide-react"
 import { toast } from "react-toastify"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -17,6 +17,42 @@ import type { StudentCertRaw } from "@/types/user"
 import type { CourseRaw } from "@/types/course"
 import defaultImg from "@/assets/logo.png"
 import { apiFetchFormData } from "@/utils/formData"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
+
+const typeConfig: Record<
+  string,
+  {
+    borderColor: string
+    bgColor: string
+    badgeColor: string
+    icon: React.ReactNode
+  }
+> = {
+  AquaKids: {
+    borderColor: "border-blue-400",
+    bgColor: "bg-gradient-to-r from-blue-50 to-transparent",
+    badgeColor: "bg-blue-100 text-blue-700 hover:bg-blue-100",
+    icon: <Droplets className="h-4 w-4 text-blue-500 flex-shrink-0" />,
+  },
+  Playsound: {
+    borderColor: "border-orange-400",
+    bgColor: "bg-gradient-to-r from-orange-50 to-transparent",
+    badgeColor: "bg-orange-100 text-orange-700 hover:bg-orange-100",
+    icon: <Music className="h-4 w-4 text-orange-500 flex-shrink-0" />,
+  },
+  Other: {
+    borderColor: "border-pink-400",
+    bgColor: "bg-gradient-to-r from-pink-50 to-transparent",
+    badgeColor: "bg-pink-100 text-pink-700 hover:bg-pink-100",
+    icon: <Sparkles className="h-4 w-4 text-pink-500 flex-shrink-0" />,
+  },
+}
 
 export default function CertificatePage() {
   const { push } = useRouter();
@@ -28,6 +64,7 @@ export default function CertificatePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchCourseQuery, setSearchCourseQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(["AquaKids", "Playsound", "Other"])
 
   const [newItem, setNewItem] = useState<{ imageUrl: string; file: File | null }>({
     imageUrl: "",
@@ -45,16 +82,20 @@ export default function CertificatePage() {
 
   const filteredCourse = courses.filter(
     (course) =>
-      (course.courseName?.toLowerCase() || "").includes((searchCourseQuery || "").toLowerCase()),
-
+      (course.courseName?.toLowerCase() || "").includes((searchCourseQuery || "").toLowerCase()) &&
+      selectedTypes.includes(course.type),
   )
+
+  const toggleType = (type: string) => {
+    setSelectedTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]))
+  }
 
   const typeMap: Record<number, CourseRaw["type"]> = {
     1: "AquaKids",
     2: "Playsound",
     3: "Other",
   };
-  
+
   function transformCourseResponse(response: any): CourseRaw {
     return {
       id: response.id,
@@ -122,7 +163,7 @@ export default function CertificatePage() {
       toast.error("Please upload a certificate")
       return
     }
-    
+
     const formData = new FormData();
     formData.append("certificate_image", newItem.file);
     formData.append("student", selectedStudent.id.toString());
@@ -147,7 +188,7 @@ export default function CertificatePage() {
       } else {
         toast.error("Failed to enroll student in course.")
       }
-    } 
+    }
   }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,7 +196,7 @@ export default function CertificatePage() {
       const file = e.target.files[0];
       const fileNameWithUnderscores = file.name.replace(/\s+/g, '_');
       const newFile = new File([file], fileNameWithUnderscores, { type: file.type });
-  
+
       setNewItem((prevItem) => ({
         ...prevItem,
         imageUrl: URL.createObjectURL(newFile), // Preview image
@@ -213,30 +254,30 @@ export default function CertificatePage() {
               </div>
 
               <RadioGroup className="space-y-3">
-              <div className="space-y-3 max-h-[400px] overflow-y-auto ">
-                {filteredStudent.map((student) => (
-                  <div key={student.id} className="flex items-center space-x-2">
-                    <RadioGroupItem
-                      value={student.id.toString()}
-                      id={`student-${student.id}`}
-                      onClick={() => handleStudentSelect(student)}
-                    />
-                    <Label
-                      htmlFor={`student-${student.id}`}
-                      className="flex flex-1 items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-muted/50"
-                    >
-                      <div>
-                        <p className="font-medium">{student.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Username: {student.username}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Born: {new Date(student.birthdate).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </Label>
-                  </div>
-                ))}
+                <div className="space-y-3 max-h-[400px] overflow-y-auto ">
+                  {filteredStudent.map((student) => (
+                    <div key={student.id} className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value={student.id.toString()}
+                        id={`student-${student.id}`}
+                        onClick={() => handleStudentSelect(student)}
+                      />
+                      <Label
+                        htmlFor={`student-${student.id}`}
+                        className="flex flex-1 items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-muted/50"
+                      >
+                        <div>
+                          <p className="font-medium">{student.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Username: {student.username}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Born: {new Date(student.birthdate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </Label>
+                    </div>
+                  ))}
                 </div>
               </RadioGroup>
 
@@ -256,8 +297,8 @@ export default function CertificatePage() {
               <CardDescription>Choose a course to describe a certificate</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="mb-4">
-                <div className="relative">
+              <div className="mb-4 flex gap-2">
+                <div className="relative flex-1">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
@@ -267,25 +308,79 @@ export default function CertificatePage() {
                     onChange={(e) => setSearchCourseQuery(e.target.value)}
                   />
                 </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="flex items-center gap-1">
+                      <Filter className="h-4 w-4" />
+                      Filter
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTypes.includes("AquaKids")}
+                      onCheckedChange={() => toggleType("AquaKids")}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Droplets className="h-4 w-4 text-blue-500" />
+                        <span className="text-blue-600">AquaKids</span>
+                      </div>
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTypes.includes("Playsound")}
+                      onCheckedChange={() => toggleType("Playsound")}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Music className="h-4 w-4 text-orange-500" />
+                        <span className="text-orange-600">Playsound</span>
+                      </div>
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={selectedTypes.includes("Other")}
+                      onCheckedChange={() => toggleType("Other")}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-pink-500" />
+                        <span className="text-pink-600">Other</span>
+                      </div>
+                    </DropdownMenuCheckboxItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                {filteredCourse.map((course) => (
-                  <div
-                    key={course.id}
-                    className="p-3 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => handleCourseSelect(course)}
-                  >
-                    <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-medium">{course.courseName}</h3>
-                      <Badge>Type: {course.type}</Badge>
+                {filteredCourse.map((course) => {
+                  const config = typeConfig[course.type] || typeConfig["Other"]
+
+                  return (
+                    <div
+                      key={course.id}
+                      className={cn(
+                        "p-3 border border-l-4 rounded-md cursor-pointer transition-colors",
+                        config.borderColor,
+                        config.bgColor,
+                        "hover:bg-muted/50 group",
+                      )}
+                      onClick={() => handleCourseSelect(course)}
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center gap-2">
+                          {config.icon}
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium">{course.courseName}</h3>
+                            <Badge className={cn("text-xs font-medium", config.badgeColor)}>{course.type}</Badge>
+                          </div>
+                        </div>
+
+                       
+                      </div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm text-muted-foreground ml-6">{course.description}</p>
+
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">{course.description}</p>
-                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span>Category: {course.description}</span>
-                    </div>
-                  </div>
-                ))}
+
+                  )
+                })}
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">

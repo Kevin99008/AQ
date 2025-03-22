@@ -191,7 +191,7 @@ export default function CreateCoursePage() {
     <div className="container py-10 flex">
       <Card className="w-2/3 mr-12 h-full">
         <CardHeader>
-          <CardTitle>Select Course</CardTitle>
+          <CardTitle>All Courses</CardTitle>
           <CardDescription>Choose a course to enroll the student in</CardDescription>
         </CardHeader>
         <CardContent>

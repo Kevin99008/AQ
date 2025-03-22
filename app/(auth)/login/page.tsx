@@ -23,6 +23,12 @@ export default function LoginPage() {
     }));
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleLogin();
+    }
+  };
+
   const handleLogin = async () => {
     try {
       const response = await fetch("http://localhost:8000/api/token/", {
@@ -101,6 +107,7 @@ export default function LoginPage() {
             name="username"
             value={credentials.username}
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
           />
         </div>
         <div className="mt-4">
@@ -113,6 +120,7 @@ export default function LoginPage() {
             name="password"
             value={credentials.password}
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
           />
         </div>
         <button
@@ -122,14 +130,6 @@ export default function LoginPage() {
           Login
         </button>
         {error && <p className="text-red-500 text-sm text-center mt-4">{error}</p>}
-        <footer className="flex justify-between text-sm mt-4">
-          <a className="text-blue-500 hover:underline" href="#">
-            Forgot Password?
-          </a>
-          <a className="text-blue-500 hover:underline" href="#">
-            Create Account
-          </a>
-        </footer>
       </div>
     </div>
   );
