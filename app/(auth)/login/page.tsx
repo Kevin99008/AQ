@@ -31,7 +31,7 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch("http://aqtech-production.up.railway.app/api/token/", {
+      const response = await fetch("https://aqtech-production.up.railway.app/api/token/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
