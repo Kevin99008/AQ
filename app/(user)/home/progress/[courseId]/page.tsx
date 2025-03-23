@@ -267,21 +267,34 @@ export default function SessionDetailPage() {
                       const classDate = new Date(attendanceRecord.attendanceDate)
                       const today = new Date()
                       const isUpcoming = classDate > today
-  
+                      const isChecked = attendanceRecord.checkedDate !== null
+
                       return (
                         <tr key={index} className="border-b">
                           <td className="py-3">{classDate.toLocaleDateString()}</td>
                           <td className="py-3">
                             <span
                               className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                                attendanceRecord.status
-                                  ? "bg-green-100 text-green-800"
-                                  : isUpcoming
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-red-100 text-red-800"
+                                !isChecked
+                                  ? "bg-gray-100 text-gray-800" // Gray for not recorded
+                                  : attendanceRecord.status === "absent"
+                                    ? "bg-red-100 text-red-800" // Red status for absent
+                                    : attendanceRecord.status === "present"
+                                      ? "bg-green-100 text-green-800" // Green status for attended
+                                      : isUpcoming
+                                        ? "bg-blue-100 text-blue-800" // Blue status for upcoming
+                                        : "bg-gray-100 text-gray-800" // Default gray if no status
                               }`}
                             >
-                              {attendanceRecord.status ? "Attended" : isUpcoming ? "Upcoming" : "Absent"}
+                              {!isChecked
+                                ? "Not Recorded" // Show "Not Recorded" if checked_date is null
+                                : attendanceRecord.status === "absent"
+                                  ? "Absent"
+                                  : attendanceRecord.status === "present"
+                                    ? "Attended"
+                                    : isUpcoming
+                                      ? "Upcoming"
+                                      : "No Status"}
                             </span>
                           </td>
                         </tr>
