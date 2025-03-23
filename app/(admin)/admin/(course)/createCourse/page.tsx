@@ -137,7 +137,7 @@ export default function CreateCoursePage() {
       name: "",
       description: "",
       classesOption: "10",
-      customClasses: 0,
+      customClasses: 1,
       levelId: "",
       price: 0,
     },
