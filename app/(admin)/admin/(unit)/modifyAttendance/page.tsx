@@ -608,38 +608,39 @@ export default function ModifyAttendancePage() {
                                         <tbody className="bg-white divide-y divide-gray-200">
                                             {selectedSession.attendances.map((attendance) => (
                                                 <tr key={attendance.id} className="hover:bg-gray-50">
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{attendance.id}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        {attendance.status.toLowerCase() === "present" ? (
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                                <CheckCircle className="h-3 w-3 mr-1" />
-                                                                Present
-                                                            </span>
-                                                        ) : (
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                                <XCircle className="h-3 w-3 mr-1" />
-                                                                Absent
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        Student #{attendance.student}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        Teacher #{attendance.teacher}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {formatDate(attendance.attendance_date)}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {formatTime(attendance.start_time)} - {formatTime(attendance.end_time)}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {attendance.checked_date ? formatDate(attendance.checked_date) : "Not checked"}
-                                                    </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{attendance.id}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {!attendance.checked_date ? (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                        <Clock className="h-3 w-3 mr-1" />
+                                                        Not Checked
+                                                    </span>
+                                                    ) : attendance.status.toLowerCase() === "present" ? (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                                        Present
+                                                    </span>
+                                                    ) : (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                        <XCircle className="h-3 w-3 mr-1" />
+                                                        Absent
+                                                    </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Student #{attendance.student}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Teacher #{attendance.teacher}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {formatDate(attendance.attendance_date)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {formatTime(attendance.start_time)} - {formatTime(attendance.end_time)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {attendance.checked_date ? formatDate(attendance.checked_date) : "Not checked"}
+                                                </td>
                                                 </tr>
                                             ))}
-                                        </tbody>
+                                            </tbody>
                                     </table>
                                 </div>
                             </div>
