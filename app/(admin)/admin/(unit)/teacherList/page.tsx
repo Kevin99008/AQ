@@ -79,7 +79,7 @@ export default function MemberListPage() {
     const fetchData = async () => {
       try {
         const [teachersRes] = await Promise.all([
-          fetch("http://localhost:8000/api/teachers/"),
+          fetch("https://aqtech-production.up.railway.app/api/teachers/"),
         ])
   
         const [teachersData] = await Promise.all([

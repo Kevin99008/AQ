@@ -17,7 +17,7 @@ export default function AttendanceHeatmap({ courseType = "All" }: AttendanceHeat
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/attendance-heatmap/?courseType=${courseType}`)
+        const response = await fetch(`https://aqtech-production.up.railway.app/api/attendance-heatmap/?courseType=${courseType}`)
         const data = await response.json()
         setHeatmapData(data)
       } catch (error) {

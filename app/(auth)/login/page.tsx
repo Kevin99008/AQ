@@ -54,7 +54,7 @@ export default function LoginPage() {
       const { access, refresh } = await response.json();
       setTokens(access, refresh);
   
-      const userResponse = await fetch("http://localhost:8000/api/user/info/", {
+      const userResponse = await fetch("https://aqtech-production.up.railway.app/api/user/info/", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${access}`,

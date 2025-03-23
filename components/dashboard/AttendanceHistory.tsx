@@ -40,7 +40,7 @@ export default function AttendanceHistory({ record, onClose }: AttendanceHistory
   useEffect(() => {
     const fetchRecentAttendance = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/attendance-recent/?studentId=${record.studentId}`)
+        const response = await fetch(`https://aqtech-production.up.railway.app/api/attendance-recent/?studentId=${record.studentId}`)
         const data = await response.json()
         setRecentAttendance(data)
       } catch (error) {

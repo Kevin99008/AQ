@@ -35,7 +35,7 @@ const CheckoutPage = ({
     if (paymentIntentCreated || amount <= 0) return; // Prevent re-fetching if already created
     setPaymentIntentCreated(true);
 
-    fetch("http://localhost:8000/api/create-payment-intent/", {
+    fetch("https://aqtech-production.up.railway.app/api/create-payment-intent/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -66,7 +66,7 @@ const CheckoutPage = ({
       elements,
       clientSecret,
       confirmParams: {
-        return_url: `http://www.localhost:3000/admin/enrollCourse/payment-success?amount=${amount}`,
+        return_url: `https://aq-production.vercel.app/admin/enrollCourse/payment-success?amount=${amount}`,
       },
     });
 
