@@ -108,6 +108,7 @@ export default function CertificatePage() {
   // Fetch users and courses on initial load
   useEffect(() => {
     async function loadData() {
+      if (!selectedStudent) return; // Prevent fetching if no student is selected
       try {
         setIsLoading(true)
 
@@ -116,10 +117,10 @@ export default function CertificatePage() {
           setUsers(studentsData);  // Set data only if the token is not expired
         }
 
-        const coursesData = await apiFetch<CourseRaw[]>('/api/courses/');
+        const coursesData = await apiFetch<CourseRaw[]>(`/api/courses/enrolled/?studentId=${selectedStudent.id}`);
         if (coursesData !== TOKEN_EXPIRED) {
           const transformedCourses = coursesData.map(transformCourseResponse);
-          setCourses(transformedCourses);  // Set data only if the token is not expired
+          setCourses(transformedCourses);
         }
 
       } catch (err: any) {
