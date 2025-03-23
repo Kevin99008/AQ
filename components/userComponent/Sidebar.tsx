@@ -46,7 +46,7 @@ export default function Sidebar() {
           onClick={() => setIsOpen(false)}
         >
           <BookOpen size={20} />
-          <span>Course Progress</span>
+          <span>Progression</span>
         </Link>
       </li>
       <li>
@@ -59,7 +59,7 @@ export default function Sidebar() {
           onClick={() => setIsOpen(false)}
         >
           <GraduationCap size={20} />
-          <span>Completed Courses</span>
+          <span>Certificate</span>
         </Link>
       </li>
       <li>
@@ -95,7 +95,7 @@ export default function Sidebar() {
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-4 bg-gray-800 text-white">
           <SheetHeader>
-            <SheetTitle>Course Management</SheetTitle>
+            <SheetTitle className="text-white">AquaCube</SheetTitle>
           </SheetHeader>
           <nav className="mt-6">
             <NavItems />
@@ -105,7 +105,7 @@ export default function Sidebar() {
 
       {/* Desktop Sidebar */}
       <div className="hidden md:block w-64 border-r h-screen sticky top-0 p-4 bg-gray-800 text-white">
-        <h1 className="text-2xl font-bold mb-6">Course Management</h1>
+        <h1 className="text-2xl font-bold mb-6">AquaCube</h1>
         <nav>
           <NavItems />
         </nav>

@@ -10,9 +10,9 @@ export default function HomePage() {
     <div className="container mx-auto">
 
       <div className="flex flex-col items-center justify-center space-y-4 text-center">
-        <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">AquaCube Course Management</h1>
+        <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mt-6">AquaCube Course Progression</h1>
         <p className="max-w-[700px] text-muted-foreground md:text-xl">
-          Track your children&apos;s educational progress and achievements
+          Track your children&apos;s educational progress and View Certificate
         </p>
       </div>
 
@@ -44,13 +44,13 @@ export default function HomePage() {
           <CardHeader className="flex flex-row items-center gap-4">
             <GraduationCap className="h-8 w-8 text-primary" />
             <div className="grid gap-1">
-              <CardTitle>Completed Courses</CardTitle>
-              <CardDescription>View certifications</CardDescription>
+              <CardTitle>Certificate</CardTitle>
+              <CardDescription>View course certificates</CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Access completed courses and view certificates for your children&apos;s achievements.
+              Access certificates for your children.
             </p>
           </CardContent>
           <CardFooter>

@@ -111,7 +111,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-8 text-3xl font-bold tracking-tight">Profile</h1>
+        <h1 className="mb-8 text-3xl font-bold tracking-tight mt-12">Profile</h1>
 
         <div className="grid gap-8 md:grid-cols-3">
           <div className="md:col-span-1">

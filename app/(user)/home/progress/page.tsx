@@ -131,7 +131,7 @@ export default function ProgressPage() {
     <div className="container mx-auto">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Course Progress</h1>
+          <h1 className="text-3xl font-bold tracking-tight mt-12">Course Progression</h1>
           <p className="text-muted-foreground">Track your Student&apos;s progress in ongoing courses</p>
         </div>
         {Students.length > 0 && (
