@@ -105,38 +105,46 @@ export default function CertificatePage() {
       quota: response.quota,
     };
   }
-  // Fetch users and courses on initial load
-  useEffect(() => {
-    async function loadData() {
-      if (!selectedStudent) return; // Prevent fetching if no student is selected
-      try {
-        setIsLoading(true)
 
+  useEffect(() => {
+    async function loadStudents() {
+      try {
+        setIsLoading(true);
         const studentsData = await apiFetch<StudentCertRaw[]>('/api/studentscertificate');
         if (studentsData !== TOKEN_EXPIRED) {
-          setUsers(studentsData);  // Set data only if the token is not expired
+          setUsers(studentsData);
         }
-
-        const coursesData = await apiFetch<CourseRaw[]>(`/api/courses/enrolled/?studentId=${selectedStudent.id}`);
-        if (coursesData !== TOKEN_EXPIRED) {
-          const transformedCourses = coursesData.map(transformCourseResponse);
-          setCourses(transformedCourses);
-        }
-
       } catch (err: any) {
-        if (err instanceof Error) {
-          toast.error(err.message);
-        } else {
-          toast.error("Something went wrong");
-        }
-      }
-      finally {
-        setIsLoading(false)
+        toast.error(err.message || "Something went wrong");
+      } finally {
+        setIsLoading(false);
       }
     }
+  
+    loadStudents();
+  }, []); // Runs on initial load
+  
+useEffect(() => {
+  if (!selectedStudent?.id) return; // Guard clause
 
-    loadData()
-  }, [])
+  async function loadCourses() {
+    try {
+      setIsLoading(true);
+      const coursesData = await apiFetch<CourseRaw[]>(`/api/courses/enrolled/?studentId=${selectedStudent!.id}`);
+      if (coursesData !== TOKEN_EXPIRED) {
+        const transformedCourses = coursesData.map(transformCourseResponse);
+        setCourses(transformedCourses);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  loadCourses();
+}, [selectedStudent]);
+  
 
 
   // Handle student selection
