@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ScrollLink from "@/components/scrollLink/scrollLink";
+import ScrollLink from "@/components/landingComponent/scrollLink/scrollLink";
 import classes from './scrollToTop.module.css'
 
 export default function ScrollToTopButton() {

@@ -1,6 +1,6 @@
 import classes from "./page.module.css"
-import ImageBackground from "@/components/images/imageBackground";
-import Card from "@/components/InfoCard/info-card";
+import ImageBackground from "@/components/landingComponent/previewImages/imageBackground";
+import Card from "@/components/landingComponent/infoCard/info-card";
 
 import aquakidsLogo from "@/assets/logo.png";
 import playsoundLogo from "@/assets/logo2.png";
@@ -22,8 +22,8 @@ import TKImg1 from "@/assets/taekwondo/1.jpg";
 import TKImg2 from "@/assets/taekwondo/2.jpg";
 import TKImg3 from "@/assets/taekwondo/3.jpg";
 import TKImg4 from "@/assets/taekwondo/4.jpg";
-import MapComponent from "@/components/map/map";
-import ScrollLink from "@/components/scrollLink/scrollLink";
+import MapComponent from "@/components/landingComponent/map/map";
+import ScrollLink from "@/components/landingComponent/scrollLink/scrollLink";
 import Link from "next/link";
 
 export default function Home() {

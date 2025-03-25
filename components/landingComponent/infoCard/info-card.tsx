@@ -1,4 +1,4 @@
-import ImagePreview from "../images/imagePreview";
+import ImagePreview from "../previewImages/imagePreview";
 import classes from "./card.module.css";
 import Image from "next/image";
 import DetailCard from "./detail-card"; // Use correct casing

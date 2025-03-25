@@ -6,19 +6,19 @@ import type { StatisticsData } from "@/types/dashboard"
 export default function StatisticsOverview({ countStudentData }: { countStudentData: StatisticsData }) {
 
   return (
-    <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 md:grid-cols-4">
+    <div className="space-y-2">
       <StatCard
-        title="Total Members"
+        title="Total Students"
         value={countStudentData.totalStudent}
         icon={<Users className="h-4 w-4 text-muted-foreground" />}
       />
       <StatCard
-        title="Active Members"
+        title="Active Students"
         value={countStudentData.activeStudent}
         icon={<UserCheck className="h-4 w-4 text-muted-foreground" />}
       />
       <StatCard
-        title="Inactive Members"
+        title="Inactive Students"
         value={countStudentData.inactiveStudent}
         icon={<UserMinus className="h-4 w-4 text-muted-foreground" />}
       />

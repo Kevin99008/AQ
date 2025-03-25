@@ -10,7 +10,7 @@ import { toast } from "react-toastify"
 
 export default function UserListPage() {
   const [users, setUsers] = useState<User[]>([])
-  const [selectedUser, setSelectedUser] = useState<User | null>(null) // No user selected by default
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
 
@@ -18,7 +18,7 @@ export default function UserListPage() {
   const filteredUsers = users.filter(
     (user) =>
       user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchQuery.toLowerCase())
+      user.role.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   // Fetch all users
@@ -27,6 +27,10 @@ export default function UserListPage() {
       setIsLoading(true)
       const data = await fetchUsers()
       setUsers(data)
+
+      if (data.length > 0 && !selectedUser) {
+        setSelectedUser(data[0])
+      }
     } catch (error) {
       toast.error("Failed to load users. Please refresh the page.")
       console.error("Failed to fetch users:", error)
@@ -80,7 +84,7 @@ export default function UserListPage() {
     <div className="flex h-screen flex-col md:flex-row">
       {/* Left side - User list with search */}
       <div className="w-full border-r md:w-1/3 lg:w-1/4">
-        <h1 className="text-2xl font-bold">User List</h1>
+      <h1 className="text-2xl font-bold">User List</h1>
         <UserSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} onUserCreated={handleUserCreated} />
         {isLoading ? (
           <div className="flex justify-center items-center h-[calc(100vh-73px)]">
@@ -97,16 +101,15 @@ export default function UserListPage() {
           <div className="flex h-full items-center justify-center">
             <p className="text-muted-foreground">Loading user details...</p>
           </div>
-        ) : selectedUser === null ? (
-          // If no user is selected, show the "Select a user to view details" message
+        ) : selectedUser ? (
+          <UserDetails user={selectedUser} onStudentAdded={handleStudentAdded} />
+        ) : (
           <div className="flex h-full items-center justify-center">
             <p className="text-muted-foreground">Select a user to view details</p>
           </div>
-        ) : (
-          // If a user is selected, show the user details
-          <UserDetails user={selectedUser} onStudentAdded={handleStudentAdded} />
         )}
       </div>
     </div>
   )
 }
+
