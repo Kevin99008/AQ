@@ -8,7 +8,7 @@ import type { User } from "@/types/user"
 import { fetchUsers, fetchUser } from "@/services/api"
 import { toast } from "react-toastify"
 
-export default function UserListPage() {
+export default function TeacherListPage() {
   const [users, setUsers] = useState<User[]>([])
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [searchQuery, setSearchQuery] = useState("")

@@ -14,7 +14,7 @@ interface StudentListProps {
 
 export function StudentList({ students = [] }: StudentListProps) {
   const [formattedStudents, setFormattedStudents] = useState<
-    Array<Student & { age: number; formattedDate: string; qrCode?: string }>
+    Array<Student & { ageInYears: number; ageInMonths: number; formattedDate: string; qrCode?: string }>
   >([])
   const [selectedQrCode, setSelectedQrCode] = useState<{
     isOpen: boolean
@@ -29,11 +29,10 @@ export function StudentList({ students = [] }: StudentListProps) {
   // Generate QR code for student
   const generateQRCode = useCallback(async (studentId: string | number) => {
     try {
-      // Dynamic import of QRCode library to avoid SSR issues
       const QRCode = (await import("qrcode")).default
 
       const qrData = JSON.stringify({
-        student_id: studentId.toString(), // Convert to string to ensure compatibility
+        student_id: studentId.toString(),
       })
 
       const url = await QRCode.toDataURL(qrData)
@@ -45,19 +44,18 @@ export function StudentList({ students = [] }: StudentListProps) {
   }, [])
 
   useEffect(() => {
-    if (!students) return // Prevents TypeError
+    if (!students) return
 
     const loadStudentsWithQR = async () => {
       const formatted = await Promise.all(
         students.map(async (student) => {
           const qrCode = await generateQRCode(student.id)
 
-          // Ensure qrCode is either a string or undefined, never null
           return {
             ...student,
-            age: calculateAge(student.birthdate),
+            ...calculateAge(student.birthdate), // Added age in years and months
             formattedDate: formatDate(student.birthdate),
-            qrCode: qrCode ?? undefined, // Use undefined instead of null if qrCode is not available
+            qrCode: qrCode ?? undefined,
           }
         }),
       )
@@ -97,12 +95,14 @@ export function StudentList({ students = [] }: StudentListProps) {
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
                 <div className="flex flex-col gap-2">
-                  <div>
                     <h3 className="font-medium">{student.name}</h3>
+                  <div>
+                    <Badge variant="outline" className="text-sm">
+                    {student.ageInYears} years {student.ageInMonths} months old
+                  </Badge>
                     <p className="text-sm text-muted-foreground">Born: {student.formattedDate}</p>
                   </div>
 
-                  {/* Display Sessions (Now only courseName) */}
                   <div className="mt-2">
                     <h4 className="text-sm font-medium mb-1">Enrolled Courses:</h4>
                     <div className="flex flex-wrap gap-1">
@@ -120,7 +120,6 @@ export function StudentList({ students = [] }: StudentListProps) {
                 </div>
 
                 <div className="flex flex-col items-end gap-2">
-                  <Badge variant="outline">{student.age} years old</Badge>
 
                   {/* QR Code Button */}
                   {student.qrCode && (
@@ -166,18 +165,26 @@ export function StudentList({ students = [] }: StudentListProps) {
   )
 }
 
-// Helper function to calculate age from birthdate
-function calculateAge(birthdate: string): number {
+// Helper function to calculate age in years and months from birthdate
+function calculateAge(birthdate: string) {
   const today = new Date()
   const birthDate = new Date(birthdate)
-  let age = today.getFullYear() - birthDate.getFullYear()
-  const monthDifference = today.getMonth() - birthDate.getMonth()
 
-  if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
-    age--
+  // Calculate years difference
+  let yearsDifference = today.getFullYear() - birthDate.getFullYear()
+  let monthsDifference = today.getMonth() - birthDate.getMonth()
+
+  // Adjust if the current month is before the birth month
+  if (monthsDifference < 0 || (monthsDifference === 0 && today.getDate() < birthDate.getDate())) {
+    yearsDifference--
+    monthsDifference += 12
   }
 
-  return age
+  // Return age in years and months
+  return {
+    ageInYears: yearsDifference,
+    ageInMonths: monthsDifference,
+  }
 }
 
 // Format date in a consistent way
@@ -185,4 +192,3 @@ function formatDate(dateString: string): string {
   const date = new Date(dateString)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
 }
-

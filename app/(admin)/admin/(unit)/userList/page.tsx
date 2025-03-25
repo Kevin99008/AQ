@@ -77,35 +77,46 @@ export default function UserListPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col md:flex-row">
-      {/* Left side - User list with search */}
-      <div className="w-full border-r md:w-1/3 lg:w-1/4">
-        <h1 className="text-2xl font-bold">User List</h1>
-        <UserSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} onUserCreated={handleUserCreated} />
-        {isLoading ? (
-          <div className="flex justify-center items-center h-[calc(100vh-73px)]">
-            <p className="text-muted-foreground">Loading users...</p>
+    <div className="relative">
+      {/* Content hidden on mobile */}
+      <div className="hidden md:block">
+        <div className="flex h-screen flex-col md:flex-row">
+          {/* Left side - User list with search */}
+          <div className="w-full border-r md:w-1/3 lg:w-1/4">
+            <h1 className="text-2xl font-bold">User List</h1>
+            <UserSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} onUserCreated={handleUserCreated} />
+            {isLoading ? (
+              <div className="flex justify-center items-center h-[calc(100vh-73px)]">
+                <p className="text-muted-foreground">Loading users...</p>
+              </div>
+            ) : (
+              <UserList users={filteredUsers} selectedUser={selectedUser} onSelectUser={handleSelectUser} />
+            )}
           </div>
-        ) : (
-          <UserList users={filteredUsers} selectedUser={selectedUser} onSelectUser={handleSelectUser} />
-        )}
+
+          {/* Right side - User details */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {isLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-muted-foreground">Loading user details...</p>
+              </div>
+            ) : selectedUser === null ? (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-muted-foreground">Select a user to view details</p>
+              </div>
+            ) : (
+              <UserDetails user={selectedUser} onStudentAdded={handleStudentAdded} />
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Right side - User details */}
-      <div className="flex-1 overflow-y-auto p-6">
-        {isLoading ? (
-          <div className="flex h-full items-center justify-center">
-            <p className="text-muted-foreground">Loading user details...</p>
-          </div>
-        ) : selectedUser === null ? (
-          // If no user is selected, show the "Select a user to view details" message
-          <div className="flex h-full items-center justify-center">
-            <p className="text-muted-foreground">Select a user to view details</p>
-          </div>
-        ) : (
-          // If a user is selected, show the user details
-          <UserDetails user={selectedUser} onStudentAdded={handleStudentAdded} />
-        )}
+      {/* Mobile view - Message to switch to desktop mode */}
+      <div className="md:hidden flex justify-center items-center h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Please switch to Desktop Mode</h2>
+          <p className="mt-4 text-lg">This page is best viewed on a desktop browser.</p>
+        </div>
       </div>
     </div>
   )
