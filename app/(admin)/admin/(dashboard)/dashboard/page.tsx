@@ -18,6 +18,7 @@ import AttendanceHistory from "@/components/adminComponent/dashboard/AttendanceH
 import AttendanceHeatmap from "@/components/adminComponent/dashboard/AttendanceHeatmap"
 import type { AttendanceRecord, StudentData, CourseData, PieChartData, StatisticsData } from "@/types/dashboard"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
+import CourseTypeEnrollmentChart from "@/components/adminComponent/dashboard/CourseTypeEnrollmentChart"
 
 export default function DashboardAdmin() {
   const [selectedGroup, setSelectedGroup] = useState<string>("All")
@@ -56,36 +57,34 @@ export default function DashboardAdmin() {
     <div className="p-4 bg-background min-h-screen">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-
       </div>
 
-      {/* Key Metrics Section */}
       <div className="mb-6">      
-  <CardTitle className="text-md font-medium">Enrollment & Student amount</CardTitle>
-  <div className="flex flex-col sm:flex-row mt-4 space-y-4 sm:space-x-4 sm:space-y-0">
-    <div className="w-full sm:w-1/2">
-      <Card className="h-full">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-md font-medium">
-            Enrolled Course {selectedGroup !== "All" && `- ${selectedGroup}`}
-          </CardTitle>
-          <CardDescription>Student & Teacher</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <MembershipDistribution courseType={selectedGroup} />
-        </CardContent>
-      </Card>
-    </div>
-    <div className="w-full sm:w-1/2">
-      <StatisticsOverview countStudentData={countStudentData} />
-    </div>
-  </div>
+        <CardTitle className="text-md font-medium">Enrollment & Student amount</CardTitle>
+          <div className="flex flex-col sm:flex-row mt-4 space-y-4 sm:space-x-4 sm:space-y-0">
+            <div className="w-full sm:w-1/2">
+              <Card className="h-full">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-md font-medium">
+                    Enrollment of each group
+                  </CardTitle>
+                  <CardDescription>Enrollment</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <CourseTypeEnrollmentChart />
+                </CardContent>
+              </Card>
+            </div>
+            <div className="w-full sm:w-1/2">
+              <StatisticsOverview countStudentData={countStudentData} />
+            </div>
+          </div>
 
   <div className="bg-gray-200 h-[1px] mt-2"></div>
 
   <div className="mt-2">
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <CardTitle className="text-xl font-medium">Ratio</CardTitle>
+      <CardTitle className="text-xl font-medium">Ratio & Heatmap</CardTitle>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="w-full sm:w-auto">
@@ -123,14 +122,12 @@ export default function DashboardAdmin() {
       <div className="flex-1">
         <Card className="h-full">
           <CardHeader className="pb-2">
-            <CardTitle className="text-md font-medium">
-              Date {selectedGroup !== "All" && `- ${selectedGroup}`}
-            </CardTitle>
-            <CardDescription>Student & Teacher</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <MembershipDistribution courseType={selectedGroup} />
-          </CardContent>
+              <CardTitle className="text-md font-medium">Attendance Patterns</CardTitle>
+              <CardDescription>Weekly attendance heatmap</CardDescription>
+            </CardHeader>
+            <CardContent className="px-2 sm:px-6">
+              <AttendanceHeatmap courseType={selectedGroup} />
+            </CardContent>
         </Card>
       </div>
     </div>
@@ -140,7 +137,7 @@ export default function DashboardAdmin() {
       {/* Attendance Section */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-3">Attendance</h2>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-md font-medium">Recent Attendance</CardTitle>
@@ -153,15 +150,6 @@ export default function DashboardAdmin() {
                 sortNewestFirst={true}
                 courseType={selectedGroup}
               />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-md font-medium">Attendance Patterns</CardTitle>
-              <CardDescription>Weekly attendance heatmap</CardDescription>
-            </CardHeader>
-            <CardContent className="px-2 sm:px-6">
-              <AttendanceHeatmap courseType={selectedGroup} />
             </CardContent>
           </Card>
         </div>

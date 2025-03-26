@@ -28,18 +28,20 @@ export default function AttendanceHeatmap({ courseType = "All" }: AttendanceHeat
     fetchData()
   }, [courseType])
 
-  // Function to determine color based on value
+  // Function to determine color based on raw count value
   const getColor = (value: number) => {
-    if (value >= 80) return "bg-emerald-500/90"
-    if (value >= 60) return "bg-emerald-400/80"
-    if (value >= 40) return "bg-amber-400/70"
-    if (value >= 20) return "bg-amber-300/60"
-    return "bg-rose-300/50"
+    if (value >= 15) return "bg-emerald-500/90"   // Very high count
+    if (value >= 12) return "bg-emerald-400/80"   // High count
+    if (value >= 10) return "bg-emerald-300/70"   // Medium-high count
+    if (value >= 8) return "bg-amber-400/70"      // Medium count
+    if (value >= 6) return "bg-amber-300/60"      // Low-medium count
+    if (value >= 4) return "bg-amber-200/50"      // Very low-medium count
+    return "bg-rose-300/50"                       // Low count
   }
 
   // Function to determine text color based on background
   const getTextColor = (value: number) => {
-    return value >= 60 ? "text-white" : "text-gray-800"
+    return value >= 8 ? "text-white" : "text-gray-800" // Dark text for low counts
   }
 
   return (
@@ -66,9 +68,9 @@ export default function AttendanceHeatmap({ courseType = "All" }: AttendanceHeat
                   <div
                     key={`${day}-${time}`}
                     className={`h-8 sm:h-10 rounded flex items-center justify-center text-xs font-medium ${getColor(value)} ${getTextColor(value)}`}
-                    title={`${day} at ${time}: ${value}% attendance`}
+                    title={`${day} at ${time}: ${value} attendance`}
                   >
-                    {value}%
+                    {value}
                   </div>
                 )
               })}
@@ -81,8 +83,10 @@ export default function AttendanceHeatmap({ courseType = "All" }: AttendanceHeat
           <span>Low</span>
           <div className="flex space-x-1">
             <div className="w-3 h-3 sm:w-4 sm:h-4 bg-rose-300/50 rounded"></div>
+            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-amber-200/50 rounded"></div>
             <div className="w-3 h-3 sm:w-4 sm:h-4 bg-amber-300/60 rounded"></div>
             <div className="w-3 h-3 sm:w-4 sm:h-4 bg-amber-400/70 rounded"></div>
+            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-emerald-300/70 rounded"></div>
             <div className="w-3 h-3 sm:w-4 sm:h-4 bg-emerald-400/80 rounded"></div>
             <div className="w-3 h-3 sm:w-4 sm:h-4 bg-emerald-500/90 rounded"></div>
           </div>
