@@ -60,15 +60,14 @@ export default function DashboardAdmin() {
       </div>
 
       <div className="mb-6">      
-        <CardTitle className="text-md font-medium">Enrollment & Student amount</CardTitle>
-          <div className="flex flex-col sm:flex-row mt-4 space-y-4 sm:space-x-4 sm:space-y-0">
+        <CardTitle className="text-md font-medium">Enrollment & Population</CardTitle>
+          <div className="flex flex-col sm:flex-row mt-4 space-y-4 sm:space-x-4 sm:space-y-0 ">
             <div className="w-full sm:w-1/2">
               <Card className="h-full">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-md font-medium">
                     Enrollment of each group
                   </CardTitle>
-                  <CardDescription>Enrollment</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <CourseTypeEnrollmentChart />
@@ -76,11 +75,20 @@ export default function DashboardAdmin() {
               </Card>
             </div>
             <div className="w-full sm:w-1/2">
+            <Card className="h-full">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-md font-medium">
+                    Student Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
               <StatisticsOverview countStudentData={countStudentData} />
+              </CardContent>
+              </Card>
             </div>
           </div>
 
-  <div className="bg-gray-200 h-[1px] mt-2"></div>
+  <div className="bg-gray-400 h-[1px] mt-2"></div>
 
   <div className="mt-2">
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

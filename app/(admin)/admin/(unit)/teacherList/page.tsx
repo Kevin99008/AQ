@@ -1,178 +1,132 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import MemberList from "@/components/adminComponent/list/MemberList"
-import MemberDetails from "@/components/adminComponent/list/MemberDetails"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@radix-ui/react-label"
-import { useRouter } from "next/navigation"
-import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
+import { useEffect, useState } from "react"
+import { TeacherSearch } from "@/components/adminComponent/teacherList/teacher-search"
+import { TeacherList } from "@/components/adminComponent/teacherList/teacher-list"
+import { TeacherDetails } from "@/components/adminComponent/teacherList/teacher-details"
+import type { Teacher } from "@/types/teacher"
+import { fetchTeachers, fetchTeacher } from "@/services/api"
 import { toast } from "react-toastify"
-import { Member } from "@/types/member"
 
-type UserResponse = {
-  id: number
-  username: string
-  password: string
-  email: string
-  role: string
-  first_name: string
-  last_name: string
-}
+export default function TeacherListPage() {
+  const [teachers, setTeachers] = useState<Teacher[]>([])
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null) // No teacher selected by default
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
 
-export default function MemberListPage() {
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null)
-  const [teacherSearch, setTeacherSearch] = useState("")
-  const [teachers, setTeachers] = useState<Member[]>([])
-  const { push } = useRouter();
-    const [formData, setFormData] = useState({
-      firstName: "",
-      lastName: "",
-      username: "",
-      contact: "",
-      password: ""
-    })
-  
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target
-      setFormData((prevData) => ({ ...prevData, [name]: value }))
+  // Filter teachers based on search query
+  const filteredTeachers = teachers.filter(
+    (teacher) =>
+      teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      teacher.username.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
+  // Fetch all teachers
+  const loadTeachers = async () => {
+    try {
+      setIsLoading(true)
+      const data = await fetchTeachers()
+      setTeachers(data)
+    } catch (error) {
+      toast.error("Failed to load teachers. Please refresh the page.")
+      console.error("Failed to fetch teachers:", error)
+    } finally {
+      setIsLoading(false)
     }
-  
-    const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault()
-      console.log("Form submitted:", formData)
-  
-      try {
-        const response = await apiFetch<UserResponse>("/api/teachers/create/", "POST", {
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          username: formData.username,
-          contact: formData.contact,
-          password: `${formData.firstName[0]}${formData.lastName[0]}${formData.contact}`,
-        })        
-  
-        if (response === TOKEN_EXPIRED) {
-          push("/login")
-        } else {
-          setFormData({
-            firstName: "",
-            lastName: "",
-            username: "",
-            contact: "",
-            password: ""
-          })
-          toast.success('teacher created successfully!');
-        }
-      } catch (error: any) {
-        if (error instanceof Error) {
-          toast.error(error.message);
-        } else {
-          toast.error("Something went wrong");   
-        }
-      }
-    }
-    
+  }
+
+  // Fetch all teachers on initial load
   useEffect(() => {
-    const fetchData = async () => {
+    loadTeachers()
+  }, [])
+
+  // Handle selecting a teacher
+  const handleSelectTeacher = async (teacher: Teacher) => {
+    try {
+      // Fetch the full teacher data with sessions
+      const teacherData = await fetchTeacher(teacher.id)
+      setSelectedTeacher(teacherData)
+
+      // Update the teacher in the teachers array
+      setTeachers((prevTeachers) => prevTeachers.map((t) => (t.id === teacherData.id ? teacherData : t)))
+    } catch (error) {
+      toast.error("Failed to load teacher details.")
+      console.error("Failed to fetch teacher details:", error)
+    }
+  }
+
+  // Handle refreshing teacher data after adding a session
+  const handleSessionAdded = async () => {
+    if (selectedTeacher) {
       try {
-        const [teachersRes] = await Promise.all([
-          fetch("https://aqtech-production.up.railway.app/api/teachers/"),
-        ])
-  
-        const [teachersData] = await Promise.all([
-          teachersRes.json(),
-        ])
-  
-        setTeachers(teachersData)
-      } catch (err) {
-        console.error("Failed to fetch data:", err)
+        const updatedTeacher = await fetchTeacher(selectedTeacher.id)
+        setSelectedTeacher(updatedTeacher)
+
+        // Update the teacher in the teachers array
+        setTeachers((prevTeachers) => prevTeachers.map((t) => (t.id === updatedTeacher.id ? updatedTeacher : t)))
+      } catch (error) {
+        toast.error("Failed to refresh teacher data.")
+        console.error("Failed to refresh teacher data:", error)
       }
     }
-  
-    fetchData()
-  }, [])
-  
+  }
 
-const filteredTeachers = teachers.filter(
-  (teacher) => teacher.name && teacher.name.toLowerCase().includes(teacherSearch.toLowerCase())
-)
+  // Handle teacher created event
+  const handleTeacherCreated = () => {
+    loadTeachers()
+  }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-100">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold">Teacher List</h1>
-      </div>
-      <div className="grid gap-6 md:grid-cols-2">
-        <div>
-          <Input
-            type="text"
-            placeholder="Search teachers..."
-            value={teacherSearch}
-            onChange={(e) => setTeacherSearch(e.target.value)}
-            className="mb-4"
-          />
-          <MemberList title="Teachers List" members={filteredTeachers} onSelectMember={setSelectedMember} />
-        </div>
-        <div>
-          <Card className="max-w-md mx-auto">
-            <CardHeader>
-              <CardTitle>Create Account For Teacher</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contact">Phone number</Label>
-                  <Input
-                    id="contact"
-                    name="contact"
-                    type="tel"
-                    value={formData.contact}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full bg-black text-white">
-                  Create Account
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+    <div className="relative">
+      {/* Content hidden on mobile */}
+      <div className="hidden md:block">
+        <div className="flex h-screen flex-col md:flex-row">
+          {/* Left side - Teacher list with search */}
+          <div className="w-full border-r md:w-1/3 lg:w-1/4">
+            <h1 className="text-2xl font-bold">Teacher List</h1>
+            <TeacherSearch
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              onTeacherCreated={handleTeacherCreated}
+            />
+            {isLoading ? (
+              <div className="flex justify-center items-center h-[calc(100vh-73px)]">
+                <p className="text-muted-foreground">Loading teachers...</p>
+              </div>
+            ) : (
+              <TeacherList
+                teachers={filteredTeachers}
+                selectedTeacher={selectedTeacher}
+                onSelectTeacher={handleSelectTeacher}
+              />
+            )}
+          </div>
+
+          {/* Right side - Teacher details */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {isLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-muted-foreground">Loading teacher details...</p>
+              </div>
+            ) : selectedTeacher === null ? (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-muted-foreground">Select a teacher to view details</p>
+              </div>
+            ) : (
+              <TeacherDetails teacher={selectedTeacher} onSessionAdded={handleSessionAdded} />
+            )}
+          </div>
         </div>
       </div>
-      {selectedMember && <MemberDetails member={selectedMember} onClose={() => setSelectedMember(null)} />}
+
+      {/* Mobile view - Message to switch to desktop mode */}
+      <div className="md:hidden flex justify-center items-center h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Please switch to Desktop Mode</h2>
+          <p className="mt-4 text-lg">This page is best viewed on a desktop browser.</p>
+        </div>
+      </div>
     </div>
   )
 }
+

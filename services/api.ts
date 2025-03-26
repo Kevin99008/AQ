@@ -1,4 +1,5 @@
 import { Course } from "@/types/course"
+import { Teacher } from "@/types/teacher"
 import type { Student, User } from "@/types/user"
 
 // Fetch all users
@@ -71,3 +72,80 @@ export async function enrollStudentInCourse(
 
   return response.json()
 }
+
+// Fetch all teachers
+export async function fetchTeachers(): Promise<Teacher[]> {
+  try {
+    const response = await fetch("https://aqtech-production.up.railway.app/api/teachers")
+    if (!response.ok) {
+      throw new Error("Failed to fetch teachers")
+    }
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching teachers:", error)
+    throw error
+  }
+}
+
+// Fetch a single teacher by ID
+export async function fetchTeacher(id: number): Promise<Teacher> {
+  try {
+    const response = await fetch(`https://aqtech-production.up.railway.app/api/teachers/${id}`)
+    if (!response.ok) {
+      throw new Error("Failed to fetch teacher")
+    }
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching teacher:", error)
+    throw error
+  }
+}
+
+// Create a new teacher
+export async function createTeacher(teacherData: { name: string; username: string }): Promise<Teacher> {
+  try {
+    const response = await fetch("https://aqtech-production.up.railway.app/api/teachers/create/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(teacherData),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to create teacher")
+    }
+    return await response.json()
+  } catch (error) {
+    console.error("Error creating teacher:", error)
+    throw error
+  }
+}
+
+// Add a session to a teacher
+export async function addSessionToTeacher(
+  teacherId: number,
+  sessionData: {
+    course: string
+    session_date: string
+    start_time: string
+    end_time: string
+    total_quota: string
+  },
+): Promise<void> {
+  try {
+    const response = await fetch(`https://aqtech-production.up.railway.app/api/teachers/${teacherId}/sessions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(sessionData),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to add session")
+    }
+  } catch (error) {
+    console.error("Error adding session:", error)
+    throw error
+  }
+}
+
