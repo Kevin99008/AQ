@@ -133,28 +133,6 @@ export default function DashboardAdmin() {
     </div>
   </div>
 </div>
-
-      {/* Attendance Section */}
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-3">Attendance</h2>
-        <div className="grid gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-md font-medium">Recent Attendance</CardTitle>
-              <CardDescription>Search and view latest attendance records</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AttendanceLog
-                records={attendanceRecords}
-                onSelectAttendance={setSelectedAttendance}
-                sortNewestFirst={true}
-                courseType={selectedGroup}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
       {selectedAttendance && (
         <AttendanceHistory record={selectedAttendance} onClose={() => setSelectedAttendance(null)} />
       )}

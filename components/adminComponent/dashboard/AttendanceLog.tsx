@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Search, CalendarIcon } from "lucide-react"
+import { Search, CalendarIcon, User, BookOpen, Clock } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { Card, CardContent } from "@/components/ui/card"
 import type { AttendanceRecord } from "@/types/dashboard"
 
 interface AttendanceLogProps {
@@ -115,10 +116,18 @@ export default function AttendanceLog({
     setDateFilterActive(!dateFilterActive)
   }
 
+  // Format time for mobile display
+  const formatTimeForMobile = (timestamp: string) => {
+    const parts = formatTimestamp(timestamp).split(",")
+    const datePart = parts[0] || ""
+    const timePart = parts.length > 1 ? parts[1].trim() : ""
+    return { date: datePart, time: timePart }
+  }
+
   return (
     <div className="space-y-3">
       {/* Search input and date selector */}
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -144,14 +153,14 @@ export default function AttendanceLog({
               {dateFilterActive ? format(selectedDate, "PPP") : "Select date"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
+          <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={(date) => {
                 setSelectedDate(date || new Date())
                 setDateFilterActive(true)
-                setPopoverOpen(false) // Close the Popover after date is selected
+                setPopoverOpen(false)
               }}
               initialFocus
             />
@@ -164,15 +173,16 @@ export default function AttendanceLog({
         </Popover>
       </div>
 
-      <div className="rounded-md border overflow-hidden">
+      {/* Desktop Table View - Hidden on Mobile */}
+      <div className="rounded-md border hidden sm:block">
         <div className="overflow-x-auto">
           <div className="overflow-y-auto max-h-[300px] scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
             <Table>
               <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  {!compact && <TableHead className="hidden sm:table-cell">Course</TableHead>}
-                  {courseType && !compact && <TableHead className="hidden md:table-cell">Type</TableHead>}
+                  {!compact && <TableHead>Course</TableHead>}
+                  {courseType && !compact && <TableHead>Type</TableHead>}
                   <TableHead>{compact ? "Time" : "Timestamp"}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -186,7 +196,7 @@ export default function AttendanceLog({
                       {searchTerm.trim() !== ""
                         ? "No matching records found"
                         : dateFilterActive
-                          ? `No attendance records found for ${format(selectedDate, "PPP")}`
+                          ? `No records for ${format(selectedDate, "PP")}`
                           : "No attendance records found"}
                     </TableCell>
                   </TableRow>
@@ -198,9 +208,9 @@ export default function AttendanceLog({
                       onClick={() => onSelectAttendance(record)}
                     >
                       <TableCell className="font-medium">{record.name}</TableCell>
-                      {!compact && <TableCell className="hidden sm:table-cell">{record.course}</TableCell>}
+                      {!compact && <TableCell>{record.course}</TableCell>}
                       {courseType && !compact && (
-                        <TableCell className="hidden md:table-cell">
+                        <TableCell>
                           {record.courseType && (
                             <Badge className={getBadgeColor(record.courseType)} variant="outline">
                               {record.courseType}
@@ -208,10 +218,7 @@ export default function AttendanceLog({
                           )}
                         </TableCell>
                       )}
-                      <TableCell>
-                        <span className="sm:hidden">{formatTimestamp(record.timestamp).split(",")[1]}</span>
-                        <span className="hidden sm:inline">{formatTimestamp(record.timestamp)}</span>
-                      </TableCell>
+                      <TableCell>{formatTimestamp(record.timestamp)}</TableCell>
                     </TableRow>
                   ))
                 )}
@@ -221,20 +228,81 @@ export default function AttendanceLog({
         </div>
       </div>
 
+      {/* Mobile Card View - Visible only on Mobile */}
+      <div className="sm:hidden">
+        <div className="space-y-3 overflow-y-auto max-h-[400px] pb-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+          {filteredRecords.length === 0 ? (
+            <div className="text-center text-muted-foreground py-6 border rounded-md">
+              {searchTerm.trim() !== ""
+                ? "No matching records found"
+                : dateFilterActive
+                  ? `No records for ${format(selectedDate, "PP")}`
+                  : "No attendance records found"}
+            </div>
+          ) : (
+            filteredRecords.map((record) => {
+              const { date, time } = formatTimeForMobile(record.timestamp)
+              return (
+                <Card
+                  key={record.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => onSelectAttendance(record)}
+                >
+                  <CardContent className="p-4 grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground flex items-center">
+                        <User className="h-3 w-3 mr-1" /> Name
+                      </div>
+                      <div className="font-medium">{record.name}</div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground flex items-center">
+                        <BookOpen className="h-3 w-3 mr-1" /> Course
+                      </div>
+                      <div>{record.course}</div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground flex items-center">
+                        <Clock className="h-3 w-3 mr-1" /> Time
+                      </div>
+                      <div className="text-sm">
+                        <div>{date}</div>
+                        <div>{time}</div>
+                      </div>
+                    </div>
+
+                    {record.courseType && (
+                      <div className="space-y-1">
+                        <div className="text-xs text-muted-foreground">Type</div>
+                        <Badge className={getBadgeColor(record.courseType)} variant="outline">
+                          {record.courseType}
+                        </Badge>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )
+            })
+          )}
+        </div>
+      </div>
+
       {/* Show search results count when searching */}
       {searchTerm.trim() !== "" && (
-        <div className="text-xs text-muted-foreground">
+        <div className="text-xs text-muted-foreground px-1">
           Found {filteredRecords.length} {filteredRecords.length === 1 ? "record" : "records"} matching "{searchTerm}"
-          {dateFilterActive && ` on ${format(selectedDate, "PPP")}`}
+          {dateFilterActive && ` on ${format(selectedDate, "PP")}`}
         </div>
       )}
-      {/* Show date filter info when no search but date filter is active */}
       {searchTerm.trim() === "" && dateFilterActive && (
-        <div className="text-xs text-muted-foreground">
+        <div className="text-xs text-muted-foreground px-1">
           Showing {filteredRecords.length} {filteredRecords.length === 1 ? "record" : "records"} for{" "}
-          {format(selectedDate, "PPP")}
+          {format(selectedDate, "PP")}
         </div>
       )}
     </div>
   )
 }
+
