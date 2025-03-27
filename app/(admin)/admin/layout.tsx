@@ -1,5 +1,6 @@
 import type React from "react"
 import Sidebar from "@/components/adminComponent/Sidebar"
+import Navbar from "@/components/adminComponent/Navbar"
 
 export default function AdminLayout({
   children,
@@ -8,7 +9,12 @@ export default function AdminLayout({
 }) {
   return (
 
-    <main className="flex-1 overflow-y-auto">{children}</main>
+    <main className="flex-1 overflow-y-auto">
+      <Navbar />
+      <div className="p-10">
+        {children}
+      </div>
+    </main>
 
   )
 }

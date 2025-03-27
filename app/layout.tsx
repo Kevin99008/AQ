@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import './globals.css';
 // import MainHeader from "@/components/header/header";
-import Navbar from "@/components/header/apple-header";
-import Footer from "@/components/footer/footer";
 import ScrollToTopButton from "@/components/landingComponent/scrollLink/scrollToTop";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -21,7 +19,6 @@ export default function RootLayout({
     <html lang="en">
       <body id="top">
         {children}
-        <Footer />
         {/* Include the client-side ScrollToTopButton */}
         <ScrollToTopButton />
         <ToastContainer />

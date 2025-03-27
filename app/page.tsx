@@ -25,6 +25,7 @@ import TKImg4 from "@/assets/taekwondo/4.jpg";
 import MapComponent from "@/components/landingComponent/map/map";
 import ScrollLink from "@/components/landingComponent/scrollLink/scrollLink";
 import Link from "next/link";
+import Footer from "@/components/footer/footer";
 
 export default function Home() {
 
@@ -223,6 +224,8 @@ const taekwondoData = {
       <div className={classes.container} id="address">
         <MapComponent />
       </div>
+      
+      <Footer />
     </>
 );
 }
