@@ -27,7 +27,7 @@ const NavCard: React.FC<NavCardProps> = ({ icon, name, href }) => {
 export default function AdminPanel() {
 
     return (
-        <div className="h-screen flex flex-col">
+        <div className="flex flex-col">
             {/* Navbar */}
 
             {/* Navigation Cards */}
