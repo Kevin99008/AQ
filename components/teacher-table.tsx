@@ -262,7 +262,7 @@ export function TeacherTable({ categoryFilter, statusFilter, searchQuery, onView
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => router.push(`/teacher-details/${teacher.id}`)}>
+                        <DropdownMenuItem onClick={() => router.push(`/admin/teacher-details/${teacher.id}`)}>
                           Details
                         </DropdownMenuItem>
                       </DropdownMenuContent>
