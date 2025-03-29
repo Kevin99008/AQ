@@ -31,7 +31,7 @@ export default function TeacherList() {
             <img src="/placeholder.svg?height=40&width=40" alt="Logo" className="h-10 w-10" />
             <h1 className="text-2xl font-bold">Teacher List</h1>
           </div>
-          <Button onClick={() => router.push("/add-teacher")}>Add Teacher</Button>
+          <Button onClick={() => router.push("/admin/add-teacher")}>Add Teacher</Button>
         </div>
 
         <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 md:space-x-4">

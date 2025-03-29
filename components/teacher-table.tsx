@@ -248,9 +248,9 @@ export function TeacherTable({ categoryFilter, statusFilter, searchQuery, onView
                         onCheckedChange={() => {}}
                         onClick={(e) => handleStatusToggleClick(teacher, e)}
                       />
-                      <span className="text-sm text-muted-foreground">
+                      <div className="text-sm text-muted-foreground">
                         {teacher.status === "active" ? "Active" : "Inactive"}
-                      </span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>

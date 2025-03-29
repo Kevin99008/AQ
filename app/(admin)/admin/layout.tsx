@@ -22,7 +22,7 @@ export default function MainLayout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="h-full flex flex-col">
       <div className="w-full bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
         <div className="flex items-center gap-3">
           {!isHomePage && (
@@ -36,8 +36,8 @@ export default function MainLayout({
         <Navbar />
       </div>
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-6 md:p-10">{children}</div>
+      <main className="p-8">
+        <div >{children}</div>
       </main>
     </div>
   )

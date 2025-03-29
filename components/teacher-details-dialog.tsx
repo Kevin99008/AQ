@@ -32,7 +32,7 @@ export function TeacherDetailsDialog({ teacher, open, onOpenChange }: TeacherDet
           </Avatar>
           <DialogTitle className="text-xl">{teacher.name}</DialogTitle>
           <DialogDescription>{teacher.specialty}</DialogDescription>
-          <Badge variant={teacher.status === "active" ? "success" : "secondary"} className="mt-2">
+          <Badge variant={teacher.status === "active" ? "green" : "secondary"} className="mt-2">
             {teacher.status === "active" ? "Active" : "Inactive"}
           </Badge>
         </DialogHeader>
