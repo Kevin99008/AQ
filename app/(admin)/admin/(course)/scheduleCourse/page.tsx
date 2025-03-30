@@ -3,6 +3,7 @@
 import { useState } from "react"
 import CourseScheduler from "@/components/scheduleComponent/course-scheduler"
 import CourseSelection from "@/components/scheduleComponent/course-selection"
+import SchedulerPage from "@/components/scheduleComponent/scheduler-page"
 import { Toaster } from "@/components/ui/toaster"
 
 export default function Home() {
@@ -17,7 +18,7 @@ export default function Home() {
       {!selectedData ? (
         <CourseSelection onComplete={setSelectedData} />
       ) : (
-        <CourseScheduler
+        <SchedulerPage
           students={selectedData.students}
           teacher={selectedData.teacher}
           course={selectedData.course}
