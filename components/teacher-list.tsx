@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TeacherTable } from "@/components/teacher-table"
 import { TeacherDetailsDialog } from "@/components/teacher-details-dialog"
+import { fetchCategories } from "@/services/api" // Import the fetchCategories service
 
 export default function TeacherList() {
   const router = useRouter()
@@ -17,6 +18,25 @@ export default function TeacherList() {
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
+  const [categories, setCategories] = useState<any[]>([]) // State to store categories
+  const [loadingCategories, setLoadingCategories] = useState(true)
+  const [categoryError, setCategoryError] = useState<string | null>(null)
+
+  // Fetch categories when the component mounts
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const fetchedCategories = await fetchCategories() // Fetch categories
+        setCategories(fetchedCategories)
+      } catch (error) {
+        setCategoryError("Failed to load categories")
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+
+    loadCategories()
+  }, [])
 
   const handleViewTeacherDetails = (teacher: any) => {
     setSelectedTeacher(teacher)
@@ -45,17 +65,28 @@ export default function TeacherList() {
             />
           </div>
           <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="aquakids">Aquakids</SelectItem>
-                <SelectItem value="playsounds">Playsounds</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="relative flex-1 max-w-sm">
+              {loadingCategories ? (
+                <div>Loading categories...</div>
+              ) : categoryError ? (
+                <div>{categoryError}</div>
+              ) : (
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.categoryName.toLowerCase()}>
+                        {category.categoryName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select Status" />
@@ -87,4 +118,3 @@ export default function TeacherList() {
     </div>
   )
 }
-
