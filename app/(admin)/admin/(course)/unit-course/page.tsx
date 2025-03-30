@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Search, Plus, Edit, Trash2, Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -21,148 +21,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { fetchCourses, fetchEnrolledCourses } from "@/services/api"
+import { EnrolledCourse } from "@/types/course"
 
 // Sample course data based on the provided model
-const courses = [
-  {
-    id: 1,
-    name: "Beginner Swimming",
-    description: "Learn the basics of swimming in a fun and safe environment.",
-    type: "restricted",
-    min_age: 5,
-    max_age: 8,
-    quota: 10,
-    created_at: "2023-01-15T10:00:00Z",
-    price: 3500,
-    category: "Aquakids",
-    instructor: "Sarah Johnson",
-    enrolled: 6,
-    teachers: [
-      { id: 1, name: "Sarah Johnson", email: "sarah.johnson@example.com" },
-      { id: 3, name: "Emily Rodriguez", email: "emily.rodriguez@example.com" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Piano for Kids",
-    description: "Introduction to piano for young children.",
-    type: "restricted",
-    min_age: 6,
-    max_age: 10,
-    quota: 8,
-    created_at: "2023-02-10T14:30:00Z",
-    price: 4000,
-    category: "Playsounds",
-    instructor: "Michael Chen",
-    enrolled: 5,
-    teachers: [{ id: 2, name: "Michael Chen", email: "michael.chen@example.com" }],
-  },
-  {
-    id: 3,
-    name: "Advanced Swimming",
-    description: "For children who already know basic swimming.",
-    type: "restricted",
-    min_age: 8,
-    max_age: 12,
-    quota: 8,
-    created_at: "2023-01-20T09:15:00Z",
-    price: 3800,
-    category: "Aquakids",
-    instructor: "Emily Rodriguez",
-    enrolled: 7,
-    teachers: [
-      { id: 3, name: "Emily Rodriguez", email: "emily.rodriguez@example.com" },
-      { id: 6, name: "Robert Wilson", email: "robert.wilson@example.com" },
-    ],
-  },
-  {
-    id: 4,
-    name: "Guitar Fundamentals",
-    description: "Learn the basics of playing guitar.",
-    type: "restricted",
-    min_age: 7,
-    max_age: 14,
-    quota: 10,
-    created_at: "2023-03-05T13:00:00Z",
-    price: 3700,
-    category: "Playsounds",
-    instructor: "David Kim",
-    enrolled: 8,
-    teachers: [{ id: 4, name: "David Kim", email: "david.kim@example.com" }],
-  },
-  {
-    id: 5,
-    name: "Art for Everyone",
-    description: "Explore various art techniques.",
-    type: "unrestricted",
-    min_age: null,
-    max_age: null,
-    quota: 12,
-    created_at: "2023-02-25T11:45:00Z",
-    price: 3200,
-    category: "Other",
-    instructor: "Jessica Patel",
-    enrolled: 9,
-    teachers: [{ id: 5, name: "Jessica Patel", email: "jessica.patel@example.com" }],
-  },
-  {
-    id: 6,
-    name: "Competitive Swimming",
-    description: "Training for competitive swimming events.",
-    type: "restricted",
-    min_age: 10,
-    max_age: 16,
-    quota: 8,
-    created_at: "2023-01-30T15:30:00Z",
-    price: 4500,
-    category: "Aquakids",
-    instructor: "Robert Wilson",
-    enrolled: 6,
-    teachers: [{ id: 6, name: "Robert Wilson", email: "robert.wilson@example.com" }],
-  },
-  {
-    id: 7,
-    name: "Violin for Beginners",
-    description: "Introduction to violin.",
-    type: "restricted",
-    min_age: 7,
-    max_age: 12,
-    quota: 6,
-    created_at: "2023-03-15T10:30:00Z",
-    price: 4200,
-    category: "Playsounds",
-    instructor: "Amanda Lee",
-    enrolled: 4,
-    teachers: [{ id: 7, name: "Amanda Lee", email: "amanda.lee@example.com" }],
-  },
-  {
-    id: 8,
-    name: "Family Dance",
-    description: "Fun dance class for the whole family.",
-    type: "unrestricted",
-    min_age: null,
-    max_age: null,
-    quota: 15,
-    created_at: "2023-02-20T16:00:00Z",
-    price: 3000,
-    category: "Other",
-    instructor: "Thomas Brown",
-    enrolled: 12,
-    teachers: [{ id: 8, name: "Thomas Brown", email: "thomas.brown@example.com" }],
-  },
-]
-
 export default function CourseListPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
-  const [courseData, setCourseData] = useState(courses)
+  const [courseData, setCourseData] = useState<EnrolledCourse[]>([])
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [courseToDelete, setCourseToDelete] = useState<any>(null)
+  const [courseToDelete, setCourseToDelete] = useState<EnrolledCourse>()
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
+
+  // Fetch courses on component mount
+  useEffect(() => {
+    const loadCourse = async () => {
+      try {
+        const courses = await fetchEnrolledCourses() // Using the fetchUsers function directly
+        setCourseData(courses)
+      } catch (error) {
+        console.error("Error fetching users:", error)
+      }
+    }
+    loadCourse()
+  }, [])
 
   // Filter courses based on search query and category filter
   const filteredCourses = courseData.filter((course) => {

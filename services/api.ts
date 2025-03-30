@@ -184,3 +184,17 @@ export async function fetchCategories() {
     throw error
   }
 }
+
+export const fetchEnrolledCourses = async () => {
+  try {
+    const response = await fetch("http://localhost:8000/api/enrolled-courses/") // Replace with your actual API endpoint
+    if (!response.ok) {
+      throw new Error("Failed to fetch courses")
+    }
+    const courses = await response.json()
+    return courses
+  } catch (error) {
+    console.error("Error fetching courses:", error)
+    return [] // Return empty array on error
+  }
+}

@@ -1,3 +1,5 @@
+import { Teacher } from "./teacher"
+
 export interface Course {
   id: number
   name: string
@@ -53,3 +55,17 @@ export interface AttendanceRaw {
   is_owner: boolean;
 }
 
+export interface EnrolledCourse{
+  id: number;
+  name: string;
+  description: string;
+  type: string;
+  min_age: number;
+  max_age: number;
+  quota: number;
+  created_at: string;
+  price: number;
+  category: string;
+  enrolled: number;
+  teachers: Teacher[]; // You can replace `any` with a more specific type if needed
+}
