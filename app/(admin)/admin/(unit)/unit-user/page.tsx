@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Search, Plus, Eye, User } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Search, Plus, Eye, User2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -17,79 +17,48 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-
-// Sample user data with a user having 3+ students
-const users = [
-  {
-    id: 1,
-    name: "John Smith",
-    email: "john.smith@example.com",
-    phone: "(555) 123-4567",
-    role: "parent",
-    registeredDate: "2023-01-15",
-    students: [
-      { id: 1, name: "Emma Smith", birthdate: "2015-05-12" },
-      { id: 2, name: "Noah Smith", birthdate: "2017-08-23" },
-      { id: 3, name: "Olivia Smith", birthdate: "2019-03-15" }, // Added third student
-    ],
-  },
-  {
-    id: 2,
-    name: "Maria Garcia",
-    email: "maria.garcia@example.com",
-    phone: "(555) 234-5678",
-    role: "parent",
-    registeredDate: "2023-02-10",
-    students: [{ id: 4, name: "Sofia Garcia", birthdate: "2016-03-18" }],
-  },
-  {
-    id: 3,
-    name: "Robert Johnson",
-    email: "robert.johnson@example.com",
-    phone: "(555) 345-6789",
-    role: "parent",
-    registeredDate: "2023-01-20",
-    students: [],
-  },
-  {
-    id: 4,
-    name: "Lisa Chen",
-    email: "lisa.chen@example.com",
-    phone: "(555) 456-7890",
-    role: "parent",
-    registeredDate: "2023-03-05",
-    students: [
-      { id: 5, name: "William Chen", birthdate: "2014-11-05" },
-      { id: 6, name: "Olivia Chen", birthdate: "2018-02-14" },
-      { id: 7, name: "James Chen", birthdate: "2020-06-22" },
-      { id: 8, name: "Sophia Chen", birthdate: "2022-09-10" }, // Added more students
-    ],
-  },
-]
+import { fetchUsers } from "@/services/api"
+import type { User } from "@/types/user"
+import { CreateUserModal } from "@/components/adminComponent/userList/create-user-modal"
 
 export default function UserListPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
-  const [userData, setUserData] = useState(users)
-  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [userData, setUserData] = useState<User[]>([]) // Initialize as an empty array, using User as a type
+  const [selectedUser, setSelectedUser] = useState<User | null>(null) // Set selectedUser state with proper type
   const [studentListOpen, setStudentListOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
 
+    // Fetch all users on initial load
+    useEffect(() => {
+      loadUsers()
+    }, [])
+
+    const loadUsers = async () => {
+      try {
+        const users = await fetchUsers() // Using the fetchUsers function directly
+        setUserData(users)
+      } catch (error) {
+        console.error("Error fetching users:", error)
+      }
+    }
+
   // Filter users based on search query - including student names
   const filteredUsers = userData.filter((user) => {
-    const matchesUserName = user.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesEmail = user.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesPhone = user.phone.includes(searchQuery)
-
+    const matchesUsername =
+      user.username && user.username.toLowerCase().includes(searchQuery.toLowerCase()) // Check if username exists
+    const matchesContact = user.contact && user.contact.includes(searchQuery) // Check if contact exists
+  
     // Check if any student name matches the search query
     const matchesStudentName = user.students.some((student) =>
-      student.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      student.name && student.name.toLowerCase().includes(searchQuery.toLowerCase()) // Check if student name exists
     )
-
-    return matchesUserName || matchesEmail || matchesPhone || matchesStudentName
+  
+    return matchesUsername || matchesContact || matchesStudentName
   })
 
   // Calculate pagination
@@ -121,17 +90,14 @@ export default function UserListPage() {
 
     return `${age} years`
   }
-
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
           <h1 className="text-2xl font-bold">User Management</h1>
         </div>
-        <Button asChild>
-          <Link href="/admin/users/create">
+        <Button onClick={() => setIsModalOpen(true)} size="sm" className="shrink-0">
             <Plus className="mr-2 h-4 w-4" /> Create User
-          </Link>
         </Button>
       </div>
 
@@ -153,7 +119,6 @@ export default function UserListPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Username</TableHead>
-              <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Registered</TableHead>
               <TableHead>Students</TableHead>
@@ -167,14 +132,13 @@ export default function UserListPage() {
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-3">
                       <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="h-5 w-5 text-primary" />
+                        <User2 className="h-5 w-5 text-primary" />
                       </div>
-                      {user.name}
+                      {user.username}
                     </div>
                   </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.phone}</TableCell>
-                  <TableCell>{new Date(user.registeredDate).toLocaleDateString()}</TableCell>
+                  <TableCell>{user.contact}</TableCell>
+                  <TableCell>{new Date(user.join_date).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <div className="flex items-center">
                       <div className="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center mr-2">
@@ -285,7 +249,7 @@ export default function UserListPage() {
         <Dialog open={studentListOpen} onOpenChange={setStudentListOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Students for {selectedUser.name}</DialogTitle>
+              <DialogTitle>Students for {selectedUser.username}</DialogTitle>
               <DialogDescription>
                 {selectedUser.students.length} student{selectedUser.students.length !== 1 ? "s" : ""} registered
               </DialogDescription>
@@ -297,7 +261,7 @@ export default function UserListPage() {
                     <div key={student.id} className="flex items-center justify-between border-b pb-2">
                       <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <User className="h-4 w-4 text-primary" />
+                          <User2 className="h-4 w-4 text-primary" />
                         </div>
                         <div>
                           <p className="font-medium">{student.name}</p>
@@ -330,6 +294,14 @@ export default function UserListPage() {
           </DialogContent>
         </Dialog>
       )}
+
+            <CreateUserModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onUserCreated={() => {
+                setIsModalOpen(false)
+              }}
+            />
     </div>
   )
 }
