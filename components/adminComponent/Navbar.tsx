@@ -12,13 +12,26 @@ export default function Navbar() {
         push("/login")
     }
 
-    return(
+    const handleNavigateToAdmin = () => {
+        push("/admin/home")  // Navigate to /admin page
+    }
+
+    return (
         <div className="w-full bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
-        <h1 className="text-lg font-semibold">Admin Panel</h1>
-        <button className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md" onClick={handleLogout}>
-            <LogOut size={18} />
-            Logout
-        </button>
+            {/* Clickable Admin Panel heading */}
+            <h1
+                className="text-lg font-semibold cursor-pointer"
+                onClick={handleNavigateToAdmin}  // On click, navigate to /admin
+            >
+                Admin Panel
+            </h1>
+            <button
+                className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+                onClick={handleLogout}
+            >
+                <LogOut size={18} />
+                Logout
+            </button>
         </div>
     )
 }

@@ -316,7 +316,7 @@ export default function CoursesPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Available Courses</h1>
         <Button asChild>
-          <Link href="/courses/create">
+          <Link href="/admin/unit-course/create">
             <Plus className="mr-2 h-4 w-4" /> Create Course
           </Link>
         </Button>

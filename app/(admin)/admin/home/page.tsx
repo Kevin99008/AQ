@@ -1,6 +1,6 @@
 'use client'
 import Link from "next/link";
-import { ArchiveRestore, BookOpen, BookPlus, GraduationCap, Home, LogOut, ScanFace, Settings, Settings2, Users } from "lucide-react";
+import { ArchiveRestore, Book, BookA, BookAIcon, BookCheck, BookOpen, BookPlus, GraduationCap, Home, LogOut, ScanFace, Settings, Settings2, Users } from "lucide-react";
 import useUserSession from "@/stores/user";
 import { useRouter } from "next/navigation"
 
@@ -46,6 +46,9 @@ export default function AdminPanel() {
                         <NavCard icon={<ArchiveRestore size={28} />} name="Storage" href="storage" />
                     </div>
                     <div className="flex gap-6 w-full max-w-lg justify-center">
+                        <NavCard icon={<Book size={28} />} name="All Courses" href="all-course" />
+                        <NavCard icon={<BookA size={28} />} name="Progress Courses" href="unit-course" />
+                        <NavCard icon={<BookCheck size={28} />} name="Schedule Courses" href="scheduleCourse" />
                         <NavCard icon={<BookOpen size={28} />} name="Enroll Courses" href="enrollCourse" />
                         <NavCard icon={<BookPlus size={28} />} name="Create Courses" href="createCourse" />
                         <NavCard icon={<GraduationCap size={28} />} name="Upload Certificate" href="uploadCertificate" />
