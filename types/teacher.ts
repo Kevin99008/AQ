@@ -11,5 +11,8 @@ export interface Session {
     id: number
     name: string
     username: string
+    status: string
+    category: string
+    contact: string
     sessions: Session[]
   }  

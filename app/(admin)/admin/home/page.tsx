@@ -42,6 +42,7 @@ export default function AdminPanel() {
                         <NavCard icon={<Users size={28} />} name="User List" href="userList" />
                         <NavCard icon={<Users size={28} />} name="Unit-User" href="unit-user" />
                         <NavCard icon={<Users size={28} />} name="Teacher List" href="teacherList" />
+                        <NavCard icon={<Users size={28} />} name="Unit-Teacher" href="unit-teacher" />
                         <NavCard icon={<ArchiveRestore size={28} />} name="Storage" href="storage" />
                     </div>
                     <div className="flex gap-6 w-full max-w-lg justify-center">

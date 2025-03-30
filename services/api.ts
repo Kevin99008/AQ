@@ -76,7 +76,7 @@ export async function enrollStudentInCourse(
 // Fetch all teachers
 export async function fetchTeachers(): Promise<Teacher[]> {
   try {
-    const response = await fetch("https://aqtech-production.up.railway.app/api/teachers")
+    const response = await fetch("http://localhost:8000/api/teachers")
     if (!response.ok) {
       throw new Error("Failed to fetch teachers")
     }
@@ -149,3 +149,23 @@ export async function addSessionToTeacher(
   }
 }
 
+export async function updateTeacherStatus(teacherId: number, newStatus: string): Promise<void> {
+  try {
+    const response = await fetch(`http://localhost:8000/api/teachers/status/${teacherId}/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status: newStatus }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update teacher status");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error updating teacher status:", error);
+    throw error; // Re-throw error to be handled in frontend
+  }
+}

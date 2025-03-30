@@ -10,6 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { useState } from "react"
+import { updateTeacherStatus } from "@/services/api" // Import the function to update teacher status
 
 interface StatusConfirmDialogProps {
   open: boolean
@@ -19,7 +21,24 @@ interface StatusConfirmDialogProps {
 }
 
 export function StatusConfirmDialog({ open, onOpenChange, teacher, onConfirm }: StatusConfirmDialogProps) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const newStatus = teacher?.status === "active" ? "inactive" : "active"
+
+  const handleConfirm = async () => {
+    setLoading(true)
+    setError(null) // Reset any previous error state
+
+    try {
+      // Call the function to update teacher status
+      await updateTeacherStatus(teacher.id, newStatus) 
+      onConfirm() // Close the dialog after the status update
+    } catch (error) {
+      setError("Failed to update teacher status") // Handle error (display a message to user)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -37,12 +56,21 @@ export function StatusConfirmDialog({ open, onOpenChange, teacher, onConfirm }: 
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {error && (
+          <div className="mt-4 text-red-500 text-sm">
+            {error} {/* Display error message if status update fails */}
+          </div>
+        )}
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>Confirm</AlertDialogAction>
+          <AlertDialogCancel onClick={() => onOpenChange(false)}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleConfirm}
+            disabled={loading} // Disable the button while loading
+          >
+            {loading ? "Updating..." : "Confirm"}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   )
 }
-
