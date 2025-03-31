@@ -16,7 +16,7 @@ export function UserDetails({ user, onStudentAdded }: UserDetailsProps) {
     <div className="mx-auto max-w-3xl">
       <div className="mb-6 flex items-center gap-4">
         <Avatar className="h-16 w-16">
-          <AvatarImage src={user.avatar} alt={user.username} />
+          <AvatarImage alt={user.username} />
           <AvatarFallback className="text-lg">{user.username.charAt(0)}</AvatarFallback>
         </Avatar>
         <div>

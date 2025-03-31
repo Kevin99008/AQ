@@ -25,7 +25,7 @@ export async function fetchUser(userId: number): Promise<User> {
 }
 
 export const addStudent = async (userId: number, studentData: { name: string; birthdate: string }) => {
-  const response = await fetch(`https://aqtech-production.up.railway.app/api/students/add/${userId}/`, {
+  const response = await fetch(`http://localhost:8000/api/students/add/${userId}/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

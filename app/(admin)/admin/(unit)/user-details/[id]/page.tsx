@@ -3,23 +3,13 @@
 import { useState, useEffect } from "react"
 import { use } from "react"
 import { useRouter } from "next/navigation"
-import { Mail, Phone, Calendar, Plus, Trash2, User, Cake, Search, Filter, BookOpen, GraduationCap } from "lucide-react"
+import { Mail, Phone, Calendar, Plus, Trash2, User2, Cake, Search, Filter, BookOpen, GraduationCap } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -35,13 +25,14 @@ import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { fetchUser } from "@/services/api"
+import { User } from "@/types/user"
+import { AddStudentDialog } from "@/components/adminComponent/userList/add-student-dialog"
 
 // Update the UserDetailPage component to include the enrollment tab functionality
 export default function UserDetailPage(props: { params: Promise<{ id: string }> }) {
     const router = useRouter()
-    const [user, setUser] = useState<any>(null)
+    const [user, setUser] =  useState<User | null>(null);
     const [loading, setLoading] = useState(true)
-    const [newStudent, setNewStudent] = useState({ name: "", birthdate: "" })
     const [deleteStudentDialogOpen, setDeleteStudentDialogOpen] = useState(false)
     const [studentToDelete, setStudentToDelete] = useState<any>(null)
 
@@ -76,27 +67,13 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
         getUserData();
       }, [id]); // This will trigger whenever the `id` changes
 
-    const handleAddStudent = () => {
-        if (!newStudent.name || !newStudent.birthdate) return
-
+      const fetchStudents = async () => {
         if (user) {
-            // Create new student with generated ID
-            const newStudentWithId = {
-                id: Math.max(0, ...user.students.map((s: any) => s.id)) + 1,
-                name: newStudent.name,
-                birthdate: newStudent.birthdate,
-            }
-
-            // Add student to user
-            const updatedUser = {
-                ...user,
-                students: [...user.students, newStudentWithId],
-            }
-
-            setUser(updatedUser)
-            setNewStudent({ name: "", birthdate: "" }) // Reset form
+          // Re-fetch user data (and students)
+          const userData = await fetchUser(user.id);
+          setUser(userData);
         }
-    }
+      };
 
     const handleDeleteStudent = (student: any) => {
         setStudentToDelete(student)
@@ -222,7 +199,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                                                     <span>Teachers: {session.course?.teachers || "N/A"}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <User className="h-4 w-4 text-muted-foreground" />
+                                                    <User2 className="h-4 w-4 text-muted-foreground" />
                                                     <span>Total Quota: {session.total_quota}</span>
                                                 </div>
                                             </div>
@@ -348,27 +325,19 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                     {/* Replace the user avatar with an icon */}
                     <CardHeader className="flex flex-col items-center text-center">
                         <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                            <User className="h-12 w-12 text-primary" />
+                            <User2 className="h-12 w-12 text-primary" />
                         </div>
-                        <CardTitle className="text-2xl">{user.name}</CardTitle>
+                        <CardTitle className="text-2xl">{user.username}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
                             <div className="flex items-center">
-                                <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
-                                <span>{user.email}</span>
-                            </div>
-                            <div className="flex items-center">
                                 <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                                <span>{user.phone}</span>
+                                <span>{user.contact}</span>
                             </div>
                             <div className="flex items-center">
                                 <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                                <span>Registered: {new Date(user.registeredDate).toLocaleDateString()}</span>
-                            </div>
-                            <div className="pt-4 border-t">
-                                <h3 className="font-medium mb-2">Address</h3>
-                                <p className="text-sm">{user.address}</p>
+                                <span>Registered: {new Date(user.join_date).toLocaleDateString()}</span>
                             </div>
                         </div>
                     </CardContent>
@@ -384,48 +353,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
 
                         <TabsContent value="students" className="space-y-4 pt-4">
                             {/* Keep the existing students tab content */}
-                            <div className="flex justify-between items-center">
-                                <h2 className="text-xl font-bold">Registered Students</h2>
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button size="sm">
-                                            <Plus className="h-4 w-4 mr-2" /> Add Student
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>Add New Student</DialogTitle>
-                                            <DialogDescription>Add a student to this user's account.</DialogDescription>
-                                        </DialogHeader>
-                                        <div className="grid gap-4 py-4">
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="name">Student Name</Label>
-                                                <Input
-                                                    id="name"
-                                                    value={newStudent.name}
-                                                    onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-                                                    placeholder="Enter student name"
-                                                />
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="birthdate">Birthdate</Label>
-                                                <Input
-                                                    id="birthdate"
-                                                    type="date"
-                                                    value={newStudent.birthdate}
-                                                    onChange={(e) => setNewStudent({ ...newStudent, birthdate: e.target.value })}
-                                                />
-                                            </div>
-                                        </div>
-                                        <DialogFooter>
-                                            <Button onClick={handleAddStudent} disabled={!newStudent.name || !newStudent.birthdate}>
-                                                Add Student
-                                            </Button>
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
-                            </div>
-
+                            <AddStudentDialog user={user} onStudentAdded={fetchStudents} />
                             {/* Search and filter */}
                             <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 md:space-x-4">
                                 <div className="relative flex-1">
@@ -496,7 +424,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                                                     <TableRow key={student.id}>
                                                         <TableCell className="font-medium">
                                                             <div className="flex items-center">
-                                                                <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                                                                <User2 className="h-4 w-4 mr-2 text-muted-foreground" />
                                                                 {student.name}
                                                             </div>
                                                         </TableCell>
