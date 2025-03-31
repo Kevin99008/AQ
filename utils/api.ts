@@ -2,7 +2,7 @@ import { getCookie, setCookie, deleteCookie } from "@/utils/cookies";
 import useUserSession from "@/stores/user";
 import { jwtDecode } from "jwt-decode";
 
-const API_BASE_URL = "https://aqtech-production.up.railway.app";
+const API_BASE_URL = "http://localhost:8000";
 
 type JwtPayload = {
   exp: number;

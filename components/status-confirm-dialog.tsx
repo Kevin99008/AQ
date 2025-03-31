@@ -31,7 +31,7 @@ export function StatusConfirmDialog({ open, onOpenChange, teacher, onConfirm }: 
 
     try {
       // Call the function to update teacher status
-      await updateTeacherStatus(teacher.id, newStatus) 
+      await updateTeacherStatus(teacher.id, newStatus)
       onConfirm() // Close the dialog after the status update
     } catch (error) {
       setError("Failed to update teacher status") // Handle error (display a message to user)
@@ -46,13 +46,16 @@ export function StatusConfirmDialog({ open, onOpenChange, teacher, onConfirm }: 
         <AlertDialogHeader>
           <AlertDialogTitle>Change Teacher Status</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to change {teacher?.name}'s status from{" "}
-            <span className="font-medium">{teacher?.status}</span> to <span className="font-medium">{newStatus}</span>?
+            <div className="flex">
+               Are you sure you want to change {teacher?.name}'s status from{" "}
+
+              <div className="font-medium ml-1 mr-1">{teacher?.status}</div> to <div className="font-medium ml-1">{newStatus}</div>?
+            </div>
             {newStatus === "inactive" && (
-              <p className="mt-2 text-destructive">
+              <div className="mt-2 text-destructive">
                 This will prevent the teacher from accessing the system and they will no longer appear in active teacher
                 lists.
-              </p>
+              </div>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
