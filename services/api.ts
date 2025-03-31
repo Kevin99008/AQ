@@ -4,7 +4,7 @@ import type { Student, User } from "@/types/user"
 
 // Fetch all users
 export async function fetchUsers(): Promise<User[]> {
-  const response = await fetch("https://aqtech-production.up.railway.app/api/user/list/")
+  const response = await fetch("http://localhost:8000/api/user/list/")
 
   if (!response.ok) {
     throw new Error("Failed to fetch users")
@@ -15,7 +15,7 @@ export async function fetchUsers(): Promise<User[]> {
 
 // Fetch a specific user
 export async function fetchUser(userId: number): Promise<User> {
-  const response = await fetch(`https://aqtech-production.up.railway.app/api/user/${userId}`)
+  const response = await fetch(`http://localhost:8000/api/user/${userId}`)
 
   if (!response.ok) {
     throw new Error("Failed to fetch user")
