@@ -1,20 +1,18 @@
-export interface CourseSession {
-  courseName: string;  // courseName as a string
-  // Other properties you might want to include from your session data
-}
+import { EnrolledCourse } from "./course";
 
 export interface Student {
   id: number;
   name: string;
   birthdate: string;
-  sessions: CourseSession[];  // Array of CourseSession objects, not strings
+  sessions: EnrolledCourse[];  // Array of CourseSession objects, not strings
 }
 
 export interface User {
   id: number;
   username: string;
-  avatar: string;
   role: string;
+  first_name: string;
+  last_name: string;
   join_date: string;
   contact: string;
   students: Student[];

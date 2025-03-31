@@ -34,133 +34,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-
-// Add this to the existing sample user data to include course sessions
-const users = [
-    {
-        id: 1,
-        name: "John Smith",
-        email: "john.smith@example.com",
-        phone: "(555) 123-4567",
-        role: "parent",
-        avatar: "/placeholder.svg?height=40&width=40",
-        registeredDate: "2023-01-15",
-        address: "123 Main St, Anytown, CA 12345",
-        students: [
-            {
-                id: 1,
-                name: "Emma Smith",
-                birthdate: "2015-05-12",
-                sessions: [
-                    {
-                        id: 101,
-                        name: "Session #1001",
-                        total_quota: 8,
-                        course: {
-                            id: 1,
-                            name: "Beginner Swimming",
-                            description: "Learn the basics of swimming in a fun and safe environment.",
-                            type: "restricted",
-                            min_age: 5,
-                            max_age: 8,
-                            quota: 10,
-                            price: 3500,
-                            category: "Aquakids",
-                            schedule: "Monday, Wednesday 4:00-5:00 PM",
-                            location: "Main Pool",
-                            instructor: "Sarah Johnson",
-                        },
-                    },
-                    {
-                        id: 102,
-                        name: "Session #1002",
-                        total_quota: 10,
-                        course: {
-                            id: 3,
-                            name: "Advanced Swimming",
-                            description: "For children who already know basic swimming.",
-                            type: "restricted",
-                            min_age: 8,
-                            max_age: 12,
-                            quota: 8,
-                            price: 3800,
-                            category: "Aquakids",
-                            schedule: "Tuesday, Thursday 5:00-6:00 PM",
-                            location: "Olympic Pool",
-                            instructor: "Emily Rodriguez",
-                        },
-                    },
-                ],
-            },
-            {
-                id: 2,
-                name: "Noah Smith",
-                birthdate: "2017-08-23",
-                sessions: [
-                    {
-                        id: 103,
-                        name: "Session #1003",
-                        total_quota: 6,
-                        course: {
-                            id: 2,
-                            name: "Piano for Kids",
-                            description: "Introduction to piano for young children.",
-                            type: "restricted",
-                            min_age: 6,
-                            max_age: 10,
-                            quota: 8,
-                            price: 4000,
-                            category: "Playsounds",
-                            schedule: "Tuesday, Thursday 3:30-4:30 PM",
-                            location: "Music Room 2",
-                            instructor: "Michael Chen",
-                        },
-                    },
-                ],
-            },
-        ],
-    },
-    // Keep other user data as is
-    {
-        id: 2,
-        name: "Maria Garcia",
-        email: "maria.garcia@example.com",
-        phone: "(555) 234-5678",
-        role: "parent",
-        avatar: "/placeholder.svg?height=40&width=40",
-        registeredDate: "2023-02-10",
-        address: "456 Oak Ave, Somewhere, NY 67890",
-        students: [
-            {
-                id: 3,
-                name: "Sofia Garcia",
-                birthdate: "2016-03-18",
-                sessions: [
-                    {
-                        id: 104,
-                        name: "Session #1004",
-                        total_quota: 8,
-                        course: {
-                            id: 7,
-                            name: "Violin for Beginners",
-                            description: "Introduction to violin.",
-                            type: "restricted",
-                            min_age: 7,
-                            max_age: 12,
-                            quota: 6,
-                            price: 4200,
-                            category: "Playsounds",
-                            schedule: "Monday, Wednesday 3:30-4:30 PM",
-                            location: "Music Room 1",
-                            instructor: "Amanda Lee",
-                        },
-                    },
-                ],
-            },
-        ],
-    },
-    // Keep other users as is
-]
+import { fetchUser } from "@/services/api"
 
 // Update the UserDetailPage component to include the enrollment tab functionality
 export default function UserDetailPage(props: { params: Promise<{ id: string }> }) {
@@ -183,23 +57,24 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
     const id = params.id
 
     useEffect(() => {
-        // Simulate API fetch
-        const fetchUser = () => {
-            const userId = Number.parseInt(id)
-            const foundUser = users.find((u) => u.id === userId)
-
-            if (foundUser) {
-                setUser(foundUser)
-                // Set the first student as selected by default if available
-                if (foundUser.students.length > 0) {
-                    setSelectedStudentId(foundUser.students[0].id)
-                }
+        const getUserData = async () => {
+          try {
+            const userId = Number.parseInt(id);
+            const userData = await fetchUser(userId);
+    
+            setUser(userData);
+    
+            // Set the first student as selected by default if available
+            if (userData.students.length > 0) {
+              setSelectedStudentId(userData.students[0].id);
             }
-            setLoading(false)
-        }
-
-        fetchUser()
-    }, [params.id])
+          } finally {
+            setLoading(false);
+          }
+        };
+    
+        getUserData();
+      }, [id]); // This will trigger whenever the `id` changes
 
     const handleAddStudent = () => {
         if (!newStudent.name || !newStudent.birthdate) return
@@ -310,30 +185,33 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                             <div className="grid gap-4 md:grid-cols-2">
                                 {selectedStudent.sessions.map((session: any) => (
                                     <Card key={session.id} className="overflow-hidden">
+                                        {/* Fix: Ensure safe access to session.course.category */}
                                         <div
-                                            className={`h-2 w-full ${session.course.category === "Aquakids"
+                                            className={`h-2 w-full ${
+                                                session.course?.category === "Aquakids"
                                                     ? "bg-blue-500"
-                                                    : session.course.category === "Playsounds"
+                                                    : session.course?.category === "Playsounds"
                                                         ? "bg-green-500"
                                                         : "bg-gray-500"
-                                                }`}
+                                            }`}
                                         />
                                         <CardHeader className="pb-2">
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <CardTitle>{session.course.name}</CardTitle>
+                                                    <CardTitle>{session.course?.name || "Unknown Course"}</CardTitle>
                                                     <p className="text-sm text-muted-foreground">{session.name}</p>
                                                 </div>
+                                                {/* Fix: Safe access to category */}
                                                 <Badge
                                                     variant={
-                                                        session.course.category === "Aquakids"
+                                                        session.course?.category === "Aquakids"
                                                             ? "blue"
-                                                            : session.course.category === "Playsounds"
+                                                            : session.course?.category === "Playsounds"
                                                                 ? "green"
                                                                 : "secondary"
                                                     }
                                                 >
-                                                    {session.course.category}
+                                                    {session.course?.category || "Unknown"}
                                                 </Badge>
                                             </div>
                                         </CardHeader>
@@ -341,15 +219,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                                             <div className="text-sm">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                                                    <span>Instructor: {session.course.instructor}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                                                    <span>Schedule: {session.course.schedule}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <BookOpen className="h-4 w-4 text-muted-foreground" />
-                                                    <span>Location: {session.course.location}</span>
+                                                    <span>Teachers: {session.course?.teachers || "N/A"}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <User className="h-4 w-4 text-muted-foreground" />
@@ -358,11 +228,13 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                                             </div>
                                             <div className="pt-2 border-t">
                                                 <div className="flex justify-between items-center">
-                                                    <span className="font-medium">₹{session.course.price}</span>
+                                                    <span className="font-medium">₹{session.course?.price || "0"}</span>
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        onClick={() => router.push(`/admin/courses/${session.course.id}`)}
+                                                        onClick={() =>
+                                                            session.course ? router.push(`/admin/courses/${session.course.id}`) : null
+                                                        }
                                                     >
                                                         View Course
                                                     </Button>
@@ -375,7 +247,9 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                         ) : (
                             <div className="text-center py-8 border rounded-md">
                                 <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                                <p className="text-muted-foreground">No course enrollments found for {selectedStudent.name}.</p>
+                                <p className="text-muted-foreground">
+                                    No course enrollments found for {selectedStudent.name}.
+                                </p>
                                 <p className="text-sm text-muted-foreground mt-1">
                                     Enroll this student in courses from the course management section.
                                 </p>
@@ -383,9 +257,12 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                         )
                     ) : (
                         <div className="text-center py-8 border rounded-md">
-                            <p className="text-muted-foreground">Please select a student to view their enrollments.</p>
+                            <p className="text-muted-foreground">
+                                Please select a student to view their enrollments.
+                            </p>
                         </div>
                     )}
+
                 </div>
             </TabsContent>
         )
