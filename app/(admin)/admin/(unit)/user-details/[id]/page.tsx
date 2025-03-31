@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { use } from "react"
-import { Mail, Phone, Calendar, Plus, Trash2, User, Cake, Search, Filter } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Mail, Phone, Calendar, Plus, Trash2, User, Cake, Search, Filter, BookOpen, GraduationCap } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -32,8 +32,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Slider } from "@/components/ui/slider"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
 
-// Sample user data
+// Add this to the existing sample user data to include course sessions
 const users = [
     {
         id: 1,
@@ -45,10 +47,80 @@ const users = [
         registeredDate: "2023-01-15",
         address: "123 Main St, Anytown, CA 12345",
         students: [
-            { id: 1, name: "Emma Smith", birthdate: "2015-05-12" },
-            { id: 2, name: "Noah Smith", birthdate: "2017-08-23" },
+            {
+                id: 1,
+                name: "Emma Smith",
+                birthdate: "2015-05-12",
+                sessions: [
+                    {
+                        id: 101,
+                        name: "Session #1001",
+                        total_quota: 8,
+                        course: {
+                            id: 1,
+                            name: "Beginner Swimming",
+                            description: "Learn the basics of swimming in a fun and safe environment.",
+                            type: "restricted",
+                            min_age: 5,
+                            max_age: 8,
+                            quota: 10,
+                            price: 3500,
+                            category: "Aquakids",
+                            schedule: "Monday, Wednesday 4:00-5:00 PM",
+                            location: "Main Pool",
+                            instructor: "Sarah Johnson",
+                        },
+                    },
+                    {
+                        id: 102,
+                        name: "Session #1002",
+                        total_quota: 10,
+                        course: {
+                            id: 3,
+                            name: "Advanced Swimming",
+                            description: "For children who already know basic swimming.",
+                            type: "restricted",
+                            min_age: 8,
+                            max_age: 12,
+                            quota: 8,
+                            price: 3800,
+                            category: "Aquakids",
+                            schedule: "Tuesday, Thursday 5:00-6:00 PM",
+                            location: "Olympic Pool",
+                            instructor: "Emily Rodriguez",
+                        },
+                    },
+                ],
+            },
+            {
+                id: 2,
+                name: "Noah Smith",
+                birthdate: "2017-08-23",
+                sessions: [
+                    {
+                        id: 103,
+                        name: "Session #1003",
+                        total_quota: 6,
+                        course: {
+                            id: 2,
+                            name: "Piano for Kids",
+                            description: "Introduction to piano for young children.",
+                            type: "restricted",
+                            min_age: 6,
+                            max_age: 10,
+                            quota: 8,
+                            price: 4000,
+                            category: "Playsounds",
+                            schedule: "Tuesday, Thursday 3:30-4:30 PM",
+                            location: "Music Room 2",
+                            instructor: "Michael Chen",
+                        },
+                    },
+                ],
+            },
         ],
     },
+    // Keep other user data as is
     {
         id: 2,
         name: "Maria Garcia",
@@ -58,35 +130,39 @@ const users = [
         avatar: "/placeholder.svg?height=40&width=40",
         registeredDate: "2023-02-10",
         address: "456 Oak Ave, Somewhere, NY 67890",
-        students: [{ id: 3, name: "Sofia Garcia", birthdate: "2016-03-18" }],
-    },
-    {
-        id: 3,
-        name: "Robert Johnson",
-        email: "robert.johnson@example.com",
-        phone: "(555) 345-6789",
-        role: "parent",
-        avatar: "/placeholder.svg?height=40&width=40",
-        registeredDate: "2023-01-20",
-        address: "789 Pine Rd, Elsewhere, TX 54321",
-        students: [],
-    },
-    {
-        id: 4,
-        name: "Lisa Chen",
-        email: "lisa.chen@example.com",
-        phone: "(555) 456-7890",
-        role: "parent",
-        avatar: "/placeholder.svg?height=40&width=40",
-        registeredDate: "2023-03-05",
-        address: "101 Cedar Ln, Nowhere, FL 13579",
         students: [
-            { id: 4, name: "William Chen", birthdate: "2014-11-05" },
-            { id: 5, name: "Olivia Chen", birthdate: "2018-02-14" },
+            {
+                id: 3,
+                name: "Sofia Garcia",
+                birthdate: "2016-03-18",
+                sessions: [
+                    {
+                        id: 104,
+                        name: "Session #1004",
+                        total_quota: 8,
+                        course: {
+                            id: 7,
+                            name: "Violin for Beginners",
+                            description: "Introduction to violin.",
+                            type: "restricted",
+                            min_age: 7,
+                            max_age: 12,
+                            quota: 6,
+                            price: 4200,
+                            category: "Playsounds",
+                            schedule: "Monday, Wednesday 3:30-4:30 PM",
+                            location: "Music Room 1",
+                            instructor: "Amanda Lee",
+                        },
+                    },
+                ],
+            },
         ],
     },
+    // Keep other users as is
 ]
 
+// Update the UserDetailPage component to include the enrollment tab functionality
 export default function UserDetailPage(props: { params: Promise<{ id: string }> }) {
     const router = useRouter()
     const [user, setUser] = useState<any>(null)
@@ -100,9 +176,11 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
     const [ageRange, setAgeRange] = useState([0, 18])
     const [isFilterOpen, setIsFilterOpen] = useState(false)
 
-    const params = use(props.params) // Correctly unwraps the Promise
-    const id = params.id
+    // New state for enrollment tab
+    const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null)
 
+    const params = use(props.params)
+    const id = params.id
 
     useEffect(() => {
         // Simulate API fetch
@@ -112,12 +190,16 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
 
             if (foundUser) {
                 setUser(foundUser)
+                // Set the first student as selected by default if available
+                if (foundUser.students.length > 0) {
+                    setSelectedStudentId(foundUser.students[0].id)
+                }
             }
             setLoading(false)
         }
 
         fetchUser()
-    }, [id])
+    }, [params.id])
 
     const handleAddStudent = () => {
         if (!newStudent.name || !newStudent.birthdate) return
@@ -183,6 +265,135 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
             return matchesSearch && matchesAgeRange
         }) || []
 
+    // Add a function to get the selected student
+    const getSelectedStudent = () => {
+        if (!user || !selectedStudentId) return null
+        return user.students.find((student: any) => student.id === selectedStudentId)
+    }
+
+    // Keep the rest of the component as is, but update the enrollments tab content
+
+    // Update the TabsContent for enrollments
+    const renderEnrollmentsTab = () => {
+        const selectedStudent = getSelectedStudent()
+
+        return (
+            <TabsContent value="enrollments" className="pt-4">
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-xl font-bold">Course Enrollments</h2>
+
+                        {user && user.students.length > 0 ? (
+                            <div className="flex items-center space-x-2">
+                                <span className="text-sm text-muted-foreground">Show enrollments for:</span>
+                                <Select
+                                    value={selectedStudentId?.toString() || ""}
+                                    onValueChange={(value) => setSelectedStudentId(Number(value))}
+                                >
+                                    <SelectTrigger className="w-[180px]">
+                                        <SelectValue placeholder="Select student" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {user.students.map((student: any) => (
+                                            <SelectItem key={student.id} value={student.id.toString()}>
+                                                {student.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        ) : null}
+                    </div>
+
+                    {selectedStudent ? (
+                        selectedStudent.sessions && selectedStudent.sessions.length > 0 ? (
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {selectedStudent.sessions.map((session: any) => (
+                                    <Card key={session.id} className="overflow-hidden">
+                                        <div
+                                            className={`h-2 w-full ${session.course.category === "Aquakids"
+                                                    ? "bg-blue-500"
+                                                    : session.course.category === "Playsounds"
+                                                        ? "bg-green-500"
+                                                        : "bg-gray-500"
+                                                }`}
+                                        />
+                                        <CardHeader className="pb-2">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <CardTitle>{session.course.name}</CardTitle>
+                                                    <p className="text-sm text-muted-foreground">{session.name}</p>
+                                                </div>
+                                                <Badge
+                                                    variant={
+                                                        session.course.category === "Aquakids"
+                                                            ? "blue"
+                                                            : session.course.category === "Playsounds"
+                                                                ? "green"
+                                                                : "secondary"
+                                                    }
+                                                >
+                                                    {session.course.category}
+                                                </Badge>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="space-y-2">
+                                            <div className="text-sm">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                                                    <span>Instructor: {session.course.instructor}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                                                    <span>Schedule: {session.course.schedule}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                                                    <span>Location: {session.course.location}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <User className="h-4 w-4 text-muted-foreground" />
+                                                    <span>Total Quota: {session.total_quota}</span>
+                                                </div>
+                                            </div>
+                                            <div className="pt-2 border-t">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="font-medium">₹{session.course.price}</span>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => router.push(`/admin/courses/${session.course.id}`)}
+                                                    >
+                                                        View Course
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 border rounded-md">
+                                <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                                <p className="text-muted-foreground">No course enrollments found for {selectedStudent.name}.</p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    Enroll this student in courses from the course management section.
+                                </p>
+                            </div>
+                        )
+                    ) : (
+                        <div className="text-center py-8 border rounded-md">
+                            <p className="text-muted-foreground">Please select a student to view their enrollments.</p>
+                        </div>
+                    )}
+                </div>
+            </TabsContent>
+        )
+    }
+
+    // Keep the rest of the component as is, but update the Tabs component to include the new enrollments tab content
+
+    // In the return statement, replace the existing enrollments TabsContent with the new one
     if (loading) {
         return (
             <div className="container mx-auto py-6 px-4 md:px-6">
@@ -197,7 +408,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
         return (
             <div className="container mx-auto py-6 px-4 md:px-6">
                 <div className="flex items-center mb-6">
-                    <Button variant="outline" onClick={() => router.push("/admin/users")} className="mr-4">
+                    <Button variant="outline" onClick={() => router.push("/admin/unit-user")} className="mr-4">
                         Back to Users
                     </Button>
                     <h1 className="text-2xl font-bold">User Details</h1>
@@ -207,7 +418,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                         <p className="text-center py-8">User not found.</p>
                     </CardContent>
                     <div className="p-6 pt-0">
-                        <Button onClick={() => router.push("/admin/users")} className="w-full">
+                        <Button onClick={() => router.push("/admin/unit-user")} className="w-full">
                             Return to User List
                         </Button>
                     </div>
@@ -246,7 +457,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
         <div className="container mx-auto py-6 px-4 md:px-6">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
-                    <Button variant="outline" onClick={() => router.push("/admin/users")} className="mr-4">
+                    <Button variant="outline" onClick={() => router.push("/admin/unit-user")} className="mr-4">
                         Back to Users
                     </Button>
                     <h1 className="text-2xl font-bold">User Details</h1>
@@ -295,6 +506,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                         </TabsList>
 
                         <TabsContent value="students" className="space-y-4 pt-4">
+                            {/* Keep the existing students tab content */}
                             <div className="flex justify-between items-center">
                                 <h2 className="text-xl font-bold">Registered Students</h2>
                                 <Dialog>
@@ -467,12 +679,8 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                             )}
                         </TabsContent>
 
-                        <TabsContent value="enrollments" className="pt-4">
-                            <h2 className="text-xl font-bold mb-4">Course Enrollments</h2>
-                            <div className="text-center py-8 border rounded-md">
-                                <p className="text-muted-foreground">No course enrollments found.</p>
-                            </div>
-                        </TabsContent>
+                        {/* Replace the existing enrollments tab with the new one */}
+                        {renderEnrollmentsTab()}
                     </Tabs>
                 </div>
             </div>
