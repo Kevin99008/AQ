@@ -198,3 +198,26 @@ export const fetchEnrolledCourses = async () => {
     return [] // Return empty array on error
   }
 }
+
+export const updateStudentStatus = async (studentId: number, status: string, token: string) => {
+  try {
+    const response = await fetch(`http://localhost:8000/api/students/status/${studentId}/`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Token ${token}`, // Add the token here for authentication
+      },
+      body: JSON.stringify({ status }), // Send the new status in the request body
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update student status');
+    }
+
+    const data = await response.json();
+    return data;  // Return the updated student data if the request is successful
+  } catch (error) {
+    console.error('Error updating student status:', error);
+    throw error; // Rethrow the error so the component can handle it
+  }
+};

@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { use } from "react"
 import { useRouter } from "next/navigation"
-import { Mail, Phone, Calendar, Plus, Trash2, User2, Cake, Search, Filter, BookOpen, GraduationCap, QrCode } from "lucide-react"
-
+import { Mail, Phone, Calendar, Plus, Trash2, User2, Cake, Search, Filter, BookOpen, GraduationCap, QrCode, Cross, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -28,14 +27,14 @@ import { fetchUser } from "@/services/api"
 import { User } from "@/types/user"
 import { AddStudentDialog } from "@/components/adminComponent/userList/add-student-dialog"
 import { QRCodeDialog } from "@/components/adminComponent/userList/qrcode-dialog"
+import { DeactiveDialog } from "@/components/adminComponent/userList/deactive-dialog"
+import { toast } from "react-toastify"
 
 // Update the UserDetailPage component to include the enrollment tab functionality
 export default function UserDetailPage(props: { params: Promise<{ id: string }> }) {
     const router = useRouter()
     const [user, setUser] =  useState<User | null>(null);
     const [loading, setLoading] = useState(true)
-    const [deleteStudentDialogOpen, setDeleteStudentDialogOpen] = useState(false)
-    const [studentToDelete, setStudentToDelete] = useState<any>(null)
 
     // Student search and filter
     const [studentSearchQuery, setStudentSearchQuery] = useState("")
@@ -50,6 +49,10 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
         studentName: '',
         studentId: null as string | number | null,
       });
+
+    // Deactive Dialog State
+    const [deactiveStudentDialogOpen, setDeactiveStudentDialogOpen] = useState(false);
+    const [studentToDeactive, setStudentToDeactive] = useState<any>(null);
 
     const params = use(props.params)
     const id = params.id
@@ -82,23 +85,6 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
         }
       };
 
-    const handleDeleteStudent = (student: any) => {
-        setStudentToDelete(student)
-        setDeleteStudentDialogOpen(true)
-    }
-
-    const confirmDeleteStudent = () => {
-        if (studentToDelete && user) {
-            // Remove student from user
-            const updatedUser = {
-                ...user,
-                students: user.students.filter((s: any) => s.id !== studentToDelete.id),
-            }
-
-            setUser(updatedUser)
-            setDeleteStudentDialogOpen(false)
-        }
-    }
 
     // Calculate age for each student
     const calculateAge = (birthdate: string) => {
@@ -129,6 +115,12 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
         if (!user || !selectedStudentId) return null
         return user.students.find((student: any) => student.id === selectedStudentId)
     }
+
+    // Set student for deactivation/activation dialog
+    const handleDeactiveStudent = (student: any) => {
+        setStudentToDeactive(student);
+        setDeactiveStudentDialogOpen(true); // Open the dialog to confirm deactivation/activation
+    };
 
   // Open QR code modal
   const openQrCodeModal = (studentName: string, studentId: string | number) => {
@@ -437,6 +429,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                                                 <TableHead>Name</TableHead>
                                                 <TableHead>Birthdate</TableHead>
                                                 <TableHead>Age</TableHead>
+                                                <TableHead>Status</TableHead>
                                                 <TableHead className="w-[100px]">Actions</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -453,6 +446,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                                                         <TableCell>{new Date(student.birthdate).toLocaleDateString()}</TableCell>
                                                         {/* Replace the age display in the table to use the new formatAge function */}
                                                         <TableCell>{formatAge(student.birthdate)}</TableCell>
+                                                        <TableCell><p>{student.status}</p></TableCell>
                                                         <TableCell>
                                                                 {/* QR Code Button */}
                                                                 <Button
@@ -467,12 +461,14 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                                                                 <Button
                                                                     variant="outline"
                                                                     size="sm"
-                                                                    className="text-red-500 hover:text-red-700 flex items-center gap-1"
-                                                                    onClick={() => handleDeleteStudent(student)}
+                                                                    onClick={() => handleDeactiveStudent(student)}
+                                                                    className={`${
+                                                                    student.status === "inactive" ? "text-green-500" : "text-red-500"
+                                                                    }`}
                                                                 >
-                                                                    Delete
-                                                                    <Trash2 className="h-4 w-4" />
+                                                                    {student.status === "inactive" ? "Activate" : "Deactivate"}
                                                                 </Button>
+
                                                         </TableCell>
                                                     </TableRow>
                                                 ))
@@ -522,24 +518,6 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                 </div>
             </div>
 
-            {/* Delete Student Confirmation Dialog */}
-            <AlertDialog open={deleteStudentDialogOpen} onOpenChange={setDeleteStudentDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Student</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to remove {studentToDelete?.name} from this account? This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDeleteStudent} className="bg-red-600 hover:bg-red-700">
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
             {/* QR Code Modal */}
             <QRCodeDialog
                 studentName={selectedQrCode.studentName}
@@ -547,6 +525,13 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                 isOpen={selectedQrCode.isOpen}
                 onClose={closeQrCodeModal}
             />
+            <DeactiveDialog
+            user={user}
+            setUser={setUser}
+            student={studentToDeactive}
+            isOpen={deactiveStudentDialogOpen}
+            setDialogOpen={setDeactiveStudentDialogOpen}
+          />
         </div>
     )
 }
