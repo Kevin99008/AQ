@@ -52,16 +52,6 @@ export function DeactiveDialog({ user, setUser, student, isOpen, setDialogOpen }
 
   return (
     <>
-      {/* Deactive/Activate Button */}
-      <Button
-        variant="outline"
-        size="sm"
-        className={student?.status === 'inactive' ? 'text-green-500 hover:text-green-700' : 'text-red-500 hover:text-red-700'}
-        onClick={() => setDialogOpen(true)} // Open the dialog
-      >
-        {student?.status === 'inactive' ? 'Activate' : 'Deactivate'} {/* Dynamic button text */}
-        <X className="h-4 w-4" />
-      </Button>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={isOpen} onOpenChange={setDialogOpen}>
