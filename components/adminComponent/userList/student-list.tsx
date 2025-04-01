@@ -109,7 +109,7 @@ export function StudentList({ students = [] }: StudentListProps) {
                       {student.sessions?.length > 0 ? (
                         student.sessions.map((session, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
-                            {session.courseName}
+                            {session.name}
                           </Badge>
                         ))
                       ) : (

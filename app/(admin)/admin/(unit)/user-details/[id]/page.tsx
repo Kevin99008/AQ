@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { use } from "react"
 import { useRouter } from "next/navigation"
-import { Mail, Phone, Calendar, Plus, Trash2, User2, Cake, Search, Filter, BookOpen, GraduationCap } from "lucide-react"
+import { Mail, Phone, Calendar, Plus, Trash2, User2, Cake, Search, Filter, BookOpen, GraduationCap, QrCode } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge"
 import { fetchUser } from "@/services/api"
 import { User } from "@/types/user"
 import { AddStudentDialog } from "@/components/adminComponent/userList/add-student-dialog"
+import { QRCodeDialog } from "@/components/adminComponent/userList/qrcode-dialog"
 
 // Update the UserDetailPage component to include the enrollment tab functionality
 export default function UserDetailPage(props: { params: Promise<{ id: string }> }) {
@@ -43,6 +44,12 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
 
     // New state for enrollment tab
     const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null)
+
+    const [selectedQrCode, setSelectedQrCode] = useState({
+        isOpen: false,
+        studentName: '',
+        studentId: null as string | number | null,
+      });
 
     const params = use(props.params)
     const id = params.id
@@ -123,7 +130,22 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
         return user.students.find((student: any) => student.id === selectedStudentId)
     }
 
-    // Keep the rest of the component as is, but update the enrollments tab content
+  // Open QR code modal
+  const openQrCodeModal = (studentName: string, studentId: string | number) => {
+    setSelectedQrCode({
+      isOpen: true,
+      studentName,
+      studentId,
+    });
+  };
+
+  // Close QR code modal
+  const closeQrCodeModal = () => {
+    setSelectedQrCode((prev) => ({
+      ...prev,
+      isOpen: false,
+    }));
+  };
 
     // Update the TabsContent for enrollments
     const renderEnrollmentsTab = () => {
@@ -432,15 +454,25 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                                                         {/* Replace the age display in the table to use the new formatAge function */}
                                                         <TableCell>{formatAge(student.birthdate)}</TableCell>
                                                         <TableCell>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="text-red-500 hover:text-red-700"
-                                                                onClick={() => handleDeleteStudent(student)}
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                                <span className="sr-only">Delete</span>
-                                                            </Button>
+                                                                {/* QR Code Button */}
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => openQrCodeModal(student.name, student.id)}
+                                                                    className="flex items-center gap-1 mb-6"
+                                                                >
+                                                                    View QR
+                                                                    <QrCode className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="text-red-500 hover:text-red-700 flex items-center gap-1"
+                                                                    onClick={() => handleDeleteStudent(student)}
+                                                                >
+                                                                    Delete
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
                                                         </TableCell>
                                                     </TableRow>
                                                 ))
@@ -507,6 +539,14 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* QR Code Modal */}
+            <QRCodeDialog
+                studentName={selectedQrCode.studentName}
+                studentId={selectedQrCode.studentId}
+                isOpen={selectedQrCode.isOpen}
+                onClose={closeQrCodeModal}
+            />
         </div>
     )
 }
