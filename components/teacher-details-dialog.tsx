@@ -61,7 +61,7 @@ export function TeacherDetailsDialog({ teacher, open, onOpenChange }: TeacherDet
           <Button
             onClick={() => {
               onOpenChange(false)
-              router.push(`/teacher-details/${teacher.id}`)
+              router.push(`/admin/teacher-details/${teacher.id}`)
             }}
             className="sm:flex-1"
           >

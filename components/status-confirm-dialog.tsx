@@ -46,18 +46,15 @@ export function StatusConfirmDialog({ open, onOpenChange, teacher, onConfirm }: 
         <AlertDialogHeader>
           <AlertDialogTitle>Change Teacher Status</AlertDialogTitle>
           <AlertDialogDescription>
-            <div className="flex">
-               Are you sure you want to change {teacher?.name}'s status from{" "}
-
-              <div className="font-medium ml-1 mr-1">{teacher?.status}</div> to <div className="font-medium ml-1">{newStatus}</div>?
-            </div>
-            {newStatus === "inactive" && (
-              <div className="mt-2 text-destructive">
-                This will prevent the teacher from accessing the system and they will no longer appear in active teacher
-                lists.
-              </div>
-            )}
+            Are you sure you want to change {teacher?.name}'s status from{" "}
+            <span className="font-medium">{teacher?.status}</span> to <span className="font-medium">{newStatus}</span>?
           </AlertDialogDescription>
+          {newStatus === "inactive" && (
+            <div className="mt-2 text-destructive text-sm">
+              This will prevent the teacher from accessing the system and they will no longer appear in active teacher
+              lists.
+            </div>
+          )}
         </AlertDialogHeader>
         {error && (
           <div className="mt-4 text-red-500 text-sm">
