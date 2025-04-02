@@ -31,7 +31,7 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch("https://aqtech-production.up.railway.app/api/token/", {
+      const response = await fetch("http://localhost:8000/api/token/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,7 +54,7 @@ export default function LoginPage() {
       const { access, refresh } = await response.json();
       setTokens(access, refresh);
   
-      const userResponse = await fetch("https://aqtech-production.up.railway.app/api/user/info/", {
+      const userResponse = await fetch("http://localhost:8000/api/user/info/", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${access}`,
@@ -73,6 +73,8 @@ export default function LoginPage() {
         push("admin/dashboard");
       } else if (userData.role === "user") {
         push("home/");
+      } else if (userData.role === "teacher") {
+        push("teacher/home/");
       } else {
         push("/");
       }
