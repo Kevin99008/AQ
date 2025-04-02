@@ -2,22 +2,24 @@
 
 import { useRouter } from "next/navigation"
 import { useEffect, useState, use } from "react"
-import { Mail, Users, AlertCircle } from "lucide-react"
+import { Phone, Users, AlertCircle, BookOpen, ExternalLink, Calendar } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { apiFetch, TOKEN_EXPIRED  } from "@/utils/api"
+import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
+import { toast } from "react-toastify"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-// Update the ClassItem interface to specify that min_age and max_age are in months
 interface ClassItem {
   id: number
   name: string
   description: string
+  type: string
   min_age: number | null
   max_age: number | null
-  type: "restricted" | "unrestricted"
 }
 
 interface Teacher {
@@ -29,49 +31,61 @@ interface Teacher {
   classes: ClassItem[]
 }
 
-// Add a function to format age in months to a readable format
-const formatAgeInMonths = (months: number | null): string => {
-  if (months === null) return "N/A"
+export default function TeacherDetailsPage(props: { params: Promise<{ id: string }> }) {
+  const router = useRouter()
+  const [teacher, setTeacher] = useState<Teacher | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedCourse, setSelectedCourse] = useState<ClassItem | null>(null)
+  const [courseDialogOpen, setCourseDialogOpen] = useState(false)
 
-  if (months < 12) {
-    return `${months} month${months !== 1 ? "s" : ""}`
-  } else {
-    const years = Math.floor(months / 12)
-    const remainingMonths = months % 12
+  const params = use(props.params)
+  const id = params.id
 
-    if (remainingMonths === 0) {
-      return `${years} year${years !== 1 ? "s" : ""}`
+  const fetchTeacher = async () => {
+    const teacherId = Number.parseInt(id)
+    try {
+      const teacherResult = await apiFetch<Teacher>(`/api/new/teachers/detail/${teacherId}/`)
+      if (teacherResult !== TOKEN_EXPIRED) {
+        setTeacher(teacherResult)
+        setLoading(false)
+      }
+    } catch (err: any) {
+      if (err instanceof Error) {
+        toast.error(err.message)
+      } else {
+        toast.error("Something went wrong")
+      }
+    }
+
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchTeacher()
+  }, [id])
+
+  // Function to format age in months to a readable format
+  const formatAgeInMonths = (months: number | null): string => {
+    if (months === null) return "N/A"
+
+    if (months < 12) {
+      return `${months} month${months !== 1 ? "s" : ""}`
     } else {
-      return `${years} year${years !== 1 ? "s" : ""} ${remainingMonths} month${remainingMonths !== 1 ? "s" : ""}`
+      const years = Math.floor(months / 12)
+      const remainingMonths = months % 12
+
+      if (remainingMonths === 0) {
+        return `${years} year${years !== 1 ? "s" : ""}`
+      } else {
+        return `${years} year${years !== 1 ? "s" : ""} ${remainingMonths} month${remainingMonths !== 1 ? "s" : ""}`
+      }
     }
   }
-}
 
-export default function TeacherDetailsPage(props: { params: Promise<{ id: string }> }) {
-    const router = useRouter()
-    const [teacher, setTeacher] = useState<Teacher | null>(null)
-    const [loading, setLoading] = useState(true)
-
-    // Unwrap params using React.use()
-    const params = use(props.params)
-    const id = params.id
-
-    useEffect(() => {
-        // Simulate API fetch
-        const fetchTeacher = async () => {
-            const teacherId = Number.parseInt(id)
-
-            const result = await apiFetch<Teacher>(`/api/new/teachers/detail/${teacherId}/`);
-            
-
-            if (result !== TOKEN_EXPIRED) {
-                setTeacher(result)
-            }
-            setLoading(false)
-        }
-
-        fetchTeacher()
-    }, [id])
+  const handleCourseClick = (course: ClassItem) => {
+    setSelectedCourse(course)
+    setCourseDialogOpen(true)
+  }
 
   if (loading) {
     return (
@@ -133,7 +147,7 @@ export default function TeacherDetailsPage(props: { params: Promise<{ id: string
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">Contact</h3>
                 <div className="flex items-center mt-1">
-                  <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
                   <span>{teacher.contact}</span>
                 </div>
               </div>
@@ -160,8 +174,8 @@ export default function TeacherDetailsPage(props: { params: Promise<{ id: string
 
         <Card>
           <CardHeader>
-            <CardTitle>Classes</CardTitle>
-            <CardDescription>Classes currently taught by {teacher.name}</CardDescription>
+            <CardTitle>Teacher Courses</CardTitle>
+            <CardDescription>Courses currently taught by {teacher.name}</CardDescription>
           </CardHeader>
           <CardContent>
             {teacher.classes && teacher.classes.length > 0 ? (
@@ -170,22 +184,26 @@ export default function TeacherDetailsPage(props: { params: Promise<{ id: string
                   <Card
                     key={classItem.id}
                     className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => router.push(`/admin/unit-course/${classItem.id}`)}
+                    onClick={() => handleCourseClick(classItem)}
                   >
                     <div
                       className={`h-2 w-full ${
-                        teacher.category === "Aquakids"
+                        classItem.type === "lecture"
                           ? "bg-blue-500"
-                          : teacher.category === "Playsounds"
+                          : classItem.type === "lab"
                             ? "bg-green-500"
-                            : "bg-gray-500"
+                            : "bg-purple-500"
                       }`}
                     />
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{classItem.name}</CardTitle>
-                        <Badge variant={classItem.type === "restricted" ? "blue" : "secondary"}>
-                          {classItem.type === "restricted" ? "Age Restricted" : "All Ages"}
+                        <Badge
+                          variant={
+                            classItem.type === "lecture" ? "blue" : classItem.type === "lab" ? "green" : "secondary"
+                          }
+                        >
+                          {classItem.type}
                         </Badge>
                       </div>
                     </CardHeader>
@@ -193,41 +211,35 @@ export default function TeacherDetailsPage(props: { params: Promise<{ id: string
                       <p className="text-sm text-muted-foreground">{classItem.description}</p>
 
                       <div className="flex items-center mt-2">
-                        {classItem.type === "restricted" ? (
-                          <div className="flex items-center text-sm">
-                            <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <span>
-                              Ages: {formatAgeInMonths(classItem.min_age)} - {formatAgeInMonths(classItem.max_age)}
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center text-sm">
-                            <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <span>All ages welcome</span>
-                          </div>
-                        )}
+                        <div className="flex items-center text-sm">
+                          <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <span>
+                            Ages: {formatAgeInMonths(classItem.min_age)} - {formatAgeInMonths(classItem.max_age)}
+                          </span>
+                        </div>
                       </div>
 
-                      {classItem.type === "restricted" && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-2 flex items-start gap-2">
-                          <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5" />
-                          <div className="text-xs text-blue-700">
-                            This class is age-restricted and only available for children between{" "}
-                            {formatAgeInMonths(classItem.min_age)} and {formatAgeInMonths(classItem.max_age)}.
+                      {classItem.min_age !== null &&
+                        classItem.min_age >= 216 && ( // 18 years = 216 months
+                          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-2 flex items-start gap-2">
+                            <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5" />
+                            <div className="text-xs text-blue-700">This class is for adults and older students.</div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
                       <div className="flex justify-end mt-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={(e) => {
-                            e.stopPropagation()
+                            e.stopPropagation() // Prevent card click
                             router.push(`/admin/unit-course/${classItem.id}`)
                           }}
+                          className="flex items-center gap-1"
                         >
+                          <BookOpen className="h-4 w-4" />
                           View Course Details
+                          <ExternalLink className="h-3 w-3 ml-1" />
                         </Button>
                       </div>
                     </CardContent>
@@ -240,6 +252,111 @@ export default function TeacherDetailsPage(props: { params: Promise<{ id: string
           </CardContent>
         </Card>
       </div>
+
+      {/* Course Detail Dialog */}
+      <Dialog open={courseDialogOpen} onOpenChange={setCourseDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          {selectedCourse && (
+            <>
+              <DialogHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <DialogTitle className="text-xl">{selectedCourse.name}</DialogTitle>
+                    <DialogDescription className="mt-1">{selectedCourse.description}</DialogDescription>
+                  </div>
+                  <Badge
+                    variant={
+                      selectedCourse.type === "lecture" ? "blue" : selectedCourse.type === "lab" ? "green" : "secondary"
+                    }
+                  >
+                    {selectedCourse.type}
+                  </Badge>
+                </div>
+              </DialogHeader>
+
+              <Tabs defaultValue="details" className="w-full mt-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="details">Course Details</TabsTrigger>
+                  <TabsTrigger value="requirements">Requirements</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="details" className="space-y-4 pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="border rounded-md p-3">
+                      <div className="flex items-center text-sm mb-1">
+                        <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <span className="font-medium">Age Range</span>
+                      </div>
+                      <p className="text-sm">
+                        {formatAgeInMonths(selectedCourse.min_age)} - {formatAgeInMonths(selectedCourse.max_age)}
+                      </p>
+                    </div>
+
+                    <div className="border rounded-md p-3">
+                      <div className="flex items-center text-sm mb-1">
+                        <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <span className="font-medium">Course Type</span>
+                      </div>
+                      <p className="text-sm capitalize">{selectedCourse.type}</p>
+                    </div>
+                  </div>
+
+                  <div className="border rounded-md p-4 mt-4">
+                    <h3 className="font-medium mb-2">Course Description</h3>
+                    <p className="text-sm">{selectedCourse.description}</p>
+                  </div>
+
+                  {selectedCourse.min_age !== null && selectedCourse.min_age >= 216 && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-2 flex items-start gap-2">
+                      <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5" />
+                      <div className="text-sm text-blue-700">
+                        This class is designed for adults and older students (18+ years).
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="requirements" className="pt-4">
+                  <div className="space-y-4">
+                    <div className="border rounded-md p-4">
+                      <h3 className="font-medium mb-2">Age Requirements</h3>
+                      <p className="text-sm">
+                        Students must be between {formatAgeInMonths(selectedCourse.min_age)} and{" "}
+                        {formatAgeInMonths(selectedCourse.max_age)} to enroll in this course.
+                      </p>
+                    </div>
+
+                    <div className="border rounded-md p-4">
+                      <h3 className="font-medium mb-2">Course Prerequisites</h3>
+                      <p className="text-sm">
+                        {selectedCourse.type === "lecture"
+                          ? "No specific prerequisites required."
+                          : selectedCourse.type === "lab"
+                            ? "Basic understanding of the subject matter is recommended."
+                            : "Please contact the instructor for specific requirements."}
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex justify-between items-center mt-4 pt-4 border-t">
+                <Button variant="outline" onClick={() => setCourseDialogOpen(false)}>
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setCourseDialogOpen(false)
+                    router.push(`/admin/unit-course/${selectedCourse.id}`)
+                  }}
+                >
+                  View Full Details
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

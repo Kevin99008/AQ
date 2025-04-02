@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Calendar, Users, Clock, Award, Plus, Trash2 } from "lucide-react"
+import { Calendar, Users, Clock, Award, Plus, Trash2, ArrowLeft, Search, Check } from "lucide-react"
 import { use } from "react"
-
+import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -30,117 +30,95 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { toast } from 'react-toastify';
+import { Input } from "@/components/ui/input"
 
-// Sample course data based on the provided model
-const courses = [
-  {
-    id: 1,
-    name: "Beginner Swimming",
-    description: "Learn the basics of swimming in a fun and safe environment.",
-    type: "restricted",
-    min_age: 60, // 5 years in months
-    max_age: 96, // 8 years in months
-    quota: 10,
-    created_at: "2023-01-15T10:00:00Z",
-    price: 3500,
-    category: "Aquakids",
-    teachers: [
-      { id: 1, name: "Sarah Johnson", email: "sarah.johnson@example.com", specialty: "Swimming Instructor" },
-      { id: 3, name: "Emily Rodriguez", email: "emily.rodriguez@example.com", specialty: "Water Safety Instructor" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Piano for Kids",
-    description: "Introduction to piano for young children.",
-    type: "restricted",
-    min_age: 72, // 6 years in months
-    max_age: 120, // 10 years in months
-    quota: 8,
-    created_at: "2023-02-10T14:30:00Z",
-    price: 4000,
-    category: "Playsounds",
-    teachers: [{ id: 2, name: "Michael Chen", email: "michael.chen@example.com", specialty: "Piano Teacher" }],
-  },
-]
+// Sample course data based on the provided JSON
+type Teacher = {
+  id: number;
+  name: string;
+  contact: string;
+  status: string
+};
 
-// Sample available teachers (not yet assigned to the course)
-const availableTeachers = [
-  { id: 4, name: "David Kim", email: "david.kim@example.com", specialty: "Guitar Teacher" },
-  { id: 5, name: "Jessica Patel", email: "jessica.patel@example.com", specialty: "Art Teacher" },
-  { id: 6, name: "Robert Wilson", email: "robert.wilson@example.com", specialty: "Swim Coach" },
-  { id: 7, name: "Amanda Lee", email: "amanda.lee@example.com", specialty: "Violin Teacher" },
-]
+type Course = {
+  id: number;
+  name: string;
+  description: string;
+  type: string;
+  min_age: number;
+  max_age: number;
+  quota: number;
+  created_at: string; // ISO date string
+  price: number;
+  category: string;
+  teachers: Teacher[];
+};
 
-// Helper function to format age in months
-const formatAgeInMonths = (months: number | null): string => {
-  if (months === null) return "N/A"
 
-  if (months < 12) {
-    return `${months} month${months !== 1 ? "s" : ""}`
-  } else {
-    const years = Math.floor(months / 12)
-    const remainingMonths = months % 12
-
-    if (remainingMonths === 0) {
-      return `${years} year${years !== 1 ? "s" : ""}`
-    } else {
-      return `${years} year${years !== 1 ? "s" : ""} ${remainingMonths} month${remainingMonths !== 1 ? "s" : ""}`
-    }
-  }
-}
-
-export default function CourseDetailPage(props: { params: Promise<{ id: string }> }) {
+export default function AdminCourseDetailPage(props: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [course, setCourse] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [selectedTeacher, setSelectedTeacher] = useState("")
-  const [teacherList, setTeacherList] = useState<any[]>(availableTeachers)
+  const [teacherList, setTeacherList] = useState<Teacher[]>([])
   const [deleteTeacherDialogOpen, setDeleteTeacherDialogOpen] = useState(false)
   const [teacherToRemove, setTeacherToRemove] = useState<any>(null)
-
+  const [teacherSearchQuery, setTeacherSearchQuery] = useState("")
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [selectedTeacherDetails, setSelectedTeacherDetails] = useState<any>(null)
   // Unwrap params using React.use()
   const params = use(props.params)
   const id = params.id
 
-  useEffect(() => {
-    // Simulate API fetch
-    const fetchCourse = () => {
-      const courseId = Number.parseInt(id)
-      const foundCourse = courses.find((c) => c.id === courseId)
-
-      if (foundCourse) {
-        setCourse(foundCourse)
-
-        // Filter out teachers already assigned to this course
-        const assignedTeacherIds = foundCourse.teachers.map((t) => t.id)
-        const filteredTeachers = availableTeachers.filter((t) => !assignedTeacherIds.includes(t.id))
-        setTeacherList(filteredTeachers)
+  const fetchCourse = async () => {
+    const courseId = Number.parseInt(id)
+    try {
+      const courseResult = await apiFetch<Course>(`/api/new/courses/detail/${courseId}/`)
+      if (courseResult !== TOKEN_EXPIRED) {
+        setCourse(courseResult)
+        setLoading(false)
       }
-      setLoading(false)
-    }
 
+      const teacherResult = await apiFetch<Teacher[]>(`/api/new/courses/add-teacher-list/${courseId}/`)
+      if (teacherResult !== TOKEN_EXPIRED) {
+        setTeacherList(teacherResult)
+      }
+
+    } catch (err: any) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
+  }
+  useEffect(() => {
     fetchCourse()
   }, [id])
 
-  const handleAddTeacher = () => {
+  const handleAddTeacher = async () => {
     if (!selectedTeacher) return
 
     const teacherId = Number.parseInt(selectedTeacher)
-    const teacherToAdd = teacherList.find((t) => t.id === teacherId)
-
-    if (teacherToAdd && course) {
-      // Add teacher to course
-      const updatedCourse = {
-        ...course,
-        teachers: [...course.teachers, teacherToAdd],
+    const courseId = Number.parseInt(id)
+    try {
+      const response = await apiFetch<any>(`/api/new/courses/${courseId}/assign-teacher/`, "POST", {
+        teacher_id: teacherId
+      })
+      if (response !== TOKEN_EXPIRED) {
+        fetchCourse()
+        toast.success("Successfully Added Teacher to Course")
       }
-      setCourse(updatedCourse)
-
-      // Remove from available teachers
-      setTeacherList((prev) => prev.filter((t) => t.id !== teacherId))
-      setSelectedTeacher("")
+    } catch (err: any) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
+
   }
 
   const handleRemoveTeacher = (teacher: any) => {
@@ -148,18 +126,23 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
     setDeleteTeacherDialogOpen(true)
   }
 
-  const confirmRemoveTeacher = () => {
+  const confirmRemoveTeacher = async () => {
     if (teacherToRemove && course) {
-      // Remove teacher from course
-      const updatedCourse = {
-        ...course,
-        teachers: course.teachers.filter((t: any) => t.id !== teacherToRemove.id),
+      const courseId = Number.parseInt(id)
+      try {
+        const response = await apiFetch<any>(`/api/new/courses/${courseId}/${Number.parseInt(teacherToRemove.id)}/remove-teacher/`, "DELETE")
+        if (response !== TOKEN_EXPIRED) {
+          fetchCourse()
+          toast.success("Successfully Removed Teacher from Course")
+        }
+      } catch (err: any) {
+        if (err instanceof Error) {
+          toast.error(err.message);
+        } else {
+          toast.error("Something went wrong");
+        }
       }
-      setCourse(updatedCourse)
 
-      // Add back to available teachers
-      setTeacherList((prev) => [...prev, teacherToRemove])
-      setDeleteTeacherDialogOpen(false)
     }
   }
 
@@ -177,7 +160,8 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
     return (
       <div className="container mx-auto py-6 px-4 md:px-6">
         <div className="flex items-center mb-6">
-          <Button variant="outline" onClick={() => router.push("/admin/courses")} className="mr-4">
+          <Button variant="outline" onClick={() => router.push("/admin/unit-course")} className="mr-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Courses
           </Button>
           <h1 className="text-2xl font-bold">Course Details</h1>
@@ -187,7 +171,7 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
             <p className="text-center py-8">Course not found.</p>
           </CardContent>
           <div className="p-6 pt-0">
-            <Button onClick={() => router.push("/admin/courses")} className="w-full">
+            <Button onClick={() => router.push("/admin/unit-course")} className="w-full">
               Return to Course List
             </Button>
           </div>
@@ -196,14 +180,12 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
     )
   }
 
-  // Calculate availability percentage
-  const availabilityPercentage = ((course.quota - course.enrolled) / course.quota) * 100
-
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
           <Button variant="outline" onClick={() => router.push("/admin/unit-course")} className="mr-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Courses
           </Button>
           <h1 className="text-2xl font-bold">Course Details</h1>
@@ -220,45 +202,40 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
                   <CardTitle className="text-2xl">{course.name}</CardTitle>
                   <p className="text-muted-foreground mt-1">{course.description}</p>
                 </div>
-                <Badge
-                  variant={
-                    course.category === "Aquakids" ? "blue" : course.category === "Playsounds" ? "green" : "secondary"
-                  }
-                  className="text-sm"
-                >
-                  {course.category}
-                </Badge>
+                <div className="flex gap-2">
+                  <Badge
+                    variant={
+                      course.category === "Aquakids" ? "blue" : course.category === "Playsounds" ? "green" : "secondary"
+                    }
+                    className="text-sm"
+                  >
+                    {course.category}
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
-                    <Calendar className="h-4 w-4 mr-2" />
+                    <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                     <span>Created: {new Date(course.created_at).toLocaleDateString()}</span>
                   </div>
                   <div className="flex items-center text-sm">
-                    <Clock className="h-4 w-4 mr-2" />
-                    <span>Quota: {course.quota} students</span>
+                    <Award className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span>Price: ₹{course.price}</span>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  {course.type === "restricted" ? (
-                    <div className="flex items-center text-sm">
-                      <Users className="h-4 w-4 mr-2" />
-                      <span>
-                        Age Range: {formatAgeInMonths(course.min_age)} - {formatAgeInMonths(course.max_age)}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center text-sm">
-                      <Users className="h-4 w-4 mr-2" />
-                      <span>All ages welcome</span>
-                    </div>
-                  )}
                   <div className="flex items-center text-sm">
-                    <Award className="h-4 w-4 mr-2" />
-                    <span>Price: ₹{course.price}</span>
+                    <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span>
+                      Age Range: {course.min_age} - {course.max_age} years
+                    </span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span>Duration: 10 class</span>
                   </div>
                 </div>
               </div>
@@ -285,32 +262,101 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
                       <DialogTitle>Add Teacher to Course</DialogTitle>
                       <DialogDescription>Select a teacher to assign to this course.</DialogDescription>
                     </DialogHeader>
-                    <div className="py-4">
-                      <Select value={selectedTeacher} onValueChange={setSelectedTeacher}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a teacher" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {teacherList.length > 0 ? (
-                            teacherList.map((teacher: any) => (
-                              <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                                {teacher.name} - {teacher.specialty}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="none" disabled>
-                              No available teachers
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
+                    <div className="py-4 space-y-4">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="search"
+                          placeholder="Search teachers..."
+                          className="pl-8"
+                          value={teacherSearchQuery}
+                          onChange={(e) => setTeacherSearchQuery(e.target.value)}
+                        />
+                      </div>
+
+                      {teacherList.length > 0 ? (
+                        <div className="max-h-[200px] overflow-y-auto border rounded-md">
+                          {teacherList
+                            .filter(
+                              (teacher) =>
+                                teacher.name.toLowerCase().includes(teacherSearchQuery.toLowerCase()) ||
+                                teacher.contact.toLowerCase().includes(teacherSearchQuery.toLowerCase()),
+                            )
+                            .map((teacher) => (
+                              <div
+                                key={teacher.id}
+                                className={`flex items-center justify-between p-3 hover:bg-muted cursor-pointer ${selectedTeacher === teacher.id.toString() ? "bg-muted" : ""
+                                  } ${teacherList.indexOf(teacher) !== teacherList.length - 1 ? "border-b" : ""}`}
+                                onClick={() => {
+                                  setSelectedTeacher(teacher.id.toString())
+                                  setConfirmDialogOpen(true)
+                                  setSelectedTeacherDetails(teacher)
+                                }}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarFallback>{teacher.name.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium">{teacher.name}</p>
+                                    <p className="text-xs text-muted-foreground">{teacher.contact}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-muted-foreground">No available teachers</div>
+                      )}
                     </div>
-                    <DialogFooter>
-                      <Button onClick={handleAddTeacher} disabled={!selectedTeacher || teacherList.length === 0}>
-                        Add Teacher
-                      </Button>
-                    </DialogFooter>
                   </DialogContent>
+                  {selectedTeacherDetails && (
+                    <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirm Teacher Assignment</AlertDialogTitle>
+                          {/* Don't use AlertDialogDescription for complex content */}
+                        </AlertDialogHeader>
+                        <div className="space-y-4 py-3">
+                          <p className="text-sm">
+                            You are about to add <span className="font-medium">{selectedTeacherDetails.name}</span> to
+                            this course.
+                          </p>
+                          <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                            <p className="text-sm text-blue-800">
+                              This teacher will be automatically assigned to all course timeslots and will be
+                              responsible for:
+                            </p>
+                            <ul className="text-sm text-blue-800 list-disc pl-5 mt-2">
+                              <li>Attending all scheduled classes</li>
+                              <li>Managing student attendance</li>
+                              <li>Providing course materials</li>
+                              <li>Evaluating student progress</li>
+                            </ul>
+                          </div>
+                          <p className="text-sm">Do you want to continue?</p>
+                        </div>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel
+                            onClick={() => {
+                              setConfirmDialogOpen(false)
+                              setSelectedTeacher("")
+                            }}
+                          >
+                            Cancel
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => {
+                              handleAddTeacher()
+                              setConfirmDialogOpen(false)
+                            }}
+                          >
+                            Confirm Assignment
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </Dialog>
               </div>
 
@@ -319,17 +365,28 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
-                      <TableHead>Specialty</TableHead>
-                      <TableHead>Email</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {course.teachers.map((teacher: any) => (
                       <TableRow key={teacher.id}>
-                        <TableCell className="font-medium">{teacher.name}</TableCell>
-                        <TableCell>{teacher.specialty}</TableCell>
-                        <TableCell>{teacher.email}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback>{teacher.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            {teacher.name}
+                          </div>
+                        </TableCell>
+                        <TableCell>{teacher.contact}</TableCell>
+                        <TableCell>
+                          <Badge variant={teacher.status === "active" ? "green" : "secondary"} className="text-sm">
+                            {teacher.status === "active" ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           <Button
                             variant="ghost"
@@ -375,18 +432,14 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
                   <h3 className="font-medium mb-2">Category</h3>
                   <p className="text-sm">{course.category}</p>
                 </div>
-                {course.type === "restricted" && (
-                  <>
-                    <div className="border rounded-md p-4">
-                      <h3 className="font-medium mb-2">Minimum Age</h3>
-                      <p className="text-sm">{formatAgeInMonths(course.min_age)}</p>
-                    </div>
-                    <div className="border rounded-md p-4">
-                      <h3 className="font-medium mb-2">Maximum Age</h3>
-                      <p className="text-sm">{formatAgeInMonths(course.max_age)}</p>
-                    </div>
-                  </>
-                )}
+                <div className="border rounded-md p-4">
+                  <h3 className="font-medium mb-2">Minimum Age</h3>
+                  <p className="text-sm">{course.min_age} years</p>
+                </div>
+                <div className="border rounded-md p-4">
+                  <h3 className="font-medium mb-2">Maximum Age</h3>
+                  <p className="text-sm">{course.max_age} years</p>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
@@ -394,7 +447,7 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
 
         {/* Sidebar */}
         <div>
-          <div className="sticky top-6">
+          <div className="sticky top-6 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Course Summary</CardTitle>
@@ -403,11 +456,6 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
                 <div>
                   <h3 className="font-medium text-sm text-muted-foreground mb-1">Price</h3>
                   <p className="text-2xl font-bold">₹{course.price}</p>
-                </div>
-
-                <div>
-                  <h3 className="font-medium text-sm text-muted-foreground mb-1">Quota</h3>
-                  <p className="text-sm">{course.quota} students</p>
                 </div>
 
                 <div>
@@ -430,6 +478,7 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
                   <h3 className="font-medium text-sm text-muted-foreground mb-1">Teachers</h3>
                   <p className="text-sm">{course.teachers.length} assigned</p>
                 </div>
+
               </CardContent>
             </Card>
           </div>
@@ -444,6 +493,14 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
             <AlertDialogDescription>
               Are you sure you want to remove {teacherToRemove?.name} from this course?
             </AlertDialogDescription>
+            <div className="space-y-4 py-3">
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-sm text-red-800">
+                  This teacher will be removed from all course timeslots enrollment in the future and will still have responsible for already enrolled timeslots
+                </p>
+              </div>
+              <p className="text-sm">Do you want to continue?</p>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
