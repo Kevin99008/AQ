@@ -187,20 +187,19 @@ export default function TeacherDetailsPage(props: { params: Promise<{ id: string
                     onClick={() => handleCourseClick(classItem)}
                   >
                     <div
-                      className={`h-2 w-full ${
-                        classItem.type === "lecture"
-                          ? "bg-blue-500"
-                          : classItem.type === "lab"
-                            ? "bg-green-500"
-                            : "bg-purple-500"
-                      }`}
+                      className={`h-2 w-full ${classItem.type === "restricted"
+                        ? "bg-blue-500"
+                        : classItem.type === "unrestricted"
+                          ? "bg-green-500"
+                          : "bg-purple-500"
+                        }`}
                     />
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{classItem.name}</CardTitle>
                         <Badge
                           variant={
-                            classItem.type === "lecture" ? "blue" : classItem.type === "lab" ? "green" : "secondary"
+                            classItem.type === "restricted" ? "blue" : classItem.type === "unrestricted" ? "green" : "secondary"
                           }
                         >
                           {classItem.type}
@@ -213,9 +212,12 @@ export default function TeacherDetailsPage(props: { params: Promise<{ id: string
                       <div className="flex items-center mt-2">
                         <div className="flex items-center text-sm">
                           <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <span>
-                            Ages: {formatAgeInMonths(classItem.min_age)} - {formatAgeInMonths(classItem.max_age)}
-                          </span>
+                          {classItem.type === "restricted" && <span>
+                            Age Range: {formatAgeInMonths(classItem.min_age)} - {formatAgeInMonths(classItem.max_age)}
+                          </span>}
+                          {classItem.type !== "restricted" && <span>
+                            Age Range: All ages
+                          </span>}
                         </div>
                       </div>
 
@@ -287,9 +289,12 @@ export default function TeacherDetailsPage(props: { params: Promise<{ id: string
                         <Users className="h-4 w-4 mr-2 text-muted-foreground" />
                         <span className="font-medium">Age Range</span>
                       </div>
-                      <p className="text-sm">
+                      {selectedCourse.type === "restricted" && <p className="text-sm">
                         {formatAgeInMonths(selectedCourse.min_age)} - {formatAgeInMonths(selectedCourse.max_age)}
-                      </p>
+                      </p>}
+                      {selectedCourse.type !== "restricted" && <p className="text-sm">
+                        All ages
+                      </p>}
                     </div>
 
                     <div className="border rounded-md p-3">
@@ -318,13 +323,13 @@ export default function TeacherDetailsPage(props: { params: Promise<{ id: string
 
                 <TabsContent value="requirements" className="pt-4">
                   <div className="space-y-4">
-                    <div className="border rounded-md p-4">
+                  {selectedCourse.type === "restricted" && <div className="border rounded-md p-4">
                       <h3 className="font-medium mb-2">Age Requirements</h3>
                       <p className="text-sm">
                         Students must be between {formatAgeInMonths(selectedCourse.min_age)} and{" "}
                         {formatAgeInMonths(selectedCourse.max_age)} to enroll in this course.
                       </p>
-                    </div>
+                    </div>}
 
                     <div className="border rounded-md p-4">
                       <h3 className="font-medium mb-2">Course Prerequisites</h3>
