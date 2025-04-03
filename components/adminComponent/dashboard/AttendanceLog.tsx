@@ -18,7 +18,7 @@ interface AttendanceLogProps {
   onSelectAttendance: (record: AttendanceRecord) => void
   compact?: boolean
   sortNewestFirst?: boolean
-  courseType: string
+  category: string
 }
 
 const formatTimestamp = (timestamp: string) => {
@@ -55,7 +55,7 @@ export default function AttendanceLog({
   onSelectAttendance,
   compact = false,
   sortNewestFirst = true,
-  courseType = "All",
+  category = "All",
 }: AttendanceLogProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedDate, setSelectedDate] = useState<Date>(new Date()) // Default to today
@@ -72,9 +72,9 @@ export default function AttendanceLog({
       result = result.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     }
 
-    // 2. Apply courseType filter
-    if (courseType !== "All") {
-      result = result.filter((record) => record.courseType === courseType)
+    // 2. Apply category filter
+    if (category !== "All") {
+      result = result.filter((record) => record.category === category)
     }
 
     // 3. Apply date filter if active
@@ -90,16 +90,16 @@ export default function AttendanceLog({
           record.name.toLowerCase().includes(term) ||
           record.course.toLowerCase().includes(term) ||
           record.timestamp.toLowerCase().includes(term) ||
-          record.courseType?.toLowerCase().includes(term),
+          record.category?.toLowerCase().includes(term),
       )
     }
 
     setFilteredRecords(result)
-  }, [records, searchTerm, sortNewestFirst, selectedDate, dateFilterActive, courseType])
+  }, [records, searchTerm, sortNewestFirst, selectedDate, dateFilterActive, category])
 
   // Function to get badge color based on course type
-  const getBadgeColor = (courseType: string) => {
-    switch (courseType) {
+  const getBadgeColor = (category: string) => {
+    switch (category) {
       case "AquaKids":
         return "bg-blue-100 text-blue-800 hover:bg-blue-200"
       case "Playsound":
@@ -182,7 +182,7 @@ export default function AttendanceLog({
                 <TableRow>
                   <TableHead>Name</TableHead>
                   {!compact && <TableHead>Course</TableHead>}
-                  {courseType && !compact && <TableHead>Type</TableHead>}
+                  {category && !compact && <TableHead>Type</TableHead>}
                   <TableHead>{compact ? "Time" : "Timestamp"}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -190,7 +190,7 @@ export default function AttendanceLog({
                 {filteredRecords.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={compact ? 2 : courseType ? 4 : 3}
+                      colSpan={compact ? 2 : category ? 4 : 3}
                       className="text-center text-muted-foreground py-6"
                     >
                       {searchTerm.trim() !== ""
@@ -209,11 +209,11 @@ export default function AttendanceLog({
                     >
                       <TableCell className="font-medium">{record.name}</TableCell>
                       {!compact && <TableCell>{record.course}</TableCell>}
-                      {courseType && !compact && (
+                      {category && !compact && (
                         <TableCell>
-                          {record.courseType && (
-                            <Badge className={getBadgeColor(record.courseType)} variant="outline">
-                              {record.courseType}
+                          {record.category && (
+                            <Badge className={getBadgeColor(record.category)} variant="outline">
+                              {record.category}
                             </Badge>
                           )}
                         </TableCell>
@@ -273,11 +273,11 @@ export default function AttendanceLog({
                       </div>
                     </div>
 
-                    {record.courseType && (
+                    {record.category && (
                       <div className="space-y-1">
                         <div className="text-xs text-muted-foreground">Type</div>
-                        <Badge className={getBadgeColor(record.courseType)} variant="outline">
-                          {record.courseType}
+                        <Badge className={getBadgeColor(record.category)} variant="outline">
+                          {record.category}
                         </Badge>
                       </div>
                     )}
