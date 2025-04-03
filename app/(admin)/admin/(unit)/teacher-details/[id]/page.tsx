@@ -101,9 +101,6 @@ export default function TeacherDetailsPage(props: { params: Promise<{ id: string
     return (
       <div className="container mx-auto py-6 px-4 md:px-6">
         <div className="flex items-center mb-6">
-          <Button variant="outline" onClick={() => router.push("/admin/unit-teacher")} className="mr-4">
-            Back to List
-          </Button>
           <h1 className="text-2xl font-bold">Teacher Details</h1>
         </div>
         <Card className="max-w-2xl mx-auto">
@@ -123,9 +120,6 @@ export default function TeacherDetailsPage(props: { params: Promise<{ id: string
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
       <div className="flex items-center mb-6">
-        <Button variant="outline" onClick={() => router.push("/admin/unit-teacher")} className="mr-4">
-          Back to List
-        </Button>
         <h1 className="text-2xl font-bold">Teacher Details</h1>
       </div>
 
@@ -133,7 +127,7 @@ export default function TeacherDetailsPage(props: { params: Promise<{ id: string
         <Card>
           <CardHeader className="flex flex-col items-center text-center">
             <Avatar className="h-24 w-24 mb-4">
-              <AvatarImage src={`/placeholder.svg?height=96&width=96`} alt={teacher.name} />
+              <AvatarImage alt={teacher.name} />
               <AvatarFallback className="text-2xl">{teacher.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <CardTitle className="text-2xl">{teacher.name}</CardTitle>

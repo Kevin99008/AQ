@@ -1,4 +1,4 @@
-import TeacherList from "@/components/teacher-list"
+import TeacherList from "@/components/adminComponent/teacherList/teacher-list"
 
 export default function Home() {
   return (

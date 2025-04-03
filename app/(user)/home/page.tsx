@@ -16,8 +16,8 @@ export default function HomePage() {
         </p>
       </div>
 
-      <div className="grid gap-6 pt-12 md:grid-cols-3">
-        <Card>
+      <div className="grid gap-6 pt-12 ">
+        <Card className="bg-green-100">
           <CardHeader className="flex flex-row items-center gap-4">
             <BookOpen className="h-8 w-8 text-primary" />
             <div className="grid gap-1">
@@ -40,7 +40,7 @@ export default function HomePage() {
           </CardFooter>
         </Card>
 
-        <Card>
+        <Card className="bg-blue-100">
           <CardHeader className="flex flex-row items-center gap-4">
             <GraduationCap className="h-8 w-8 text-primary" />
             <div className="grid gap-1">
@@ -63,7 +63,7 @@ export default function HomePage() {
           </CardFooter>
         </Card>
 
-        <Card>
+        <Card className="bg-orange-100">
           <CardHeader className="flex flex-row items-center gap-4">
             <User className="h-8 w-8 text-primary" />
             <div className="grid gap-1">

@@ -325,12 +325,8 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
         <div className="container mx-auto py-6 px-4 md:px-6">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
-                    <Button variant="outline" onClick={() => router.push("/admin/unit-user")} className="mr-4">
-                        Back to Users
-                    </Button>
                     <h1 className="text-2xl font-bold">User Details</h1>
                 </div>
-                <Button onClick={() => router.push(`/admin/users/${user.id}/edit`)}>Edit User</Button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

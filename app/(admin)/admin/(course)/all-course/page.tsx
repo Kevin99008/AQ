@@ -392,12 +392,14 @@ export default function CoursesPage() {
 
           {currentCourses.map((course) => (
             <div key={course.id} className="border rounded-md overflow-hidden flex flex-col md:flex-row">
-              <div className="md:w-1/3 lg:w-1/4">
+              {/* <div className="md:w-1/3 lg:w-1/4">
                 <img
                   src={course.image || "/placeholder.svg"}
                   alt={course.name}
                   className="w-full h-full object-cover"
                 />
+              </div> */}
+              <div className="w-6 bg-black">
               </div>
               <div className="p-4 flex-1 flex flex-col">
                 <div className="flex-1">
@@ -461,7 +463,7 @@ export default function CoursesPage() {
                   <span className="font-bold">₹{course.price}</span>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" asChild>
-                      <Link href={`/courses/${course.id}`}>View Details</Link>
+                      <Link href={`/admin/unit-course/${course.id}`}>View Details</Link>
                     </Button>
                     <Button size="sm">Enroll Now</Button>
                   </div>
