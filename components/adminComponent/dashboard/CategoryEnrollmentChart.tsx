@@ -6,7 +6,7 @@ import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 import { useMobile } from "@/hooks/use-mobile"
 
-interface CourseTypeEnrollment {
+interface categoryEnrollment {
   category: string
   enrollments: number
 }
@@ -23,7 +23,7 @@ const gradientPalette = [
   { id: "grad8", colors: ["#F1E0D6", "#E0D0C8"] }, // Light Peach to Soft Beige
 ]
 
-export default function CourseTypeEnrollmentChart() {
+export default function categoryEnrollmentChart() {
   const [chartData, setChartData] = useState<{ name: string; enrollments: number; category: string; fill: string }[]>(
     [],
   )
@@ -33,7 +33,7 @@ export default function CourseTypeEnrollmentChart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await apiFetch<CourseTypeEnrollment[]>("/api/course-enrollment/")
+        const data = await apiFetch<categoryEnrollment[]>("/api/course-enrollment/")
         if (data === TOKEN_EXPIRED) {
           console.log("Session expired, please login again.")
           // Handle session expiration here, e.g., redirect to login page

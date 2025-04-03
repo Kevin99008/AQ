@@ -18,7 +18,7 @@ import AttendanceHistory from "@/components/adminComponent/dashboard/AttendanceH
 import AttendanceHeatmap from "@/components/adminComponent/dashboard/AttendanceHeatmap"
 import type { AttendanceRecord, StudentData, CourseData, PieChartData, StatisticsData } from "@/types/dashboard"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
-import CourseTypeEnrollmentChart from "@/components/adminComponent/dashboard/CourseTypeEnrollmentChart"
+import CategoryEnrollmentChart from "@/components/adminComponent/dashboard/CategoryEnrollmentChart"
 
 export default function DashboardAdmin() {
   const [selectedGroup, setSelectedGroup] = useState<string>("All")
@@ -70,7 +70,7 @@ export default function DashboardAdmin() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CourseTypeEnrollmentChart />
+                  <CategoryEnrollmentChart />
                 </CardContent>
               </Card>
             </div>
@@ -122,7 +122,7 @@ export default function DashboardAdmin() {
             <CardDescription>Student & Teacher</CardDescription>
           </CardHeader>
           <CardContent>
-            <MembershipDistribution courseType={selectedGroup} />
+            <MembershipDistribution category={selectedGroup} />
           </CardContent>
         </Card>
       </div>
@@ -134,7 +134,7 @@ export default function DashboardAdmin() {
               <CardDescription>Weekly attendance heatmap</CardDescription>
             </CardHeader>
             <CardContent className="px-2 sm:px-6">
-              <AttendanceHeatmap courseType={selectedGroup} />
+              <AttendanceHeatmap category={selectedGroup} />
             </CardContent>
         </Card>
       </div>

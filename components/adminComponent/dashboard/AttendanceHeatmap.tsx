@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react"
 
 interface AttendanceHeatmapProps {
-  courseType?: string
+  category?: string
 }
 
-export default function AttendanceHeatmap({ courseType = "All" }: AttendanceHeatmapProps) {
+export default function AttendanceHeatmap({ category = "All" }: AttendanceHeatmapProps) {
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
   const timeSlots = ["10am", "11am", "12pm", "1pm", "2pm", "3pm", "4pm", "5pm"] // Time slots
 
@@ -17,7 +17,7 @@ export default function AttendanceHeatmap({ courseType = "All" }: AttendanceHeat
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`https://aqtech-production.up.railway.app/api/attendance-heatmap/?courseType=${courseType}`)
+        const response = await fetch(`https://aqtech-production.up.railway.app/api/attendance-heatmap/?category=${category}`)
         const data = await response.json()
         setHeatmapData(data)
       } catch (error) {
@@ -26,7 +26,7 @@ export default function AttendanceHeatmap({ courseType = "All" }: AttendanceHeat
     }
 
     fetchData()
-  }, [courseType])
+  }, [category])
 
   // Function to determine color based on raw count value
   const getColor = (value: number) => {
