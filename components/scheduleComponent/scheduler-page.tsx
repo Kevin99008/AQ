@@ -87,6 +87,12 @@ const generateTimeSlots = () => {
   return slots
 }
 
+// Default course metadata (for fields not in API)
+const defaultCourseMetadata = {
+  duration: "1 hour",
+  code: "COURSE",
+}
+
 interface SchedulerPageProps {
   students: any[]
   teacher: any
@@ -133,7 +139,7 @@ const studentColors = [
   },
 ]
 
-export default function SchedulerPage({ students, course, onBack }: SchedulerPageProps) {
+export default function SchedulerPage({ students, teacher, course, onBack }: SchedulerPageProps) {
   const [availableSlots, setAvailableSlots] = useState(generateTimeSlots())
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }))
   const [selectedStudents, setSelectedStudents] = useState<string[]>(students.map((s) => s.id))
@@ -159,6 +165,13 @@ export default function SchedulerPage({ students, course, onBack }: SchedulerPag
   // State for drag and drop
   const [draggedSlot, setDraggedSlot] = useState<{ slotId: string; studentId: string } | null>(null)
   const [dropTargetStudent, setDropTargetStudent] = useState<string | null>(null)
+
+  // Ensure course has the necessary metadata
+  const enrichedCourse = {
+    ...defaultCourseMetadata,
+    ...course,
+    totalSessions: course.quota, // Use quota as totalSessions
+  }
 
   // Assign colors to students
   const studentColorMap = useMemo(() => {
@@ -234,7 +247,7 @@ export default function SchedulerPage({ students, course, onBack }: SchedulerPag
 
   // Check if a student has reached the maximum number of sessions
   const hasReachedMaxSessions = (studentId: string) => {
-    return getStudentSessionCount(studentId) >= course.totalSessions
+    return getStudentSessionCount(studentId) >= enrichedCourse.totalSessions
   }
 
   // Get all students who haven't reached max sessions
@@ -462,7 +475,7 @@ export default function SchedulerPage({ students, course, onBack }: SchedulerPag
   const saveSchedule = () => {
     // Check if all selected students have the required number of sessions
     const incompleteStudents = selectedStudents.filter(
-      (studentId) => getStudentSessionCount(studentId) < course.totalSessions,
+      (studentId) => getStudentSessionCount(studentId) < enrichedCourse.totalSessions,
     )
 
     if (incompleteStudents.length > 0) {
@@ -500,7 +513,7 @@ export default function SchedulerPage({ students, course, onBack }: SchedulerPag
     // Check if all slots have available quota
     return studentSlots.every((slotId) => {
       const slot = availableSlots.find((s) => s.id === slotId)
-      return slot && slot.availableQuota > 0
+      return slot !== undefined && slot.availableQuota > 0
     })
   }
 
@@ -528,10 +541,10 @@ export default function SchedulerPage({ students, course, onBack }: SchedulerPag
 
     // Check if target student has enough room for all slots
     const targetStudentBookedCount = getStudentSessionCount(toStudentId)
-    if (targetStudentBookedCount + sourceStudentSlots.length > course.totalSessions) {
+    if (targetStudentBookedCount + sourceStudentSlots.length > enrichedCourse.totalSessions) {
       toast({
         title: "Too many sessions",
-        description: `Cannot copy all slots. ${students.find((s) => s.id === toStudentId)?.name} can only have ${course.totalSessions - targetStudentBookedCount} more sessions.`,
+        description: `Cannot copy all slots. ${students.find((s) => s.id === toStudentId)?.name} can only have ${enrichedCourse.totalSessions - targetStudentBookedCount} more sessions.`,
         variant: "destructive",
       })
       return
@@ -678,26 +691,115 @@ export default function SchedulerPage({ students, course, onBack }: SchedulerPag
   return (
     <div className="container mx-auto py-6 px-4">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div className="flex items-center gap-3">
           <Button variant="outline" size="icon" onClick={onBack}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{course.title}</h1>
-            <p className="text-muted-foreground">{course.code}</p>
+            <h1 className="text-2xl font-bold">{enrichedCourse.name}</h1>
+            <p className="text-muted-foreground">{enrichedCourse.code}</p>
             <div className="flex items-center mt-2 gap-2">
               <Badge variant="outline" className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                {course.duration} per session
+                {enrichedCourse.duration} per session
               </Badge>
               <Badge variant="outline" className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {course.totalSessions} sessions total
+                {enrichedCourse.totalSessions} sessions total
               </Badge>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Course Detail Section */}
+      <div className="mb-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
+                <h2 className="text-xl font-semibold mb-2">Course Details</h2>
+                <p className="text-muted-foreground mb-4">{enrichedCourse.description}</p>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Category</h3>
+                    <p>{enrichedCourse.category}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Price</h3>
+                    <p>₹{enrichedCourse.price}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Duration</h3>
+                    <p>{enrichedCourse.duration} per session</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Total Sessions</h3>
+                    <p>{enrichedCourse.totalSessions} sessions</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Quota</h3>
+                    <p>{enrichedCourse.quota} students</p>
+                  </div>
+                  {enrichedCourse.type === "restricted" && (
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Age Restriction</h3>
+                      <p>
+                        {enrichedCourse.min_age !== null
+                          ? `${Math.floor((enrichedCourse.min_age || 0) / 12)} years`
+                          : "N/A"}{" "}
+                        -
+                        {enrichedCourse.max_age !== null
+                          ? `${Math.floor((enrichedCourse.max_age || 0) / 12)} years`
+                          : "N/A"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Teachers</h3>
+                <div className="space-y-3">
+                  {enrichedCourse.teachers?.slice(0, 4).map((teacher: any) => (
+                    <div key={teacher.id} className="flex items-center gap-3 p-2 rounded-md border">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback>{teacher.name.substring(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{teacher.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {teacher.status === "active" ? "Active" : "Inactive"}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {enrichedCourse.teachers && enrichedCourse.teachers.length > 4 && (
+                    <div className="p-2 rounded-md border text-center">
+                      <p className="text-sm text-muted-foreground">
+                        +{enrichedCourse.teachers.length - 4} more teachers
+                      </p>
+                    </div>
+                  )}
+                  {!enrichedCourse.teachers && teacher && (
+                    <div className="flex items-center gap-3 p-2 rounded-md border">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={teacher.avatar} />
+                        <AvatarFallback>{teacher.name.substring(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{teacher.name}</p>
+                        <p className="text-xs text-muted-foreground">Teacher</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Content */}
@@ -732,7 +834,7 @@ export default function SchedulerPage({ students, course, onBack }: SchedulerPag
                   </div>
                   <div className="flex items-center">
                     <Badge variant={hasReachedMaxSessions(student.id) ? "default" : "outline"}>
-                      {getStudentSessionCount(student.id)}/{course.totalSessions}
+                      {getStudentSessionCount(student.id)}/{enrichedCourse.totalSessions}
                     </Badge>
                   </div>
                 </div>
@@ -1054,7 +1156,7 @@ export default function SchedulerPage({ students, course, onBack }: SchedulerPag
                             </div>
                             <div className="flex items-center gap-2">
                               <Badge>
-                                {getStudentSessionCount(studentId)}/{course.totalSessions} sessions
+                                {getStudentSessionCount(studentId)}/{enrichedCourse.totalSessions} sessions
                               </Badge>
 
                               {studentBookings.length > 0 && (
@@ -1085,47 +1187,34 @@ export default function SchedulerPage({ students, course, onBack }: SchedulerPag
                             </div>
                           </div>
 
-                          {studentBookings.length > 0 ? (
-                            <div className="divide-y">
-                              {studentBookings.map((slot) => {
-                                return (
-                                  <div
-                                    key={slot.id}
-                                    className="p-3 flex justify-between items-center"
-                                    draggable
-                                    onDragStart={() => handleDragStart(slot.id, studentId)}
-                                    onDragEnd={handleDragEnd}
-                                  >
-                                    <div>
-                                      <div className="font-medium">
-                                        {format(parseISO(slot.date), "EEEE, MMMM d, yyyy")}
-                                      </div>
-                                      <div className="text-sm text-muted-foreground">
-                                        {slot?.startTime} - {slot?.endTime}
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Badge variant="outline" className="text-xs">
-                                        {slot.availableQuota} left
-                                      </Badge>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => removeBooking(slot.id, studentId)}
-                                      >
-                                        <X className="h-4 w-4 mr-1" />
-                                        Remove
-                                      </Button>
-                                    </div>
+                          {studentBookings.map((slot) => {
+                            if (!slot) return null
+                            return (
+                              <div
+                                key={slot.id}
+                                className="p-3 flex justify-between items-center"
+                                draggable
+                                onDragStart={() => handleDragStart(slot.id, studentId)}
+                                onDragEnd={handleDragEnd}
+                              >
+                                <div>
+                                  <div className="font-medium">{format(parseISO(slot.date), "EEEE, MMMM d, yyyy")}</div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {slot.startTime} - {slot.endTime}
                                   </div>
-                                )
-                              })}
-                            </div>
-                          ) : (
-                            <div className="p-6 text-center text-muted-foreground">
-                              No sessions booked for this student
-                            </div>
-                          )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    {slot.availableQuota} left
+                                  </Badge>
+                                  <Button variant="ghost" size="sm" onClick={() => removeBooking(slot.id, studentId)}>
+                                    <X className="h-4 w-4 mr-1" />
+                                    Remove
+                                  </Button>
+                                </div>
+                              </div>
+                            )
+                          })}
                         </div>
                       )
                     })}
@@ -1183,7 +1272,7 @@ export default function SchedulerPage({ students, course, onBack }: SchedulerPag
                           <div>
                             <div>{student?.name}</div>
                             <div className="text-xs text-muted-foreground">
-                              {getStudentSessionCount(studentId)}/{course.totalSessions} sessions
+                              {getStudentSessionCount(studentId)}/{enrichedCourse.totalSessions} sessions
                             </div>
                           </div>
                         </div>
@@ -1295,7 +1384,7 @@ export default function SchedulerPage({ students, course, onBack }: SchedulerPag
                         <div>
                           <div>{student?.name}</div>
                           <div className="text-xs text-muted-foreground">
-                            {getStudentSessionCount(studentId)}/{course.totalSessions} sessions
+                            {getStudentSessionCount(studentId)}/{enrichedCourse.totalSessions} sessions
                           </div>
                         </div>
                       </div>
