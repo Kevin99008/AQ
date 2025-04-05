@@ -57,8 +57,6 @@ export default function AdminPanel() {
                             <NavCard icon={<Book size={28} />} name="All Courses" href="all-course" />
                             <NavCard icon={<BookA size={28} />} name="Progress Courses" href="unit-course" />
                             <NavCard icon={<BookCheck size={28} />} name="Schedule Courses" href="scheduleCourse" />
-                            <NavCard icon={<BookOpen size={28} />} name="Enroll Courses" href="enrollCourse" />
-                            <NavCard icon={<BookPlus size={28} />} name="Create Courses" href="createCourse" />
                             <NavCard icon={<GraduationCap size={28} />} name="Upload Certificate" href="uploadCertificate" />
                         </div>
                     </div>
