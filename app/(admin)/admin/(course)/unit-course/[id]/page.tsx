@@ -98,6 +98,23 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
     fetchCourse()
   }, [id])
 
+  const formatAgeInMonths = (months: number | null): string => {
+    if (months === null) return "N/A"
+
+    if (months < 12) {
+      return `${months} month${months !== 1 ? "s" : ""}`
+    } else {
+      const years = Math.floor(months / 12)
+      const remainingMonths = months % 12
+
+      if (remainingMonths === 0) {
+        return `${years} year${years !== 1 ? "s" : ""}`
+      } else {
+        return `${years} year${years !== 1 ? "s" : ""} ${remainingMonths} month${remainingMonths !== 1 ? "s" : ""}`
+      }
+    }
+  }
+
   const handleAddTeacher = async () => {
     if (!selectedTeacher) return
 
@@ -229,9 +246,12 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <span>
-                      Age Range: {course.min_age} - {course.max_age} years
-                    </span>
+                    {course.type === "restricted" && <span>
+                      Age Range: {formatAgeInMonths(course.min_age)} - {formatAgeInMonths(course.max_age)}
+                    </span>}
+                    {course.type !== "restricted" && <span>
+                      Age Range: All ages
+                    </span>}
                   </div>
                   <div className="flex items-center text-sm">
                     <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -432,14 +452,14 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
                   <h3 className="font-medium mb-2">Category</h3>
                   <p className="text-sm">{course.category}</p>
                 </div>
-                <div className="border rounded-md p-4">
-                  <h3 className="font-medium mb-2">Minimum Age</h3>
-                  <p className="text-sm">{course.min_age} years</p>
-                </div>
-                <div className="border rounded-md p-4">
-                  <h3 className="font-medium mb-2">Maximum Age</h3>
-                  <p className="text-sm">{course.max_age} years</p>
-                </div>
+                {course.type === "restricted" && <div className="border rounded-md p-4">
+                  <h3 className="font-medium mb-2">Age Range</h3>
+                  <p className="text-sm">{formatAgeInMonths(course.min_age)} - {formatAgeInMonths(course.max_age)} </p>
+                </div>}
+                {course.type !== "restricted" && <div className="border rounded-md p-4">
+                  <h3 className="font-medium mb-2">Age Range</h3>
+                  <p className="text-sm">All Ages</p>
+                </div>}
               </div>
             </TabsContent>
           </Tabs>

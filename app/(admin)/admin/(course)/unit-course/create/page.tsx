@@ -2,9 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
-
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -16,6 +15,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info, HelpCircle } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { fetchCategories } from "@/services/api"
+import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
+import { toast } from "react-toastify"
 
 export default function CreateCoursePage() {
   const router = useRouter()
@@ -30,6 +32,25 @@ export default function CreateCoursePage() {
     price: "3500",
     category: "",
   })
+
+  const [categories, setCategories] = useState<any[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+  const [categoryError, setCategoryError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const fetchedCategories = await fetchCategories() // Fetch categories
+        setCategories(fetchedCategories)
+      } catch (error) {
+        setCategoryError("Failed to load categories")
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+
+    loadCategories()
+  }, [])
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -156,25 +177,52 @@ export default function CreateCoursePage() {
         formData.type === "restricted" ? convertToMonths(formData.max_age, formData.displayUnit) : null
 
       // Here you would typically send the data to your API
-      console.log("Submitting course data:", {
-        ...formData,
-        // Store all ages in months in the database
-        min_age_months: minAgeInMonths,
-        max_age_months: maxAgeInMonths,
-        // Keep the display unit for UI purposes
-        display_unit: formData.displayUnit,
+      // console.log("Submitting course data:", {
+      //   ...formData,
+      //   // Store all ages in months in the database
+      //   min_age_months: minAgeInMonths,
+      //   max_age_months: maxAgeInMonths,
+      //   // Keep the display unit for UI purposes
+      //   display_unit: formData.displayUnit,
+      //   quota: Number.parseInt(formData.quota),
+      //   price: Number.parseInt(formData.price),
+      // })
+
+      // API call
+      const response = await apiFetch<any>("/api/new/courses/create/", "POST", {
+        name: formData.name,
+        description: formData.description,
+        type: formData.type,
+        min_age: minAgeInMonths,
+        max_age: maxAgeInMonths,
         quota: Number.parseInt(formData.quota),
         price: Number.parseInt(formData.price),
+        category_id: Number.parseInt(formData.category),
       })
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      if (response !== TOKEN_EXPIRED) {
 
+        setFormData({
+          name: "",
+          description: "",
+          type: "unrestricted",
+          displayUnit: "years", // This is just for display purposes
+          min_age: "",
+          max_age: "",
+          quota: "10",
+          price: "3500",
+          category: "",
+        })
+        toast.success('course created successfully!');
+      }
       // Redirect to course list page after successful submission
-      router.push("/admin/courses")
-    } catch (error) {
-      console.error("Error creating course:", error)
-      setErrors((prev) => ({ ...prev, submit: "Failed to create course. Please try again." }))
+      // router.push("/admin/courses")
+    } catch (error: any) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -386,13 +434,17 @@ export default function CreateCoursePage() {
               <div>
                 <Label className="text-base">Category *</Label>
                 <Select value={formData.category} onValueChange={(value) => handleSelectChange("category", value)}>
-                  <SelectTrigger className={errors.category ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Select a category" />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category">
+                      {categories.find((cat) => cat.id === Number(formData.category))?.categoryName || "Select category"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Aquakids">Aquakids</SelectItem>
-                    <SelectItem value="Playsounds">Playsounds</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.categoryName}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {errors.category && <p className="text-sm text-red-500 mt-1">{errors.category}</p>}

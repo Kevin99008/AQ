@@ -50,6 +50,22 @@ export default function CourseListPage() {
     loadCourse()
   }, [])
 
+  const formatAgeInMonths = (months: number | null): string => {
+    if (months === null) return "N/A"
+
+    if (months < 12) {
+      return `${months} month${months !== 1 ? "s" : ""}`
+    } else {
+      const years = Math.floor(months / 12)
+      const remainingMonths = months % 12
+
+      if (remainingMonths === 0) {
+        return `${years} year${years !== 1 ? "s" : ""}`
+      } else {
+        return `${years} year${years !== 1 ? "s" : ""} ${remainingMonths} month${remainingMonths !== 1 ? "s" : ""}`
+      }
+    }
+  }
   // Filter courses based on search query and category filter
   const filteredCourses = courseData.filter((course) => {
     const matchesSearch =
@@ -127,7 +143,6 @@ export default function CourseListPage() {
               <TableHead>Type</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Quota</TableHead>
-              <TableHead>Enrolled</TableHead>
               <TableHead>Teachers</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
@@ -153,8 +168,8 @@ export default function CourseListPage() {
                   <TableCell>
                     {course.type === "restricted" ? (
                       <span>
-                        Ages {course.min_age !== null ? course.min_age : "N/A"}-
-                        {course.max_age !== null ? course.max_age : "N/A"}
+                        {course.min_age !== null ? formatAgeInMonths(course.min_age) : "N/A"} -
+                        {" "}{course.max_age !== null ? formatAgeInMonths(course.max_age) : "N/A"}
                       </span>
                     ) : (
                       <span>All ages</span>
@@ -162,7 +177,6 @@ export default function CourseListPage() {
                   </TableCell>
                   <TableCell>₹{course.price}</TableCell>
                   <TableCell>{course.quota}</TableCell>
-                  <TableCell>{course.enrolled}</TableCell>
                   <TableCell>{course.teachers.length}</TableCell>
                   <TableCell>
                     <DropdownMenu>
