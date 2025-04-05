@@ -9,16 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -337,6 +327,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                         <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                             <User2 className="h-12 w-12 text-primary" />
                         </div>
+                        <CardTitle className="text-2xl">{user.first_name} {user.last_name}</CardTitle>
                         <CardTitle className="text-2xl">{user.username}</CardTitle>
                     </CardHeader>
                     <CardContent>

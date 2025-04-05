@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { fetchCategories } from "@/services/api"
 
 // Sample course data with teachers
 const courses = [
@@ -141,9 +142,28 @@ export default function CoursesPage() {
   const [typeFilter, setTypeFilter] = useState("all")
   const [ageRange, setAgeRange] = useState([0, 18]) // Age range in years
 
+  const [categories, setCategories] = useState<Array<{ id: string | number; categoryName: string }>>([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+  const [categoryError, setCategoryError] = useState("")
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const fetchedCategories = await fetchCategories() // Fetch categories
+        setCategories(fetchedCategories)
+      } catch (error) {
+        setCategoryError("Failed to load categories")
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+
+    loadCategories()
+  }, [])
 
   // Filter courses based on search query and filters
   const filteredCourses = courses.filter((course) => {
@@ -199,7 +219,7 @@ export default function CoursesPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Available Courses</h1>
         <Button asChild>
-          <Link href="/courses/create">
+          <Link href="unit-course/create">
             <Plus className="mr-2 h-4 w-4" /> Create Course
           </Link>
         </Button>
@@ -335,52 +355,38 @@ export default function CoursesPage() {
 
           <div>
             <h3 className="font-semibold mb-3">Category</h3>
-            <div className="space-y-2">
-              <div className="flex items-center">
-                <input
-                  type="radio"
-                  id="category-all"
-                  name="category"
-                  className="mr-2"
-                  checked={categoryFilter === "all"}
-                  onChange={() => setCategoryFilter("all")}
-                />
-                <label htmlFor="category-all">All Categories</label>
+            {loadingCategories ? (
+              <div className="text-sm text-muted-foreground">Loading categories...</div>
+            ) : categoryError ? (
+              <div className="text-sm text-red-500">{categoryError}</div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="category-all"
+                    name="category"
+                    className="mr-2"
+                    checked={categoryFilter === "all"}
+                    onChange={() => setCategoryFilter("all")}
+                  />
+                  <label htmlFor="category-all">All Categories</label>
+                </div>
+                {categories.map((category) => (
+                  <div key={category.id} className="flex items-center">
+                    <input
+                      type="radio"
+                      id={`category-${category.id}`}
+                      name="category"
+                      className="mr-2"
+                      checked={categoryFilter === category.categoryName.toLowerCase()}
+                      onChange={() => setCategoryFilter(category.categoryName.toLowerCase())}
+                    />
+                    <label htmlFor={`category-${category.id}`}>{category.categoryName}</label>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-center">
-                <input
-                  type="radio"
-                  id="category-aquakids"
-                  name="category"
-                  className="mr-2"
-                  checked={categoryFilter === "aquakids"}
-                  onChange={() => setCategoryFilter("aquakids")}
-                />
-                <label htmlFor="category-aquakids">Aquakids</label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="radio"
-                  id="category-playsounds"
-                  name="category"
-                  className="mr-2"
-                  checked={categoryFilter === "playsounds"}
-                  onChange={() => setCategoryFilter("playsounds")}
-                />
-                <label htmlFor="category-playsounds">Playsounds</label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="radio"
-                  id="category-other"
-                  name="category"
-                  className="mr-2"
-                  checked={categoryFilter === "other"}
-                  onChange={() => setCategoryFilter("other")}
-                />
-                <label htmlFor="category-other">Other</label>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -399,8 +405,7 @@ export default function CoursesPage() {
                   className="w-full h-full object-cover"
                 />
               </div> */}
-              <div className="w-6 bg-black">
-              </div>
+              <div className="w-6 bg-black"></div>
               <div className="p-4 flex-1 flex flex-col">
                 <div className="flex-1">
                   <div className="flex justify-between items-start">

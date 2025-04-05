@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Search, Plus, Edit, Trash2, Eye } from "lucide-react"
+import { Search, Plus, Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -21,8 +21,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { fetchCourses, fetchEnrolledCourses } from "@/services/api"
-import { EnrolledCourse } from "@/types/course"
+import { fetchEnrolledCourses, fetchCategories } from "@/services/api"
+import type { EnrolledCourse } from "@/types/course"
 
 // Sample course data based on the provided model
 export default function CourseListPage() {
@@ -32,6 +32,10 @@ export default function CourseListPage() {
   const [courseData, setCourseData] = useState<EnrolledCourse[]>([])
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [courseToDelete, setCourseToDelete] = useState<EnrolledCourse>()
+
+  const [categories, setCategories] = useState<Array<{ id: string | number; categoryName: string }>>([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+  const [categoryError, setCategoryError] = useState("")
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -48,6 +52,21 @@ export default function CourseListPage() {
       }
     }
     loadCourse()
+  }, [])
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const fetchedCategories = await fetchCategories() // Fetch categories
+        setCategories(fetchedCategories)
+      } catch (error) {
+        setCategoryError("Failed to load categories")
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+
+    loadCategories()
   }, [])
 
   const formatAgeInMonths = (months: number | null): string => {
@@ -120,15 +139,19 @@ export default function CourseListPage() {
           />
         </div>
         <div>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter} disabled={loadingCategories}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select Category" />
+              <SelectValue
+                placeholder={loadingCategories ? "Loading..." : categoryError ? "Error loading" : "Select Category"}
+              />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="aquakids">Aquakids</SelectItem>
-              <SelectItem value="playsounds">Playsounds</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.categoryName.toLowerCase()}>
+                  {category.categoryName}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -168,8 +191,8 @@ export default function CourseListPage() {
                   <TableCell>
                     {course.type === "restricted" ? (
                       <span>
-                        {course.min_age !== null ? formatAgeInMonths(course.min_age) : "N/A"} -
-                        {" "}{course.max_age !== null ? formatAgeInMonths(course.max_age) : "N/A"}
+                        {course.min_age !== null ? formatAgeInMonths(course.min_age) : "N/A"} -{" "}
+                        {course.max_age !== null ? formatAgeInMonths(course.max_age) : "N/A"}
                       </span>
                     ) : (
                       <span>All ages</span>

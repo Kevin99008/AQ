@@ -37,6 +37,10 @@ export default function CreateCoursePage() {
   const [loadingCategories, setLoadingCategories] = useState(true)
   const [categoryError, setCategoryError] = useState<string | null>(null)
 
+  const [categoryName, setCategoryName] = useState("")
+  const [newCategoryError, setNewCategoryError] = useState<string | null>(null)
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false)
+
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -159,6 +163,40 @@ export default function CreateCoursePage() {
     return unit === "years" ? ageNum * 12 : ageNum
   }
 
+  // Create a new category
+  const handleCreateCategory = async () => {
+    if (!categoryName.trim()) {
+      setNewCategoryError("Category name is required")
+      return
+    }
+
+    try {
+      setNewCategoryError(null)
+      // API call to create a new category
+      const response = await apiFetch<any>("/api/categories/create/", "POST", {
+        categoryName: categoryName,
+      })
+
+      if (response !== TOKEN_EXPIRED) {
+        // Add the new category to the list
+        setCategories((prevCategories) => [...prevCategories, response])
+        // Select the newly created category
+        setFormData((prev) => ({ ...prev, category: response.id.toString() }))
+        // Clear the input field and hide it
+        setCategoryName("")
+        setShowNewCategoryInput(false)
+        toast.success("Category created successfully!")
+      }
+    } catch (error) {
+      setNewCategoryError("Failed to create category")
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error("Failed to create category")
+      }
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -201,7 +239,6 @@ export default function CreateCoursePage() {
       })
 
       if (response !== TOKEN_EXPIRED) {
-
         setFormData({
           name: "",
           description: "",
@@ -213,15 +250,15 @@ export default function CreateCoursePage() {
           price: "3500",
           category: "",
         })
-        toast.success('course created successfully!');
+        toast.success("course created successfully!")
       }
       // Redirect to course list page after successful submission
       // router.push("/admin/courses")
     } catch (error: any) {
       if (error instanceof Error) {
-        toast.error(error.message);
+        toast.error(error.message)
       } else {
-        toast.error("Something went wrong");
+        toast.error("Something went wrong")
       }
     } finally {
       setIsSubmitting(false)
@@ -231,9 +268,6 @@ export default function CreateCoursePage() {
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
       <div className="flex items-center mb-6">
-        <Button variant="outline" onClick={() => router.push("/admin/unit-course")} className="mr-4">
-          Back to Courses
-        </Button>
         <h1 className="text-2xl font-bold">Create New Course</h1>
       </div>
 
@@ -416,7 +450,7 @@ export default function CreateCoursePage() {
 
                 <div>
                   <Label htmlFor="price" className="text-base">
-                    Price (₹) *
+                    Price (THB) *
                   </Label>
                   <Input
                     id="price"
@@ -433,21 +467,63 @@ export default function CreateCoursePage() {
 
               <div>
                 <Label className="text-base">Category *</Label>
-                <Select value={formData.category} onValueChange={(value) => handleSelectChange("category", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category">
-                      {categories.find((cat) => cat.id === Number(formData.category))?.categoryName || "Select category"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.categoryName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.category && <p className="text-sm text-red-500 mt-1">{errors.category}</p>}
+                <div className="space-y-2">
+                  <Select value={formData.category} onValueChange={(value) => handleSelectChange("category", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category">
+                        {categories.find((cat) => cat.id === Number(formData.category))?.categoryName ||
+                          "Select category"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.categoryName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.category && <p className="text-sm text-red-500 mt-1">{errors.category}</p>}
+
+                  {!showNewCategoryInput ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowNewCategoryInput(true)}
+                      className="mt-2"
+                    >
+                      + Add New Category
+                    </Button>
+                  ) : (
+                    <div className="mt-2 space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Enter new category name"
+                          value={categoryName}
+                          onChange={(e) => setCategoryName(e.target.value)}
+                          className={newCategoryError ? "border-red-500" : ""}
+                        />
+                        <Button type="button" size="sm" onClick={handleCreateCategory}>
+                          Add
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setShowNewCategoryInput(false)
+                            setCategoryName("")
+                            setNewCategoryError(null)
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                      {newCategoryError && <p className="text-sm text-red-500">{newCategoryError}</p>}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4 flex items-start gap-3">
