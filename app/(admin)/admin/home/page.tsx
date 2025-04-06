@@ -56,7 +56,6 @@ export default function AdminPanel() {
                         <div className="flex gap-6 w-full max-w-6xl mx-auto justify-center">
                             <NavCard icon={<Book size={28} />} name="All Courses" href="all-course" />
                             <NavCard icon={<BookA size={28} />} name="Progress Courses" href="unit-course" />
-                            <NavCard icon={<BookCheck size={28} />} name="Schedule Courses" href="scheduleCourse" />
                             <NavCard icon={<GraduationCap size={28} />} name="Upload Certificate" href="uploadCertificate" />
                         </div>
                     </div>

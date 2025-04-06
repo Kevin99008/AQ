@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Filter, Droplets, Music, Sparkles } from "lucide-react"
@@ -17,6 +19,7 @@ import type { StudentCertRaw } from "@/types/user"
 import type { CourseRaw } from "@/types/course"
 import defaultImg from "@/assets/logo.png"
 import { apiFetchFormData } from "@/utils/formData"
+import { fetchCategories } from "@/services/api" // Using the same API service
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +28,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 
+type Category = {
+  id: number | string
+  categoryName: string
+  color?: string
+}
+
+// Default type config
 const typeConfig: Record<
   string,
   {
@@ -55,7 +65,7 @@ const typeConfig: Record<
 }
 
 export default function CertificatePage() {
-  const { push } = useRouter();
+  const { push } = useRouter()
   const [currentStep, setCurrentStep] = useState(0)
   const [users, setUsers] = useState<StudentCertRaw[]>([])
   const [courses, setCourses] = useState<CourseRaw[]>([])
@@ -65,19 +75,20 @@ export default function CertificatePage() {
   const [searchCourseQuery, setSearchCourseQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTypes, setSelectedTypes] = useState<string[]>(["AquaKids", "Playsound", "Other"])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
 
   const [newItem, setNewItem] = useState<{ imageUrl: string; file: File | null }>({
     imageUrl: "",
     file: null,
   })
   const steps = ["Select Student", "Select Course", "Upload Confirmation"]
-  // const [users, setUsers] = useState<User[]>([])
+
   // Filter users based on search query
   const filteredStudent = users.filter(
     (user) =>
       (user.name?.toLowerCase() || "").includes((searchQuery || "").toLowerCase()) ||
       (user.username?.toLowerCase() || "").includes((searchQuery || "").toLowerCase()),
-
   )
 
   const filteredCourse = courses.filter(
@@ -94,7 +105,7 @@ export default function CertificatePage() {
     1: "AquaKids",
     2: "Playsound",
     3: "Other",
-  };
+  }
 
   function transformCourseResponse(response: any): CourseRaw {
     return {
@@ -103,49 +114,77 @@ export default function CertificatePage() {
       description: response.description,
       type: typeMap[response.type] || "Other", // Default to "Other" if unknown
       quota: response.quota,
-    };
+    }
   }
+
+  // Fetch categories
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setLoadingCategories(true)
+        const fetchedCategories = await fetchCategories() // Using the same function as CourseListPage
+        setCategories(fetchedCategories)
+
+        // Update type config with fetched category colors if available
+        fetchedCategories.forEach((category: { categoryName: any; color: any }) => {
+          if (category.categoryName) {
+            const typeName = category.categoryName
+            if (typeConfig[typeName]) {
+              typeConfig[typeName] = {
+                ...typeConfig[typeName],
+                badgeColor: category.color || typeConfig[typeName].badgeColor,
+              }
+            }
+          }
+        })
+      } catch (error) {
+        console.error("Failed to load categories", error)
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+
+    loadCategories()
+  }, [])
 
   useEffect(() => {
     async function loadStudents() {
       try {
-        setIsLoading(true);
-        const studentsData = await apiFetch<StudentCertRaw[]>('/api/studentscertificate');
+        setIsLoading(true)
+        const studentsData = await apiFetch<StudentCertRaw[]>("/api/studentscertificate")
         if (studentsData !== TOKEN_EXPIRED) {
-          setUsers(studentsData);
+          setUsers(studentsData)
         }
       } catch (err: any) {
-        toast.error(err.message || "Something went wrong");
+        toast.error(err.message || "Something went wrong")
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     }
-  
-    loadStudents();
-  }, []); // Runs on initial load
-  
-useEffect(() => {
-  if (!selectedStudent?.id) return; // Guard clause
 
-  async function loadCourses() {
-    try {
-      setIsLoading(true);
-      const coursesData = await apiFetch<CourseRaw[]>(`/api/courses/enrolled/?studentId=${selectedStudent!.id}`);
-      if (coursesData !== TOKEN_EXPIRED) {
-        const transformedCourses = coursesData.map(transformCourseResponse);
-        setCourses(transformedCourses);
+    loadStudents()
+  }, []) // Runs on initial load
+
+  useEffect(() => {
+    if (!selectedStudent?.id) return // Guard clause
+
+    async function loadCourses() {
+      try {
+        setIsLoading(true)
+        const coursesData = await apiFetch<CourseRaw[]>(`/api/courses/enrolled/?studentId=${selectedStudent!.id}`)
+        if (coursesData !== TOKEN_EXPIRED) {
+          const transformedCourses = coursesData.map(transformCourseResponse)
+          setCourses(transformedCourses)
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Something went wrong")
+      } finally {
+        setIsLoading(false)
       }
-    } catch (err: any) {
-      toast.error(err.message || "Something went wrong");
-    } finally {
-      setIsLoading(false);
     }
-  }
 
-  loadCourses();
-}, [selectedStudent]);
-  
-
+    loadCourses()
+  }, [selectedStudent])
 
   // Handle student selection
   const handleStudentSelect = (student: StudentCertRaw) => {
@@ -166,6 +205,7 @@ useEffect(() => {
     certificate_url: string
     status: string
   }
+
   // Handle enrollment submission
   const handleEnrollment = async () => {
     if (!selectedStudent || !selectedCourse || !newItem.file) {
@@ -173,22 +213,22 @@ useEffect(() => {
       return
     }
 
-    const formData = new FormData();
-    formData.append("certificate_image", newItem.file);
-    formData.append("student", selectedStudent.id.toString());
-    formData.append("course", selectedCourse.id.toString());
-    formData.append("user", selectedStudent.user_id.toString());
+    const formData = new FormData()
+    formData.append("certificate_image", newItem.file)
+    formData.append("student", selectedStudent.id.toString())
+    formData.append("course", selectedCourse.id.toString())
+    formData.append("user", selectedStudent.user_id.toString())
 
     try {
-      const response = await apiFetchFormData<LogResponse>("/api/certificates-upload/", "POST", formData);
+      const response = await apiFetchFormData<LogResponse>("/api/certificates-upload/", "POST", formData)
       if (response === TOKEN_EXPIRED) {
-        push("/login");
+        push("/login")
       } else {
-        toast.success("Certificate uploaded successfully!");
+        toast.success("Certificate uploaded successfully!")
         // Perform any additional actions, like redirecting or clearing the form
         setSelectedStudent(null)
         setSelectedCourse(null)
-        setNewItem({ imageUrl: "", file: null });
+        setNewItem({ imageUrl: "", file: null })
         setCurrentStep(0)
       }
     } catch (error) {
@@ -202,21 +242,21 @@ useEffect(() => {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const fileNameWithUnderscores = file.name.replace(/\s+/g, '_');
-      const newFile = new File([file], fileNameWithUnderscores, { type: file.type });
+      const file = e.target.files[0]
+      const fileNameWithUnderscores = file.name.replace(/\s+/g, "_")
+      const newFile = new File([file], fileNameWithUnderscores, { type: file.type })
 
       setNewItem((prevItem) => ({
         ...prevItem,
         imageUrl: URL.createObjectURL(newFile), // Preview image
         file: newFile, // Store new file for FormData
-      }));
+      }))
     } else {
       setNewItem((prevItem) => ({
         ...prevItem,
         imageUrl: "",
         file: null,
-      }));
+      }))
     }
   }
 
@@ -225,6 +265,15 @@ useEffect(() => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1)
     }
+  }
+
+  // Get category color from fetched categories or fallback to default
+  const getCategoryColor = (typeName: string): string => {
+    const category = categories.find((cat) => cat.categoryName === typeName)
+    if (category?.color) {
+      return category.color
+    }
+    return typeConfig[typeName]?.badgeColor || "bg-gray-100 text-gray-700"
   }
 
   if (isLoading) {
@@ -277,9 +326,7 @@ useEffect(() => {
                       >
                         <div>
                           <p className="font-medium">{student.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Username: {student.username}
-                          </p>
+                          <p className="text-sm text-muted-foreground">Username: {student.username}</p>
                           <p className="text-sm text-muted-foreground">
                             Born: {new Date(student.birthdate).toLocaleDateString()}
                           </p>
@@ -289,10 +336,9 @@ useEffect(() => {
                   ))}
                 </div>
               </RadioGroup>
-
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={handleBack}>
+              <Button variant="outline" onClick={handleBack} disabled={currentStep === 0}>
                 Back
               </Button>
             </CardFooter>
@@ -325,33 +371,66 @@ useEffect(() => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTypes.includes("AquaKids")}
-                      onCheckedChange={() => toggleType("AquaKids")}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Droplets className="h-4 w-4 text-blue-500" />
-                        <span className="text-blue-600">AquaKids</span>
-                      </div>
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTypes.includes("Playsound")}
-                      onCheckedChange={() => toggleType("Playsound")}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Music className="h-4 w-4 text-orange-500" />
-                        <span className="text-orange-600">Playsound</span>
-                      </div>
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={selectedTypes.includes("Other")}
-                      onCheckedChange={() => toggleType("Other")}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-pink-500" />
-                        <span className="text-pink-600">Other</span>
-                      </div>
-                    </DropdownMenuCheckboxItem>
+                    {/* Use categories from API if available */}
+                    {loadingCategories ? (
+                      <div className="px-2 py-1 text-sm">Loading categories...</div>
+                    ) : categories.length > 0 ? (
+                      categories.map((category) => {
+                        const typeName = category.categoryName
+                        const icon =
+                          typeName === "AquaKids" ? (
+                            <Droplets className="h-4 w-4 text-blue-500" />
+                          ) : typeName === "Playsound" ? (
+                            <Music className="h-4 w-4 text-orange-500" />
+                          ) : (
+                            <Sparkles className="h-4 w-4 text-pink-500" />
+                          )
+
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={category.id}
+                            checked={selectedTypes.includes(typeName)}
+                            onCheckedChange={() => toggleType(typeName)}
+                          >
+                            <div className="flex items-center gap-2">
+                              {icon}
+                              <span>{typeName}</span>
+                            </div>
+                          </DropdownMenuCheckboxItem>
+                        )
+                      })
+                    ) : (
+                      // Fallback to default types
+                      <>
+                        <DropdownMenuCheckboxItem
+                          checked={selectedTypes.includes("AquaKids")}
+                          onCheckedChange={() => toggleType("AquaKids")}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Droplets className="h-4 w-4 text-blue-500" />
+                            <span className="text-blue-600">AquaKids</span>
+                          </div>
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={selectedTypes.includes("Playsound")}
+                          onCheckedChange={() => toggleType("Playsound")}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Music className="h-4 w-4 text-orange-500" />
+                            <span className="text-orange-600">Playsound</span>
+                          </div>
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={selectedTypes.includes("Other")}
+                          onCheckedChange={() => toggleType("Other")}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-pink-500" />
+                            <span className="text-pink-600">Other</span>
+                          </div>
+                        </DropdownMenuCheckboxItem>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -376,18 +455,16 @@ useEffect(() => {
                           {config.icon}
                           <div className="flex items-center gap-2">
                             <h3 className="font-medium">{course.courseName}</h3>
-                            <Badge className={cn("text-xs font-medium", config.badgeColor)}>{course.type}</Badge>
+                            <Badge className={cn("text-xs font-medium", getCategoryColor(course.type))}>
+                              {course.type}
+                            </Badge>
                           </div>
                         </div>
-
-                       
                       </div>
                       <div className="flex justify-between items-center mb-2">
                         <p className="text-sm text-muted-foreground ml-6">{course.description}</p>
-
                       </div>
                     </div>
-
                   )
                 })}
               </div>
@@ -400,8 +477,6 @@ useEffect(() => {
           </>
         )}
 
-
-
         {currentStep === 2 && selectedStudent && selectedCourse && (
           <>
             <CardHeader>
@@ -410,7 +485,6 @@ useEffect(() => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-
                 <div className="p-3 border rounded-md bg-muted/50">
                   <h3 className="font-medium mb-1">Student</h3>
                   <p>{selectedStudent.name}</p>
@@ -436,7 +510,7 @@ useEffect(() => {
                       alt="Uploaded Image"
                       width={1000}
                       height={0}
-                      className="rounded-md"
+                      className="rounded-md mt-3"
                     />
                   )}
                 </div>
@@ -446,9 +520,7 @@ useEffect(() => {
               <Button variant="outline" onClick={handleBack}>
                 Back
               </Button>
-              <Button onClick={handleEnrollment} >
-                confirm Upload
-              </Button>
+              <Button onClick={handleEnrollment}>Confirm Upload</Button>
             </CardFooter>
           </>
         )}

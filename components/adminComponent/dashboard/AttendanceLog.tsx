@@ -5,12 +5,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Search, CalendarIcon, User, BookOpen, Clock } from "lucide-react"
-import { format } from "date-fns"
+import { Search, ChevronLeft, ChevronRight, User, BookOpen, Clock } from "lucide-react"
+import { format, addDays, subDays } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
+import { fetchCategories } from "@/services/api" // Using the same API service
 import type { AttendanceRecord } from "@/types/dashboard"
 
 interface AttendanceLogProps {
@@ -19,6 +18,12 @@ interface AttendanceLogProps {
   compact?: boolean
   sortNewestFirst?: boolean
   category: string
+}
+
+type Category = {
+  id: number | string
+  categoryName: string
+  color?: string
 }
 
 const formatTimestamp = (timestamp: string) => {
@@ -50,6 +55,20 @@ const isSameDay = (timestamp: string, selectedDate: Date) => {
   )
 }
 
+// Get badge variant based on category
+const getCategoryVariant = (category: string): "blue" | "purple" | "amber" | "secondary" => {
+  switch (category.toLowerCase()) {
+    case "aquakids":
+      return "blue"
+    case "playsound":
+      return "purple"
+    case "other":
+      return "amber"
+    default:
+      return "secondary"
+  }
+}
+
 export default function AttendanceLog({
   records,
   onSelectAttendance,
@@ -61,7 +80,25 @@ export default function AttendanceLog({
   const [selectedDate, setSelectedDate] = useState<Date>(new Date()) // Default to today
   const [filteredRecords, setFilteredRecords] = useState(records)
   const [dateFilterActive, setDateFilterActive] = useState(true) // Default to active
-  const [popoverOpen, setPopoverOpen] = useState(false) // State to manage Popover open state
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+
+  // Fetch categories
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setLoadingCategories(true)
+        const fetchedCategories = await fetchCategories() // Using the same function as CourseListPage
+        setCategories(fetchedCategories)
+      } catch (error) {
+        console.error("Failed to load categories", error)
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+
+    loadCategories()
+  }, [])
 
   // Sort and filter records when records, search term, or selected date changes
   useEffect(() => {
@@ -99,6 +136,14 @@ export default function AttendanceLog({
 
   // Function to get badge color based on course type
   const getBadgeColor = (category: string) => {
+    // Try to find the category in the fetched categories
+    const foundCategory = categories.find((cat) => cat.categoryName.toLowerCase() === category.toLowerCase())
+
+    if (foundCategory) {
+      return `bg-${getCategoryVariant(foundCategory.categoryName)}-100 text-${getCategoryVariant(foundCategory.categoryName)}-800 hover:bg-${getCategoryVariant(foundCategory.categoryName)}-200`
+    }
+
+    // Fallback to default colors
     switch (category) {
       case "AquaKids":
         return "bg-blue-100 text-blue-800 hover:bg-blue-200"
@@ -116,6 +161,18 @@ export default function AttendanceLog({
     setDateFilterActive(!dateFilterActive)
   }
 
+  // Navigate to previous day
+  const goToPreviousDay = () => {
+    setSelectedDate((prevDate) => subDays(prevDate, 1))
+    setDateFilterActive(true)
+  }
+
+  // Navigate to next day
+  const goToNextDay = () => {
+    setSelectedDate((prevDate) => addDays(prevDate, 1))
+    setDateFilterActive(true)
+  }
+
   // Format time for mobile display
   const formatTimeForMobile = (timestamp: string) => {
     const parts = formatTimestamp(timestamp).split(",")
@@ -126,7 +183,7 @@ export default function AttendanceLog({
 
   return (
     <div className="space-y-3">
-      {/* Search input and date selector */}
+      {/* Search input and date navigation */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -139,38 +196,28 @@ export default function AttendanceLog({
           />
         </div>
 
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant={dateFilterActive ? "default" : "outline"}
-              className={cn(
-                "w-full sm:w-auto justify-start text-left font-normal",
-                !dateFilterActive && "text-muted-foreground",
-              )}
-              onClick={dateFilterActive ? undefined : toggleDateFilter}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {dateFilterActive ? format(selectedDate, "PPP") : "Select date"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => {
-                setSelectedDate(date || new Date())
-                setDateFilterActive(true)
-                setPopoverOpen(false)
-              }}
-              initialFocus
-            />
-            <div className="p-3 border-t border-border">
-              <Button variant="ghost" className="w-full justify-start text-muted-foreground" onClick={toggleDateFilter}>
-                {dateFilterActive ? "Clear date filter" : "Apply date filter"}
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={goToPreviousDay}
+            title="Previous day"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant={dateFilterActive ? "default" : "outline"}
+            className={cn("w-auto px-3 justify-center font-normal", !dateFilterActive && "text-muted-foreground")}
+            onClick={toggleDateFilter}
+          >
+            {dateFilterActive ? format(selectedDate, "PPP") : "All dates"}
+          </Button>
+
+          <Button variant="outline" size="icon" onClick={goToNextDay} title="Next day">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Desktop Table View - Hidden on Mobile */}
