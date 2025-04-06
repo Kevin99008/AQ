@@ -495,7 +495,7 @@ export default function CoursesPage({ onEnroll }: CoursesPageProps) {
                   <span className="font-bold">₹{course.price}</span>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" asChild>
-                      <Link href={`/courses/${course.id}`}>View Details</Link>
+                      <Link href={`unit-course/${course.id}`}>View Details</Link>
                     </Button>
                     <Button size="sm" onClick={() => handleEnroll(course)}>
                       Enroll Now
