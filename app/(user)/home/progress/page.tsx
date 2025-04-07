@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowRight, Clock, AlertCircle, BookOpen } from "lucide-react"
+import { ArrowRight, Clock, AlertCircle, BookOpen, Calendar } from "lucide-react"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -210,6 +210,10 @@ export default function ProgressPage() {
                   <div className="flex items-center">
                     <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
                     <span>{Math.round((course.attendedClasses / course.totalClasses) * 100)}% complete</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>Start date: {course.startDate} to {course.endDate}</span>
                   </div>
                 </div>
               </CardContent>
