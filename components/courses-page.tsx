@@ -383,8 +383,17 @@ export default function CoursesPage({ onEnroll }: CoursesPageProps) {
                                                 <span className="font-medium">Age Range:</span>
                                                 <span className="ml-1">
                                                     {/* Display age in years */}
-                                                    {course.min_age !== null ? `${Math.floor(course.min_age / 12)} years` : "N/A"} -
-                                                    {course.max_age !== null ? `${Math.floor(course.max_age / 12)} years` : "N/A"}
+                                                    {course.min_age !== null
+                                                        ? course.min_age < 12
+                                                            ? `${course.min_age} months`
+                                                            : `${Math.floor(course.min_age / 12)} year${Math.floor(course.min_age / 12) !== 1 ? "s" : ""}`
+                                                        : "N/A"}{" "}
+                                                    -
+                                                    {course.max_age !== null
+                                                        ? course.max_age < 12
+                                                            ? `${course.max_age} months`
+                                                            : `${Math.floor(course.max_age / 12)} year${Math.floor(course.max_age / 12) !== 1 ? "s" : ""}`
+                                                        : "N/A"}
                                                 </span>
                                             </div>
                                         ) : (
