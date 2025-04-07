@@ -52,7 +52,7 @@ const getCategoryVariant = (category: string): "blue" | "green" | "secondary" =>
   switch (category.toLowerCase()) {
     case "aquakids":
       return "blue"
-    case "playsounds":
+    case "Playsound":
       return "green"
     default:
       return "secondary"
@@ -380,13 +380,13 @@ export default function CoursesPage({ onEnroll }: CoursesPageProps) {
                   <div className="flex items-center">
                     <input
                       type="radio"
-                      id="category-playsounds"
+                      id="category-Playsound"
                       name="category"
                       className="mr-2"
-                      checked={categoryFilter === "playsounds"}
-                      onChange={() => setCategoryFilter("playsounds")}
+                      checked={categoryFilter === "Playsound"}
+                      onChange={() => setCategoryFilter("Playsound")}
                     />
-                    <label htmlFor="category-playsounds">Playsounds</label>
+                    <label htmlFor="category-Playsound">Playsound</label>
                   </div>
                   <div className="flex items-center">
                     <input
@@ -418,7 +418,7 @@ export default function CoursesPage({ onEnroll }: CoursesPageProps) {
                 className={`w-2 md:w-3 ${
                   course.category?.toLowerCase() === "aquakids"
                     ? "bg-blue-500"
-                    : course.category?.toLowerCase() === "playsounds"
+                    : course.category?.toLowerCase() === "playsound"
                       ? "bg-purple-500"
                       : "bg-amber-500"
                 }`}
