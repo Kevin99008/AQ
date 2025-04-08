@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
 
 // Types for the API responses
-interface Course {
+interface Session {
   id: string
   title: string
   description: string
@@ -30,7 +30,7 @@ interface Student {
 export default function ProgressPage() {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [Students, setStudents] = useState<Student[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [sessions, setsessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,34 +57,34 @@ export default function ProgressPage() {
     fetchStudents();
   }, [selectedStudentId]);
 
-  // Fetch courses when selected Student changes
+  // Fetch sessions when selected Student changes
   useEffect(() => {
     if (!selectedStudentId) return;
 
-    const fetchCourses = async () => {
+    const fetchsessions = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const data = await apiFetch<Course[]>(`/api/sessions/progress/?studentId=${selectedStudentId}`);
+        const data = await apiFetch<Session[]>(`/api/sessions/progress/?studentId=${selectedStudentId}`);
 
         if (data === TOKEN_EXPIRED) return; // Handle session expiration
 
-        setCourses(data);
+        setsessions(data);
       } catch (err) {
-        console.error("Failed to fetch courses:", err);
-        setError("Failed to load course data. Please try again later.");
-        setCourses([]);
+        console.error("Failed to fetch sessions:", err);
+        setError("Failed to load session data. Please try again later.");
+        setsessions([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCourses();
+    fetchsessions();
   }, [selectedStudentId]);
 
   // Fallback for loading state
-  if (loading && !courses.length && !Students.length) {
+  if (loading && !sessions.length && !Students.length) {
     return (
       <div className="container mx-auto">
         <div className="mb-8">
@@ -131,8 +131,8 @@ export default function ProgressPage() {
     <div className="container mx-auto">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight mt-12">Course Progression</h1>
-          <p className="text-muted-foreground">Track your Student&apos;s progress in ongoing courses</p>
+          <h1 className="text-3xl font-bold tracking-tight mt-12">session Progression</h1>
+          <p className="text-muted-foreground">Track your Student&apos;s progress in ongoing sessions</p>
         </div>
         {Students.length > 0 && (
           <StudentSelector Students={Students} selectedStudentId={selectedStudentId || ""} onSelect={setSelectedStudentId} />
@@ -150,13 +150,13 @@ export default function ProgressPage() {
       {selectedStudent && (
         <div className="mb-6">
           <h2 className="text-xl font-semibold">
-            Viewing courses for: <span className="text-primary">{selectedStudent.name}</span>
+            Viewing sessions for: <span className="text-primary">{selectedStudent.name}</span>
           </h2>
-          <p className="text-sm text-muted-foreground">{courses.length} active courses</p>
+          <p className="text-sm text-muted-foreground">{sessions.length} active sessions</p>
         </div>
       )}
 
-      {loading && courses.length === 0 ? (
+      {loading && sessions.length === 0 ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="overflow-hidden">
@@ -180,45 +180,45 @@ export default function ProgressPage() {
             </Card>
           ))}
         </div>
-      ) : courses.length === 0 ? (
+      ) : sessions.length === 0 ? (
         <div className="flex h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
           <BookOpen className="h-10 w-10 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-semibold">No active courses</h3>
+          <h3 className="mt-4 text-lg font-semibold">No active sessions</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            {selectedStudent?.name} isn&apos;t enrolled in any active courses.
+            {selectedStudent?.name} isn&apos;t enrolled in any active sessions.
           </p>
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) => (
-            <Card key={course.id} className="overflow-hidden">
+          {sessions.map((session) => (
+            <Card key={session.id} className="overflow-hidden">
               <CardHeader className="pb-3">
-                <CardTitle>{course.title}</CardTitle>
-                <CardDescription>{course.description}</CardDescription>
+                <CardTitle>{session.title}</CardTitle>
+                <CardDescription>{session.description}</CardDescription>
               </CardHeader>
               <CardContent className="pb-2">
                 <div className="mb-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Progress</span>
                     <span className="font-medium">
-                      {course.attendedClasses} of {course.totalClasses} classes
+                      {session.attendedClasses} of {session.totalClasses} classes
                     </span>
                   </div>
-                  <Progress value={(course.attendedClasses / course.totalClasses) * 100} />
+                  <Progress value={(session.attendedClasses / session.totalClasses) * 100} />
                 </div>
                 <div className="space-y-1 text-sm">
                   <div className="flex items-center">
                     <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{Math.round((course.attendedClasses / course.totalClasses) * 100)}% complete</span>
+                    <span>{Math.round((session.attendedClasses / session.totalClasses) * 100)}% complete</span>
                   </div>
                   <div className="flex items-center">
                     <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>Start date: {course.startDate} to {course.endDate}</span>
+                    <span>Start date: {session.startDate} to {session.endDate}</span>
                   </div>
                 </div>
               </CardContent>
               <CardFooter>
-                <Link href={`progress/${course.id}?studentId=${selectedStudentId}`} className="w-full">
+                <Link href={`progress/${session.id}?studentId=${selectedStudentId}`} className="w-full">
                   <button className="flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
                     View Details
                     <ArrowRight className="ml-2 h-4 w-4" />

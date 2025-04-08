@@ -43,16 +43,16 @@ export default function SessionDetailPage() {
   const router = useRouter();
 
   const studentId = searchParams.get("studentId");
-  const courseId = params.courseId as string; // ✅ Ensure `courseId` is a string
+  const sessionId = params.sessionId as string; // ✅ Ensure `sessionId` is a string
 
-  const [course, setCourse] = useState<SessionDetail | null>(null);
+  const [session, setSession] = useState<SessionDetail | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch course details + attendance records
+  // Fetch session details + attendance records
   useEffect(() => {
-    if (!studentId || !courseId) return; // ✅ Ensure both `studentId` and `courseId` exist
+    if (!studentId || !sessionId) return; // ✅ Ensure both `studentId` and `sessionId` exist
 
     const fetchSessionDetails = async () => {
       setLoading(true);
@@ -60,8 +60,8 @@ export default function SessionDetailPage() {
 
       try {
         // ✅ Fetch session and attendance details
-        const sessionData = await apiFetch<SessionDetail | "TOKEN_EXPIRED">(
-          `/api/session-detail/?studentId=${studentId}&sessionId=${courseId}`
+        const sessionData = await apiFetch<SessionDetail>(
+          `/api/session-detail/?studentId=${studentId}&sessionId=${sessionId}`
         );
   
         if (sessionData === "TOKEN_EXPIRED") {
@@ -69,10 +69,10 @@ export default function SessionDetailPage() {
           return;
         }
   
-        setCourse(sessionData);
+        setSession(sessionData);
   
         // ✅ Fetch student details
-        const studentData = await apiFetch<Student | "TOKEN_EXPIRED">(
+        const studentData = await apiFetch<Student>(
           `/api/students/${studentId}`
         );
   
@@ -83,15 +83,15 @@ export default function SessionDetailPage() {
   
         setStudent(studentData);
       } catch (err) {
-        console.error("Failed to fetch course details:", err);
-        setError("Failed to load course details. Please try again later.");
+        console.error("Failed to fetch session details:", err);
+        setError("Failed to load session details. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchSessionDetails();
-  }, [courseId, studentId]);
+  }, [sessionId, studentId]);
 
 
   // Handle not found or error states
@@ -100,9 +100,9 @@ export default function SessionDetailPage() {
       <div className="container mx-auto flex h-[50vh] items-center justify-center px-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Missing student information</h1>
-          <p className="mt-2 text-muted-foreground">Please select a student to view course details.</p>
+          <p className="mt-2 text-muted-foreground">Please select a student to view session details.</p>
           <Button className="mt-4" onClick={() => router.push("/progress")}>
-            Back to Courses
+            Back to sessions
           </Button>
         </div>
       </div>
@@ -115,7 +115,7 @@ export default function SessionDetailPage() {
       <div className="container mx-auto px-4 py-8">
         <Button variant="ghost" className="mb-6" onClick={() => router.push("/progress")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Courses
+          Back to sessions
         </Button>
 
         <div className="mb-8 grid gap-6 md:grid-cols-3">
@@ -177,7 +177,7 @@ export default function SessionDetailPage() {
       <div className="container mx-auto px-4 py-8">
         <Button variant="ghost" className="mb-6" onClick={() => router.push("/home/progress")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Courses
+          Back to sessions
         </Button>
 
         <Alert variant="destructive" className="mb-6">
@@ -190,16 +190,16 @@ export default function SessionDetailPage() {
   }
 
   // Not found state
-  if (!course || !student) {
+  if (!session || !student) {
     return (
       <div className="container mx-auto flex h-[50vh] items-center justify-center px-4">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Course not found</h1>
+          <h1 className="text-2xl font-bold">session not found</h1>
           <p className="mt-2 text-muted-foreground">
-            The course you're looking for doesn't exist or you don't have access.
+            The session you're looking for doesn't exist or you don't have access.
           </p>
           <Button className="mt-4" onClick={() => router.push("/home/progress")}>
-            Back to Courses
+            Back to sessions
           </Button>
         </div>
       </div>
@@ -210,13 +210,13 @@ export default function SessionDetailPage() {
     <div className="container mx-auto px-4 py-8">
       <Button variant="ghost" className="mb-6" onClick={() => router.push("/home/progress")}>
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Courses
+        Back to sessions
       </Button>
   
       <div className="mb-8 grid gap-6 md:grid-cols-3">
         <div className="md:col-span-2">
-          <h1 className="text-3xl font-bold">{course.title}</h1>
-          <p className="mt-2 text-muted-foreground">{course.description}</p>
+          <h1 className="text-3xl font-bold">{session.title}</h1>
+          <p className="mt-2 text-muted-foreground">{session.description}</p>
   
           <div className="mt-6">
             <div className="flex items-start">
@@ -225,22 +225,22 @@ export default function SessionDetailPage() {
               </div>
               <div>
                 <p className="font-medium">Teacher</p>
-                <p className="text-sm text-muted-foreground">{course.teacher}</p>
+                <p className="text-sm text-muted-foreground">{session.teacher}</p>
               </div>
             </div>
           </div>
   
           <div className="mt-6">
             <div className="mb-2 flex justify-between">
-              <h3 className="font-medium">Course Progress</h3>
+              <h3 className="font-medium">session Progress</h3>
               <span className="text-sm font-medium">
-                {course.attendedClasses} of {course.totalClasses} classes
+                {session.attendedClasses} of {session.totalClasses} classes
               </span>
             </div>
-            <Progress value={(course.attendedClasses / course.totalClasses) * 100} className="h-2" />
+            <Progress value={(session.attendedClasses / session.totalClasses) * 100} className="h-2" />
             <p className="mt-2 text-sm text-muted-foreground">
-              {student.name} has attended {course.attendedClasses} out of {course.totalClasses} classes (
-              {Math.round((course.attendedClasses / course.totalClasses) * 100)}% complete)
+              {student.name} has attended {session.attendedClasses} out of {session.totalClasses} classes (
+              {Math.round((session.attendedClasses / session.totalClasses) * 100)}% complete)
             </p>
           </div>
         </div>
@@ -262,8 +262,8 @@ export default function SessionDetailPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {course.attendanceRecords && course.attendanceRecords.length > 0 ? (
-                    course.attendanceRecords.map((attendanceRecord, index) => {
+                  {session.attendanceRecords && session.attendanceRecords.length > 0 ? (
+                    session.attendanceRecords.map((attendanceRecord, index) => {
                       const classDate = new Date(attendanceRecord.attendanceDate)
                       const today = new Date()
                       const isUpcoming = classDate > today
