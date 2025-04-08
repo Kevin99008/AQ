@@ -15,7 +15,7 @@ export default function MainLayout({
   const router = useRouter()
 
   // Check if we're on the home page
-  const isHomePage = pathname === "/" || pathname === "/teacher/home"
+  const isHomePage = pathname === "/" || pathname === "/teacher/assignment"
 
   const handleBack = () => {
     router.back()
