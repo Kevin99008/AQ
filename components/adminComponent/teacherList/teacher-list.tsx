@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TeacherTable } from "@/components/adminComponent/teacherList/teacher-table"
 import { TeacherDetailsDialog } from "@/components/adminComponent/teacherList/teacher-details-dialog"
 import { fetchCategories } from "@/services/api" // Import the fetchCategories service
+import { AddTeacherModal } from "@/components/adminComponent/teacherList/add-teacher-modal"
 
 export default function TeacherList() {
   const router = useRouter()
@@ -21,6 +22,7 @@ export default function TeacherList() {
   const [categories, setCategories] = useState<any[]>([]) // State to store categories
   const [loadingCategories, setLoadingCategories] = useState(true)
   const [categoryError, setCategoryError] = useState<string | null>(null)
+  const [isAddTeacherModalOpen, setIsAddTeacherModalOpen] = useState(false)
 
   // Fetch categories when the component mounts
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function TeacherList() {
           <div className="flex items-center space-x-2">
             <h1 className="text-2xl font-bold">Teacher List</h1>
           </div>
-          <Button onClick={() => router.push("/admin/add-teacher")}>Add Teacher</Button>
+          <Button onClick={() => setIsAddTeacherModalOpen(true)}>Add Teacher</Button>
         </div>
 
         <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 md:space-x-4">
@@ -115,6 +117,13 @@ export default function TeacherList() {
           onOpenChange={setIsDetailsDialogOpen}
         />
       )}
+      <AddTeacherModal
+        open={isAddTeacherModalOpen}
+        onOpenChange={setIsAddTeacherModalOpen}
+        onTeacherAdded={() => {
+          // You can add logic here to refresh the teacher list if needed
+        }}
+      />
     </div>
   )
 }

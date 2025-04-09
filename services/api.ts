@@ -26,7 +26,9 @@ export const addStudent = async (
   userId: number,
   studentData: { name: string; birthdate: string }
 ) => {
-  const student = await apiFetch<{ success: boolean; student: Student }>(
+  const student = await apiFetch<{
+    id: { success: boolean; student: Student; }; success: boolean; student: Student 
+}>(
     `/api/students/add/${userId}/`,
     "POST",
     studentData
