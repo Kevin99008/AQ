@@ -237,7 +237,7 @@ export default function TeacherAssignments() {
         <CardFooter className="bg-gray-50 py-3"></CardFooter>
       </Card>
 
-      <h2 className="text-2xl font-bold mb-4">Assigned Classes</h2>
+      <h2 className="text-2xl font-bold my-4">Assigned Classes</h2>
 
       {teacherData.classes.length === 0 ? (
         <Alert>

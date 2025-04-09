@@ -74,7 +74,7 @@ export default function LoginPage() {
       } else if (userData.role === "user") {
         push("home/");
       } else if (userData.role === "teacher") {
-        push("teacher/home/");
+        push("teacher/assignment/");
       } else {
         push("/");
       }
