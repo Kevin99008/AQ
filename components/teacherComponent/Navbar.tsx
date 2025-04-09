@@ -13,7 +13,7 @@ export default function Navbar() {
     }
 
     const handleNavigateToAdmin = () => {
-        push("/teacher/home")  // Navigate to /admin page
+        push("/teacher/assignment")  // Navigate to /admin page
     }
 
     return (

@@ -117,12 +117,6 @@ export default function ClassDetailPage() {
     <div className="container mx-auto py-8 px-4">
       {/* Header */}
       <div className="mb-6">
-        <Link href="/teacher-assignments">
-          <Button variant="outline" size="sm" className="mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Assignments
-          </Button>
-        </Link>
         <h1 className="text-3xl font-bold mb-2">{classData.course_name}</h1>
         <p className="text-muted-foreground">Course ID: {classData.course_id}</p>
       </div>
