@@ -46,17 +46,22 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Slider } from "@/components/ui/slider"
 import { NotificationContainer, showNotification } from "@/components/notification"
+import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
+import { toast } from 'react-toastify';
+import { useRouter } from "next/navigation"
 
-// ปรับปรุงโครงสร้างข้อมูล API
+// แก้ไขโครงสร้างข้อมูล TimeSlot
 interface TimeSlot {
-  id: string
+  id: number | string
   date: string
   startTime: string
   endTime: string
-  hour: number // เก็บชั่วโมงเพื่อง่ายต่อการจัดกลุ่มและกรองข้อมูล
+  hour: number
   availableQuota: number
-  courseId?: string // ID ของคอร์สที่ timeslot นี้เป็นของ
-  courseName?: string // ชื่อคอร์ส (อาจจะมีหรือไม่มีก็ได้)
+  courseId?: string
+  courseName?: string
+  category?: string
+  isNewSlot?: boolean // เพิ่มฟิลด์เพื่อระบุว่าเป็น timeslot ที่สร้างใหม่หรือไม่
 }
 
 interface ApiResponse {
@@ -68,50 +73,53 @@ interface ApiResponse {
   }[]
 }
 
+// API Response type
+export interface AttendanceResponse {
+  message: string;
+  count: number;
+  attendance_ids: Attendance[];
+}
+
+// Attendance object type
+export interface Attendance {
+  id: number;
+  status: string;
+  type: string;
+  session: number;
+  student: number;
+  timeslot: number;
+  attendance_date: string;
+  start_time: string;
+  end_time: string;
+}
+
 // ฟังก์ชันสำหรับโหลดข้อมูล timeslot จาก API
 const fetchTimeSlots = async (courseId: string, studentIds: string[]) => {
   try {
     // ในสถานการณ์จริง คุณจะเรียก API ด้วย fetch หรือ axios
     // const response = await fetch(`/api/timeslots?courseId=${courseId}&studentIds=${studentIds.join(',')}`);
     // const data: ApiResponse = await response.json();
-
-    // สำหรับตัวอย่าง เราจะใช้ข้อมูลจำลอง
-    const data: ApiResponse = {
-      course_timeslots: generateTimeSlots(), // ใช้ฟังก์ชันที่มีอยู่เดิมเพื่อจำลองข้อมูล
-      other_category_timeslots: [], // จะเติมข้อมูลจำลองในภายหลัง
-      student_attendances: [], // จะเติมข้อมูลจำลองในภายหลัง
+    const coursesResponse = await apiFetch<ApiResponse>('/api/new/courses/timeslot-selection/', "POST", {
+      courseId: courseId,
+      studentIds: studentIds
+    })
+    if (coursesResponse !== TOKEN_EXPIRED) {
+      return coursesResponse
     }
+    // สำหรับตัวอย่าง เราจะใช้ข้อมูลจำลอง
+    // const data: ApiResponse = {
+    //   course_timeslots: generateTimeSlots(), // ใช้ฟังก์ชันที่มีอยู่เดิมเพื่อจำลองข้อมูล
+    //   other_category_timeslots: [], // จะเติมข้อมูลจำลองในภายหลัง
+    //   student_attendances: [], // จะเติมข้อมูลจำลองในภายหลัง
+    // }
 
-    return data
-  } catch (error) {
-    console.error("Error fetching timeslots:", error)
-    throw error
-  }
-}
-
-// ฟังก์ชันสำหรับส่งข้อมูลการลงทะเบียนไปยังหลังบ้าน
-const enrollStudents = async (slotId: string, studentIds: string[], courseId: string) => {
-  try {
-    // ในสถานการณ์จริง คุณจะส่งข้อมูลไปยัง API
-    // const response = await fetch('/api/enroll', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({
-    //     slotId,
-    //     studentIds,
-    //     courseId
-    //   }),
-    // });
-    // const data = await response.json();
-
-    // สำหรับตัวอย่าง เราจะจำลองการตอบกลับ
-    console.log(`Enrolled students ${studentIds.join(", ")} to slot ${slotId} for course ${courseId}`)
-    return { success: true }
-  } catch (error) {
-    console.error("Error enrolling students:", error)
-    throw error
+    // return data
+  } catch (err: any) {
+    if (err instanceof Error) {
+      toast.error(err.message);
+    } else {
+      toast.error("Something went wrong");
+    }
   }
 }
 
@@ -139,13 +147,26 @@ const generateTimeSlots = () => {
           const startTime = `${hour.toString().padStart(2, "0")}:00`
           const endTime = `${(hour + 1).toString().padStart(2, "0")}:00`
 
+          // สุ่มหมวดหมู่ระหว่าง Aquakids และ Playsound
+          const category = Math.random() < 0.7 ? "Aquakids" : "Playsound"
+
+          // กำหนด quota ตามหมวดหมู่
+          const availableQuota = category === "Aquakids" ? 6 : 2
+
+          // สร้าง id เป็นตัวเลขเพื่อจำลอง id จาก API
+          const id = Math.floor(Math.random() * 1000) + 1
+
           slots.push({
-            id: `slot-${week}-${day}-${hour}`,
+            id,
             date: formattedDate,
             startTime,
             endTime,
-            hour, // เก็บค่า hour ไว้เพื่อใช้ในการจัดกลุ่มและกรองข้อมูล
-            availableQuota: Math.floor(Math.random() * 5) + 1,
+            hour,
+            availableQuota,
+            category,
+            courseId: "2", // สมมติว่าเป็นคอร์สที่ 2
+            courseName: category === "Aquakids" ? "Advanced Aqua Training" : "Advanced Music Class",
+            isNewSlot: false,
           })
         }
       }
@@ -153,45 +174,6 @@ const generateTimeSlots = () => {
   }
 
   return slots
-}
-
-// ฟังก์ชันสำหรับตรวจสอบว่า timeslot นั้นสามารถลงทะเบียนได้หรือไม่
-const isTimeSlotAvailable = (
-  slot: TimeSlot,
-  otherCategoryTimeslots: TimeSlot[],
-  studentAttendances: { studentId: string; timeslots: TimeSlot[] }[],
-  selectedStudentIds: string[],
-) => {
-  // 1. ตรวจสอบว่า timeslot นี้ตรงกับ timeslot ของคอร์สอื่นในหมวดหมู่เดียวกันหรือไม่
-  const conflictWithOtherCourses = otherCategoryTimeslots.some(
-    (otherSlot) => otherSlot.date === slot.date && otherSlot.startTime === slot.startTime,
-  )
-
-  if (conflictWithOtherCourses) {
-    return false
-  }
-
-  // 2. ตรวจสอบว่านักเรียนที่เลือกมีคอร์สในคาบนี้อยู่แล้วหรือไม่
-  for (const studentId of selectedStudentIds) {
-    const studentAttendance = studentAttendances.find((attendance) => attendance.studentId === studentId)
-
-    if (studentAttendance) {
-      const hasConflict = studentAttendance.timeslots.some(
-        (attendedSlot) => attendedSlot.date === slot.date && attendedSlot.startTime === slot.startTime,
-      )
-
-      if (hasConflict) {
-        return false
-      }
-    }
-  }
-
-  // 3. ตรวจสอบว่ามีที่นั่งเพียงพอสำหรับนักเรียนที่เลือกหรือไม่
-  if (slot.availableQuota < selectedStudentIds.length) {
-    return false
-  }
-
-  return true
 }
 
 // ฟังก์ชันสำหรับตรวจสอบว่านักเรียนสามารถลงทะเบียนในคาบนี้ได้หรือไม่
@@ -266,6 +248,15 @@ const studentColors = [
   },
 ]
 
+// ปรับปรุงโครงสร้าง pendingConfirmBookings
+interface BookingItem {
+  id?: number // ID จาก API (ถ้ามี)
+  date: string
+  startTime: string
+  studentIds: string[]
+  isNewSlot: boolean // เพิ่มฟิลด์เพื่อระบุว่าเป็น timeslot ที่สร้างใหม่หรือไม่
+}
+
 // ปรับปรุง state และการโหลดข้อมูล
 export default function SchedulerPage({ students, teacher, course, onBack }: SchedulerPageProps) {
   // เพิ่ม state สำหรับเก็บข้อมูลจาก API
@@ -293,69 +284,77 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
   const [mimicSourceStudent, setMimicSourceStudent] = useState<string | null>(null)
   const [draggedSlot, setDraggedSlot] = useState<{ slotId: string; studentId: string } | null>(null)
   const [dropTargetStudent, setDropTargetStudent] = useState<string | null>(null)
-
+  // เพิ่ม state สำหรับเก็บการจองที่รอการยืนยัน
+  const [pendingConfirmBookings, setPendingConfirmBookings] = useState<BookingItem[]>([])
+  const router = useRouter()
+  const [teacherListOpen, setTeacherListOpen] = useState(false)
   // โหลดข้อมูลเมื่อคอมโพเนนต์ถูกโหลด
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true)
       try {
         // ในสถานการณ์จริง คุณจะเรียกใช้ fetchTimeSlots
-        // const data = await fetchTimeSlots(course.id, students.map(s => s.id));
+        const data = await fetchTimeSlots(course.id, students.map(s => s.id));
 
         // สำหรับตัวอย่าง เราจะใช้ข้อมูลจำลอง
-        const courseTimeslots = generateTimeSlots()
+        // const courseTimeslots = generateTimeSlots()
 
-        // จำลองข้อมูล other_category_timeslots
-        const otherCategoryTimeslots: TimeSlot[] = []
-        // สุ่มเลือก timeslot บางส่วนเพื่อจำลองว่าเป็น timeslot ที่มีการลงทะเบียนไปแล้ว
-        courseTimeslots.forEach((slot) => {
-          if (Math.random() < 0.3) {
-            // 30% ของ timeslot จะถูกใช้ในคอร์สอื่น
-            otherCategoryTimeslots.push({
-              ...slot,
-              id: `other-${slot.id}`,
-              courseId: `other-course-${Math.floor(Math.random() * 5) + 1}`,
-              courseName: `Other Course ${Math.floor(Math.random() * 5) + 1}`,
-            })
-          }
-        })
+        // // กำหนด category และ availableQuota ตามที่ต้องการ
+        // courseTimeslots.forEach((slot) => {
+        //   // กำหนด availableQuota ตาม category ของคอร์สที่เลือก
+        //   if (course.category === "Aquakids" || !course.category) {
+        //     slot.availableQuota = 6
+        //   } else if (course.category === "Playsound") {
+        //     slot.availableQuota = 2
+        //   }
+        // })
 
-        // จำลองข้อมูล student_attendances
-        const studentAttendances = students.map((student) => {
-          const attendedSlots: TimeSlot[] = []
-          // สุ่มเลือก timeslot บางส่วนเพื่อจำลองว่านักเรียนได้ลงทะเบียนไปแล้ว
-          courseTimeslots.forEach((slot) => {
-            if (Math.random() < 0.1) {
-              // 10% ของ timeslot จะถูกลงทะเบียนโดยนักเรียนแต่ละคน
-              attendedSlots.push({
-                ...slot,
-                id: `attended-${student.id}-${slot.id}`,
-                courseId: Math.random() < 0.5 ? course.id : `other-course-${Math.floor(Math.random() * 5) + 1}`,
-                courseName: Math.random() < 0.5 ? course.name : `Other Course ${Math.floor(Math.random() * 5) + 1}`,
-              })
-            }
-          })
+        // // จำลองข้อมูล other_category_timeslots
+        // const otherCategoryTimeslots: TimeSlot[] = []
+        // // สุ่มเลือก timeslot บางส่วนเพื่อจำลองว่าเป็น timeslot ที่มีการลงทะเบียนไปแล้ว
+        // courseTimeslots.forEach((slot) => {
+        //   if (Math.random() < 0.3) {
+        //     // 30% ของ timeslot จะถูกใช้ในคอร์สอื่น
+        //     otherCategoryTimeslots.push({
+        //       ...slot,
+        //       id: Math.floor(Math.random() * 1000) + 1000, // สร้าง id ใหม่
+        //       courseId: `${Math.floor(Math.random() * 5) + 1}`,
+        //       courseName: `Other Course ${Math.floor(Math.random() * 5) + 1}`,
+        //     })
+        //   }
+        // })
 
-          return {
-            studentId: student.id.toString(),
-            timeslots: attendedSlots,
-          }
-        })
+        // // จำลองข้อมูล student_attendances
+        // const studentAttendances = students.map((student) => {
+        //   const attendedSlots: TimeSlot[] = []
+        //   // สุ่มเลือก timeslot บางส่วนเพื่อจำลองว่านักเรียนได้ลงทะเบียนไปแล้ว
+        //   courseTimeslots.forEach((slot) => {
+        //     if (Math.random() < 0.1) {
+        //       // 10% ของ timeslot จะถูกลงทะเบียนโดยนักเรียนแต่ละคน
+        //       attendedSlots.push({
+        //         ...slot,
+        //         id: Math.floor(Math.random() * 1000) + 2000, // สร้าง id ใหม่
+        //         courseId: Math.random() < 0.5 ? course.id : `${Math.floor(Math.random() * 5) + 1}`,
+        //         courseName: Math.random() < 0.5 ? course.name : `Other Course ${Math.floor(Math.random() * 5) + 1}`,
+        //       })
+        //     }
+        //   })
 
-        const mockApiData: ApiResponse = {
-          course_timeslots: courseTimeslots,
-          other_category_timeslots: otherCategoryTimeslots,
-          student_attendances: studentAttendances,
+        //   return {
+        //     studentId: student.id.toString(),
+        //     timeslots: attendedSlots,
+        //   }
+        // })
+
+        // const mockApiData: ApiResponse = {
+        //   course_timeslots: courseTimeslots,
+        //   other_category_timeslots: otherCategoryTimeslots,
+        //   student_attendances: studentAttendances,
+        // }
+        if (data != undefined) {
+          setApiData(data)
+          setAvailableSlots(data.course_timeslots)
         }
-
-        setApiData(mockApiData)
-
-        // กรองเฉพาะ timeslot ที่สามารถลงทะเบียนได้
-        const availableTimeslots = courseTimeslots.filter((slot) =>
-          isTimeSlotAvailable(slot, otherCategoryTimeslots, studentAttendances, []),
-        )
-
-        setAvailableSlots(availableTimeslots)
       } catch (error) {
         console.error("Error loading data:", error)
         showNotification({
@@ -369,7 +368,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
     }
 
     loadData()
-  }, [course.id, students])
+  }, [course.id, course.category, students])
 
   // Ensure course has the necessary metadata
   const enrichedCourse = {
@@ -427,12 +426,30 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
       if (showOnlyAvailable && selectedStudents.length > 0) {
         // ตรวจสอบว่า timeslot นี้สามารถลงทะเบียนได้สำหรับนักเรียนทุกคนที่เลือกหรือไม่
-        isAvailable = isTimeSlotAvailable(
-          slot,
-          apiData.other_category_timeslots,
-          apiData.student_attendances,
-          selectedStudents,
+        // ตรวจสอบว่า timeslot นี้ตรงกับ timeslot ของคอร์สอื่นในหมวดหมู่เดียวกันหรือไม่
+        const conflictWithOtherCourses = apiData.other_category_timeslots.some(
+          (otherSlot) => otherSlot.date === slot.date && otherSlot.startTime === slot.startTime,
         )
+
+        if (conflictWithOtherCourses) {
+          isAvailable = false
+        }
+
+        // ตรวจสอบว่านักเรียนที่เลือกมีคอร์สในคาบนี้อยู่แล้วหรือไม่
+        for (const studentId of selectedStudents) {
+          const studentAttendance = apiData.student_attendances.find((attendance) => attendance.studentId === studentId)
+
+          if (studentAttendance) {
+            const hasConflict = studentAttendance.timeslots.some(
+              (attendedSlot) => attendedSlot.date === slot.date && attendedSlot.startTime === slot.startTime,
+            )
+
+            if (hasConflict) {
+              isAvailable = false
+              break
+            }
+          }
+        }
 
         // ตรวจสอบว่ามีที่นั่งเพียงพอหรือไม่
         isAvailable = isAvailable && slot.availableQuota >= selectedStudents.length
@@ -460,8 +477,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
   }, [currentWeekSlots])
 
   // Get students booked for a specific slot
-  const getBookedStudents = (slotId: string) => {
-    return selectedSlots[slotId] || []
+  const getBookedStudents = (slotId: string | number) => {
+    return selectedSlots[String(slotId)] || []
   }
 
   // Count how many sessions each student has booked
@@ -512,9 +529,92 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
     }
   }
 
+  // สร้าง timeslot ใหม่
+  const createNewTimeSlot = (date: string, hour: number): TimeSlot => {
+    const startTime = `${hour.toString().padStart(2, "0")}:00`
+    const endTime = `${(hour + 1).toString().padStart(2, "0")}:00`
+
+    // กำหนด quota ตาม category ของคอร์สที่เลือก
+    const availableQuota = course.category === "Playsound" ? 2 : 6
+
+    return {
+      id: `new-${date}-${hour}`,
+      date,
+      startTime,
+      endTime,
+      hour,
+      availableQuota,
+      category: course.category || "Aquakids",
+      courseId: course.id,
+      courseName: course.name,
+      isNewSlot: true,
+    }
+  }
+
+  // ตรวจสอบว่าช่องเวลานี้มีการจองในคอร์สอื่นหรือไม่
+  const isTimeSlotBookedInOtherCourse = (date: string, hour: number) => {
+    if (!apiData) return false
+
+    const startTime = `${hour.toString().padStart(2, "0")}:00`
+
+    return apiData.other_category_timeslots.some((slot) => slot.date === date && slot.startTime === startTime)
+  }
+
+  // ตรวจสอบว่าช่องเวลานี้มีใน course_timeslots หรือไม่
+  const isTimeSlotInCourseTimeslots = (date: string, hour: number) => {
+    if (!apiData) return false
+
+    const startTime = `${hour.toString().padStart(2, "0")}:00`
+
+    return apiData.course_timeslots.some((slot) => slot.date === date && slot.startTime === startTime)
+  }
+
+  // ค้นหา timeslot จาก date และ hour
+  const findTimeSlot = (date: string, hour: number): TimeSlot | undefined => {
+    if (!apiData) return undefined
+
+    const startTime = `${hour.toString().padStart(2, "0")}:00`
+
+    // ค้นหาใน course_timeslots ก่อน
+    const courseSlot = apiData.course_timeslots.find((slot) => slot.date === date && slot.startTime === startTime)
+
+    if (courseSlot) return courseSlot
+
+    // ค้นหาใน availableSlots ที่เป็น timeslot ที่สร้างใหม่
+    return availableSlots.find((slot) => slot.date === date && slot.startTime === startTime && slot.isNewSlot)
+  }
+
   // Open booking dialog
-  const openBookingDialog = (slot: any) => {
-    setSelectedSlotForBooking(slot)
+  const openBookingDialog = (slot: TimeSlot | null, date?: string, hour?: number) => {
+    if (slot) {
+      setSelectedSlotForBooking(slot)
+    } else if (date && hour !== undefined) {
+      // ตรวจสอบว่าช่องเวลานี้มีการจองในคอร์สอื่นหรือไม่
+      if (isTimeSlotBookedInOtherCourse(date, hour)) {
+        showNotification({
+          type: "error",
+          message: "Cannot book",
+          description: "This time slot is already booked in another course.",
+        })
+        return
+      }
+
+      // ค้นหา timeslot ที่มีอยู่แล้ว
+      const existingSlot = findTimeSlot(date, hour)
+
+      if (existingSlot) {
+        setSelectedSlotForBooking(existingSlot)
+      } else {
+        // สร้าง timeslot ใหม่
+        const newSlot = createNewTimeSlot(date, hour)
+
+        // เพิ่ม timeslot ใหม่เข้าไปใน availableSlots
+        setAvailableSlots([...availableSlots, newSlot])
+
+        setSelectedSlotForBooking(newSlot)
+      }
+    }
+
     setPendingBookings([]) // Reset pending bookings
   }
 
@@ -527,13 +627,12 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
     }
   }
 
-  // ปรับปรุงฟังก์ชันการจองและยกเลิกการจอง
   // Book a slot for a single student (without closing dialog)
-  const bookSlotForStudent = (slotId: string, studentId: string) => {
+  const bookSlotForStudent = (slotId: string | number, studentId: string) => {
     if (!apiData) return
 
     // ค้นหา timeslot ที่ต้องการจอง
-    const slot = availableSlots.find((s) => s.id === slotId)
+    const slot = availableSlots.find((s) => String(s.id) === String(slotId))
     if (!slot) return
 
     // ตรวจสอบว่านักเรียนสามารถลงทะเบียนในคาบนี้ได้หรือไม่
@@ -549,7 +648,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
     }
 
     // ตรวจสอบว่า student ได้จองคาบนี้ไปแล้วหรือไม่
-    const alreadyBooked = selectedSlots[slotId]?.includes(studentId)
+    const alreadyBooked = selectedSlots[String(slotId)]?.includes(studentId)
 
     if (!alreadyBooked) {
       // ตรวจสอบว่ามีที่นั่งเพียงพอหรือไม่
@@ -564,11 +663,11 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
       // Update the selected slots
       const updatedSelectedSlots = { ...selectedSlots }
-      updatedSelectedSlots[slotId] = [...(updatedSelectedSlots[slotId] || []), studentId]
+      updatedSelectedSlots[String(slotId)] = [...(updatedSelectedSlots[String(slotId)] || []), studentId]
 
       // Update the available quota
       const updatedAvailableSlots = availableSlots.map((s) => {
-        if (s.id === slotId) {
+        if (String(s.id) === String(slotId)) {
           return {
             ...s,
             availableQuota: Math.max(0, s.availableQuota - 1),
@@ -585,8 +684,37 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
         setPendingBookings([...pendingBookings, studentId])
       }
 
-      // ในสถานการณ์จริง คุณจะส่งข้อมูลไปยังหลังบ้าน
-      // enrollStudents(slotId, [studentId], course.id);
+      // เพิ่มการจองลงใน pendingConfirmBookings
+      const existingBookingIndex = pendingConfirmBookings.findIndex(
+        (booking) => booking.date === slot.date && booking.startTime === slot.startTime,
+      )
+
+      if (existingBookingIndex !== -1) {
+        // ถ้ามีการจองสำหรับ slot นี้อยู่แล้ว ให้เพิ่ม studentId เข้าไป
+        const updatedPendingConfirmBookings = [...pendingConfirmBookings]
+        updatedPendingConfirmBookings[existingBookingIndex] = {
+          ...updatedPendingConfirmBookings[existingBookingIndex],
+          studentIds: [...updatedPendingConfirmBookings[existingBookingIndex].studentIds, studentId],
+        }
+        setPendingConfirmBookings(updatedPendingConfirmBookings)
+      } else {
+        // ถ้ายังไม่มีการจองสำหรับ slot นี้ ให้สร้างรายการใหม่
+        const isNewSlot = slot.isNewSlot || typeof slot.id === "string"
+
+        const newBooking: BookingItem = {
+          date: slot.date,
+          startTime: slot.startTime,
+          studentIds: [studentId],
+          isNewSlot: isNewSlot,
+        }
+
+        // ถ้าเป็น timeslot ที่มีอยู่แล้วใน API และเป็นตัวเลข ให้เพิ่ม id
+        if (!isNewSlot && typeof slot.id === "number") {
+          newBooking.id = slot.id as number
+        }
+
+        setPendingConfirmBookings([...pendingConfirmBookings, newBooking])
+      }
 
       // Show success message
       showNotification({
@@ -598,11 +726,11 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
   }
 
   // Book a slot for multiple students
-  const bookSlotForMultipleStudents = (slotId: string, studentIds: string[]) => {
+  const bookSlotForMultipleStudents = (slotId: string | number, studentIds: string[]) => {
     if (!apiData) return
 
     // ค้นหา timeslot ที่ต้องการจอง
-    const slot = availableSlots.find((s) => s.id === slotId)
+    const slot = availableSlots.find((s) => String(s.id) === String(slotId))
     if (!slot) return
 
     // ตรวจสอบว่ามีที่นั่งเพียงพอสำหรับนักเรียนทั้งหมดหรือไม่
@@ -636,6 +764,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
         message: "Partial booking",
         description: `Only ${eligibleStudentIds.length} out of ${studentIds.length} students can be enrolled.`,
       })
+      return
     }
 
     let newBookingsCount = 0
@@ -643,20 +772,20 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
     eligibleStudentIds.forEach((studentId) => {
       // Check if student already has this slot booked
-      const alreadyBooked = updatedSelectedSlots[slotId]?.includes(studentId)
+      const alreadyBooked = updatedSelectedSlots[String(slotId)]?.includes(studentId)
 
       if (!alreadyBooked) {
-        if (!updatedSelectedSlots[slotId]) {
-          updatedSelectedSlots[slotId] = []
+        if (!updatedSelectedSlots[String(slotId)]) {
+          updatedSelectedSlots[String(slotId)] = []
         }
-        updatedSelectedSlots[slotId].push(studentId)
+        updatedSelectedSlots[String(slotId)].push(studentId)
         newBookingsCount++
       }
     })
 
     // Update the available quota
     const updatedAvailableSlots = availableSlots.map((s) => {
-      if (s.id === slotId) {
+      if (String(s.id) === String(slotId)) {
         return {
           ...s,
           availableQuota: Math.max(0, s.availableQuota - newBookingsCount),
@@ -669,8 +798,40 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
     setSelectedSlots(updatedSelectedSlots)
     setPendingBookings([]) // Clear pending bookings
 
-    // ในสถานการณ์จริง คุณจะส่งข้อมูลไปยังหลังบ้าน
-    // enrollStudents(slotId, eligibleStudentIds, course.id);
+    // เพิ่มการจองลงใน pendingConfirmBookings
+    const existingBookingIndex = pendingConfirmBookings.findIndex(
+      (booking) => booking.date === slot.date && booking.startTime === slot.startTime,
+    )
+
+    if (existingBookingIndex !== -1) {
+      // ถ้ามีการจองสำหรับ slot นี้อยู่แล้ว ให้เพิ่ม studentIds เข้าไป
+      const updatedPendingConfirmBookings = [...pendingConfirmBookings]
+      const existingStudentIds = updatedPendingConfirmBookings[existingBookingIndex].studentIds
+      const newStudentIds = eligibleStudentIds.filter((id) => !existingStudentIds.includes(id))
+
+      updatedPendingConfirmBookings[existingBookingIndex] = {
+        ...updatedPendingConfirmBookings[existingBookingIndex],
+        studentIds: [...existingStudentIds, ...newStudentIds],
+      }
+      setPendingConfirmBookings(updatedPendingConfirmBookings)
+    } else {
+      // ถ้ายังไม่มีการจองสำหรับ slot นี้ ให้สร้างรายการใหม่
+      const isNewSlot = slot.isNewSlot || typeof slot.id === "string"
+
+      const newBooking: BookingItem = {
+        date: slot.date,
+        startTime: slot.startTime,
+        studentIds: eligibleStudentIds,
+        isNewSlot: isNewSlot,
+      }
+
+      // ถ้าเป็น timeslot ที่มีอยู่แล้วใน API และเป็นตัวเลข ให้เพิ่ม id
+      if (!isNewSlot && typeof slot.id === "number") {
+        newBooking.id = slot.id as number
+      }
+
+      setPendingConfirmBookings([...pendingConfirmBookings, newBooking])
+    }
 
     // Close the booking dialog
     setSelectedSlotForBooking(null)
@@ -684,15 +845,15 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
   }
 
   // Remove a booking
-  const removeBooking = (slotId: string, studentId: string) => {
+  const removeBooking = (slotId: string | number, studentId: string) => {
     // Update the selected slots
     const updatedSelectedSlots = { ...selectedSlots }
 
-    if (updatedSelectedSlots[slotId]) {
-      updatedSelectedSlots[slotId] = updatedSelectedSlots[slotId].filter((id) => id !== studentId)
+    if (updatedSelectedSlots[String(slotId)]) {
+      updatedSelectedSlots[String(slotId)] = updatedSelectedSlots[String(slotId)].filter((id) => id !== studentId)
 
-      if (updatedSelectedSlots[slotId].length === 0) {
-        delete updatedSelectedSlots[slotId]
+      if (updatedSelectedSlots[String(slotId)].length === 0) {
+        delete updatedSelectedSlots[String(slotId)]
       }
     }
 
@@ -700,7 +861,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
     // Update the available quota
     const updatedAvailableSlots = availableSlots.map((slot) => {
-      if (slot.id === slotId) {
+      if (String(slot.id) === String(slotId)) {
         return {
           ...slot,
           availableQuota: slot.availableQuota + 1,
@@ -716,8 +877,28 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       setPendingBookings(pendingBookings.filter((id) => id !== studentId))
     }
 
-    // ในสถานการณ์จริง คุณจะส่งข้อมูลไปยังหลังบ้านเพื่อยกเลิกการจอง
-    // cancelEnrollment(slotId, studentId, course.id);
+    // ลบการจองออกจาก pendingConfirmBookings
+    const slot = availableSlots.find((s) => String(s.id) === String(slotId))
+    if (slot) {
+      const existingBookingIndex = pendingConfirmBookings.findIndex(
+        (booking) => booking.date === slot.date && booking.startTime === slot.startTime,
+      )
+
+      if (existingBookingIndex !== -1) {
+        const updatedPendingConfirmBookings = [...pendingConfirmBookings]
+        updatedPendingConfirmBookings[existingBookingIndex] = {
+          ...updatedPendingConfirmBookings[existingBookingIndex],
+          studentIds: updatedPendingConfirmBookings[existingBookingIndex].studentIds.filter((id) => id !== studentId),
+        }
+
+        // ถ้าไม่มีนักเรียนเหลืออยู่ในการจองนี้ ให้ลบรายการนี้ออก
+        if (updatedPendingConfirmBookings[existingBookingIndex].studentIds.length === 0) {
+          updatedPendingConfirmBookings.splice(existingBookingIndex, 1)
+        }
+
+        setPendingConfirmBookings(updatedPendingConfirmBookings)
+      }
+    }
 
     // Show success message
     showNotification({
@@ -759,7 +940,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
         }
 
         // Update quota
-        const slotIndex = updatedAvailableSlots.findIndex((s) => s.id === slotId)
+        const slotIndex = updatedAvailableSlots.findIndex((s) => String(s.id) === slotId)
         if (slotIndex !== -1) {
           updatedAvailableSlots[slotIndex] = {
             ...updatedAvailableSlots[slotIndex],
@@ -771,6 +952,21 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
     setAvailableSlots(updatedAvailableSlots)
     setSelectedSlots(updatedSelectedSlots)
+
+    // ลบการจองออกจาก pendingConfirmBookings
+    const updatedPendingConfirmBookings = pendingConfirmBookings
+      .map((booking) => {
+        if (booking.studentIds.includes(studentId)) {
+          return {
+            ...booking,
+            studentIds: booking.studentIds.filter((id) => id !== studentId),
+          }
+        }
+        return booking
+      })
+      .filter((booking) => booking.studentIds.length > 0)
+
+    setPendingConfirmBookings(updatedPendingConfirmBookings)
 
     showNotification({
       type: "success",
@@ -823,7 +1019,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
     // Check if all slots have available quota
     return studentSlots.every((slotId) => {
-      const slot = availableSlots.find((s) => s.id === slotId)
+      const slot = availableSlots.find((s) => String(s.id) === slotId)
       return slot !== undefined && slot.availableQuota > 0
     })
   }
@@ -852,9 +1048,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       showNotification({
         type: "error",
         message: "Too many sessions",
-        description: `Cannot copy all slots. ${students.find((s) => s.id === toStudentId)?.name} can only have ${
-          enrichedCourse.totalSessions - targetStudentBookedCount
-        } more sessions.`,
+        description: `Cannot copy all slots. ${students.find((s) => s.id === toStudentId)?.name} can only have ${enrichedCourse.totalSessions - targetStudentBookedCount
+          } more sessions.`,
       })
       return
     }
@@ -868,7 +1063,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
     if (targetStudentAttendance) {
       sourceStudentSlots.forEach((slotId) => {
-        const slot = availableSlots.find((s) => s.id === slotId)
+        const slot = availableSlots.find((s) => String(s.id) === slotId)
         if (slot) {
           const hasConflict = targetStudentAttendance.timeslots.some(
             (attendedSlot) => attendedSlot.date === slot.date && attendedSlot.startTime === slot.startTime,
@@ -892,7 +1087,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
     // Check if all slots have available quota
     const slotsWithoutQuota = sourceStudentSlots.filter((slotId) => {
-      const slot = availableSlots.find((s) => s.id === slotId)
+      const slot = availableSlots.find((s) => String(s.id) === slotId)
       return !slot || slot.availableQuota < 1
     })
 
@@ -920,7 +1115,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       updatedSelectedSlots[slotId] = [...(updatedSelectedSlots[slotId] || []), toStudentId]
 
       // Update quota
-      const slotIndex = updatedAvailableSlots.findIndex((s) => s.id === slotId)
+      const slotIndex = updatedAvailableSlots.findIndex((s) => String(s.id) === slotId)
       if (slotIndex !== -1) {
         updatedAvailableSlots[slotIndex] = {
           ...updatedAvailableSlots[slotIndex],
@@ -943,8 +1138,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
   }
 
   // Handle drag start
-  const handleDragStart = (slotId: string, studentId: string) => {
-    setDraggedSlot({ slotId, studentId })
+  const handleDragStart = (slotId: string | number, studentId: string) => {
+    setDraggedSlot({ slotId: String(slotId), studentId })
   }
 
   // Handle drag over
@@ -972,11 +1167,11 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
   }
 
   // Copy a specific slot from one student to another
-  const copySlotToStudent = (slotId: string, fromStudentId: string, toStudentId: string) => {
+  const copySlotToStudent = (slotId: string | number, fromStudentId: string, toStudentId: string) => {
     if (!apiData) return
 
     // Check if the slot is already booked for the target student
-    const alreadyBooked = selectedSlots[slotId]?.includes(toStudentId)
+    const alreadyBooked = selectedSlots[String(slotId)]?.includes(toStudentId)
 
     if (alreadyBooked) {
       showNotification({
@@ -998,7 +1193,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
     }
 
     // Check if the slot has available quota
-    const slot = availableSlots.find((s) => s.id === slotId)
+    const slot = availableSlots.find((s) => String(s.id) === String(slotId))
     if (!slot || slot.availableQuota < 1) {
       showNotification({
         type: "error",
@@ -1030,11 +1225,11 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
     // Book the slot for the target student
     const updatedSelectedSlots = { ...selectedSlots }
-    updatedSelectedSlots[slotId] = [...(updatedSelectedSlots[slotId] || []), toStudentId]
+    updatedSelectedSlots[String(slotId)] = [...(updatedSelectedSlots[String(slotId)] || []), toStudentId]
 
     // Update the available quota
     const updatedAvailableSlots = availableSlots.map((s) => {
-      if (s.id === slotId) {
+      if (String(s.id) === String(slotId)) {
         return {
           ...s,
           availableQuota: Math.max(0, s.availableQuota - 1),
@@ -1058,6 +1253,89 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
     setMimicDialogOpen(true)
   }
 
+  // เพิ่มฟังก์ชันสำหรับส่งข้อมูลการจองทั้งหมดไปยังหลังบ้าน
+  const confirmAllBookings = async () => {
+    if (pendingConfirmBookings.length === 0) {
+      showNotification({
+        type: "info",
+        message: "No bookings to confirm",
+        description: "Please make some bookings first.",
+      })
+      return
+    }
+
+    setIsLoading(true)
+
+    const incompleteStudents = selectedStudents.filter(
+      (studentId) => getStudentSessionCount(studentId) < enrichedCourse.totalSessions,
+    )
+
+    if (incompleteStudents.length > 0) {
+      showNotification({
+        type: "error",
+        message: "Incomplete schedule",
+        description: `${incompleteStudents.length} student(s) don't have all required sessions scheduled.`,
+      })
+      return
+    }
+
+    showNotification({
+      type: "success",
+      message: "Schedule saved",
+      description: "All sessions have been scheduled successfully.",
+    })
+
+    try {
+      // ในสถานการณ์จริง คุณจะส่งข้อมูลไปยังหลังบ้าน
+      // const response = await fetch('/api/confirm-bookings', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     bookings: pendingConfirmBookings,
+      //     courseId: course.id
+      //   }),
+      // });
+      // const data = await response.json();
+      const response = await apiFetch<AttendanceResponse>('/api/new/courses/create-batch/', "POST", {
+        course_id: course.id,
+        bookings: pendingConfirmBookings
+      })
+      if (response !== TOKEN_EXPIRED) {
+        router.push(`/admin/all-course/attendances`)
+      }
+      // สำหรับตัวอย่าง เราจะจำลองการตอบกลับ
+      // console.log("Confirming all bookings:", pendingConfirmBookings)
+
+      // // รอสักครู่เพื่อจำลองการส่งข้อมูลไปยังหลังบ้าน
+      // // await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // // ล้างการจองที่รอการยืนยัน
+      // setPendingConfirmBookings([])
+
+      // showNotification({
+      //   type: "success",
+      //   message: "All bookings confirmed",
+      //   description: `Successfully confirmed ${pendingConfirmBookings.length} bookings.`,
+      // })
+    } catch (error: any) {
+      // console.error("Error confirming bookings:", error)
+      if (error instanceof Error) {
+        showNotification({
+          type: "error",
+          message: error.message,
+          description: "Please try again later.",
+        })
+      }
+
+      setIsLoading(false)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // แก้ไขส่วน Action Buttons
   return (
     <div className="container mx-auto py-6 px-4">
       {/* Notification Container */}
@@ -1151,22 +1429,16 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                   ))}
                   {enrichedCourse.teachers && enrichedCourse.teachers.length > 4 && (
                     <div className="p-2 rounded-md border text-center">
-                      <p className="text-sm text-muted-foreground">
+                      <button onClick={(e) => {
+                        e.stopPropagation()
+                        setTeacherListOpen(true)
+                      }} className="text-sm text-muted-foreground">
                         +{enrichedCourse.teachers.length - 4} more teachers
-                      </p>
+                      </button>
                     </div>
                   )}
-                  {!enrichedCourse.teachers && teacher && (
-                    <div className="flex items-center gap-3 p-2 rounded-md border">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={teacher.avatar} />
-                        <AvatarFallback>{teacher.name.substring(0, 2)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{teacher.name}</p>
-                        <p className="text-xs text-muted-foreground">Teacher</p>
-                      </div>
-                    </div>
+                  {enrichedCourse.teachers.length === 0 && (
+                      <div className="text-muted-foreground">No Teacher registered</div>
                   )}
                 </div>
               </div>
@@ -1320,9 +1592,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                     {weekDays.map((day) => (
                       <div
                         key={day.dayName}
-                        className={`p-2 text-center border-r last:border-r-0 ${
-                          selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100 opacity-50"
-                        }`}
+                        className={`p-2 text-center border-r last:border-r-0 ${selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100 opacity-50"
+                          }`}
                       >
                         <div className="font-medium">{day.dayName}</div>
                         <div className="text-2xl">{day.dayNumber}</div>
@@ -1351,9 +1622,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                     {weekDays.map((day) => (
                       <div
                         key={day.dayName}
-                        className={`border-r last:border-r-0 ${
-                          selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100"
-                        }`}
+                        className={`border-r last:border-r-0 ${selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100"
+                          }`}
                       >
                         {timeSlots
                           .filter((time) => {
@@ -1364,16 +1634,20 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                             const hour = Number.parseInt(time.split(":")[0])
                             const slotsForThisHour = slotsByDateAndHour[day.formattedDate]?.[hour] || []
 
-                            // Filter slots based on availability if showOnlyAvailable is true
-                            const filteredSlots = showOnlyAvailable
-                              ? slotsForThisHour.filter((slot) => slot.availableQuota >= selectedStudents.length)
-                              : slotsForThisHour
+                            // ตรวจสอบว่าช่องเวลานี้มีการจองในคอร์สอื่นหรือไม่
+                            const isBookedInOtherCourse = isTimeSlotBookedInOtherCourse(day.formattedDate, hour)
+
+                            // ตรวจสอบว่าช่องเวลานี้มีใน course_timeslots หรือไม่
+                            const isInCourseTimeslots = isTimeSlotInCourseTimeslots(day.formattedDate, hour)
+
+                            // ค้นหา timeslot ที่มีอยู่แล้ว
+                            const existingSlot = findTimeSlot(day.formattedDate, hour)
 
                             return (
                               <div key={`${day.formattedDate}-${hour}`} className="h-24 border-b last:border-b-0 p-1">
-                                {filteredSlots.length > 0 ? (
+                                {slotsForThisHour.length > 0 ? (
                                   <div className="h-full">
-                                    {filteredSlots.map((slot) => {
+                                    {slotsForThisHour.map((slot) => {
                                       const bookedStudents = getBookedStudents(slot.id)
                                       const isFullyBooked = slot.availableQuota === 0
 
@@ -1469,9 +1743,16 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                                       )
                                     })}
                                   </div>
+                                ) : isBookedInOtherCourse ? (
+                                  <div className="h-full flex items-center justify-center bg-gray-100 rounded-md text-xs text-muted-foreground">
+                                    Booked in other course
+                                  </div>
                                 ) : (
-                                  <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
-                                    No slots
+                                  <div
+                                    className="h-full flex items-center justify-center text-xs text-muted-foreground border border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
+                                    onClick={() => openBookingDialog(null, day.formattedDate, hour)}
+                                  >
+                                    Click to add
                                   </div>
                                 )}
                               </div>
@@ -1496,7 +1777,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                       const studentBookings = Object.entries(selectedSlots)
                         .filter(([_, studentIds]) => studentIds.includes(studentId))
                         .map(([slotId]) => {
-                          const slot = availableSlots.find((s) => s.id === slotId)
+                          const slot = availableSlots.find((s) => String(s.id) === slotId)
                           return slot
                         })
                         .filter(Boolean)
@@ -1512,9 +1793,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                       return (
                         <div
                           key={studentId}
-                          className={`border rounded-lg overflow-hidden ${
-                            dropTargetStudent === studentId ? "ring-2 ring-primary" : ""
-                          }`}
+                          className={`border rounded-lg overflow-hidden ${dropTargetStudent === studentId ? "ring-2 ring-primary" : ""
+                            }`}
                           onDragOver={(e) => handleDragOver(e, studentId)}
                           onDragLeave={() => setDropTargetStudent(null)}
                           onDrop={(e) => handleDrop(e, studentId)}
@@ -1601,10 +1881,85 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
             <Button variant="outline" onClick={onBack}>
               Cancel
             </Button>
-            <Button onClick={saveSchedule}>Save Schedule</Button>
+
+            {pendingConfirmBookings.length > 0 && (
+              <Button
+                variant="default"
+                className="bg-green-600 hover:bg-green-700"
+                onClick={confirmAllBookings}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <span className="flex items-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Processing...
+                  </span>
+                ) : (
+                  <>
+                    Confirm All Bookings (
+                    {pendingConfirmBookings.reduce((total, booking) => total + booking.studentIds.length, 0)})
+                  </>
+                )}
+              </Button>
+            )}
+
           </div>
         </div>
       </div>
+
+      <Dialog open={teacherListOpen} onOpenChange={setTeacherListOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Teacher for {course.name}</DialogTitle>
+            <DialogDescription>
+              {enrichedCourse.teachers.length} teacher{enrichedCourse.teachers.length !== 1 ? "s" : ""} registered
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {enrichedCourse.teachers.length > 0 ? (
+              <div className="space-y-3">
+                {enrichedCourse.teachers?.map((teacher: any) => (
+                  <div key={teacher.id} className="flex items-center gap-3 p-2 rounded-md border">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback>{teacher.name.substring(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{teacher.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {teacher.status === "active" ? "Active" : "Inactive"}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center py-6 text-muted-foreground">No Teacher registered</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setTeacherListOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Booking Dialog */}
       {selectedSlotForBooking && (
@@ -1628,7 +1983,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                   {selectedStudents.map((studentId) => {
                     const student = students.find((s) => s.id === studentId)
                     const color = studentColorMap[studentId]
-                    const isBooked = selectedSlots[selectedSlotForBooking.id]?.includes(studentId)
+                    const isBooked = selectedSlots[String(selectedSlotForBooking.id)]?.includes(studentId)
                     const isPendingBooking = pendingBookings.includes(studentId)
                     const isMaxed = hasReachedMaxSessions(studentId) && !isBooked && !isPendingBooking
 
