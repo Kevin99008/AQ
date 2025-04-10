@@ -198,7 +198,7 @@ export default function CourseListPage() {
                       <span>All ages</span>
                     )}
                   </TableCell>
-                  <TableCell>₹{course.price}</TableCell>
+                  <TableCell>THB {course.price}</TableCell>
                   <TableCell>{course.quota}</TableCell>
                   <TableCell>{course.teachers.length}</TableCell>
                   <TableCell>

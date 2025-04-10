@@ -200,9 +200,9 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                         {/* Fix: Safe access to category */}
                         <Badge
                           variant={
-                            session.course?.category === "Aquakids"
+                            session.course?.category?.toLowerCase() === "aquakids"
                               ? "blue"
-                              : session.course?.category === "Playsounds"
+                              : session.course?.category?.toLowerCase() === "playsounds"
                                 ? "green"
                                 : "secondary"
                           }
@@ -216,7 +216,10 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                         <div className="flex items-center gap-2 mb-1">
                           <GraduationCap className="h-4 w-4 text-muted-foreground" />
                           <span>
-                            Teachers: {typeof session.course?.teachers === "string" ? session.course.teachers : "N/A"}
+                            Teachers:{" "}
+                            {session.course?.teachers && Array.isArray(session.course.teachers)
+                              ? session.course.teachers.map((teacher: { name: any }) => teacher.name).join(", ")
+                              : "N/A"}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -547,4 +550,3 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
     </div>
   )
 }
-

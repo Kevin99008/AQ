@@ -50,6 +50,7 @@ type Attendance = {
   attendance_date: string
   start_time: string
   end_time: string
+  checked_date: string | null
 }
 
 type Session = {
@@ -191,6 +192,25 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
     }
   }
 
+  // Helper function to determine attendance status display
+  const getAttendanceStatus = (attendance: Attendance) => {
+    // Check if checked_date is missing or empty
+    if (!attendance.checked_date) {
+      return { text: "No Record", variant: "secondary" }
+    }
+
+    // Otherwise use the status field
+    if (attendance.status === "present") {
+      return { text: "Present", variant: "green" }
+    } else if (attendance.status === "absent") {
+      return { text: "Absent", variant: "destructive" }
+    } else if (!attendance.status) {
+      return { text: "No Record", variant: "secondary" }
+    } else {
+      return { text: attendance.status, variant: "secondary" }
+    }
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto py-6 px-4 md:px-6">
@@ -229,9 +249,9 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* Main content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <div className="flex flex-wrap justify-between items-start gap-2">
@@ -260,7 +280,7 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
                   </div>
                   <div className="flex items-center text-sm">
                     <Award className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <span>Price: ₹{course.price}</span>
+                    <span>Price: THB{course.price}</span>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -536,39 +556,30 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
                                         .toLowerCase()
                                         .includes(sessionSearchQuery.toLowerCase())
                                     })
-                                    .map((attendance: Attendance) => (
-                                      <TableRow key={attendance.id}>
-                                        <TableCell className="font-medium">{attendance.student_name}</TableCell>
-                                        <TableCell>
-                                          {new Date(attendance.attendance_date).toLocaleDateString()}
-                                        </TableCell>
-                                        <TableCell>
-                                          {attendance.start_time} - {attendance.end_time}
-                                        </TableCell>
-                                        <TableCell>
-                                          <Badge
-                                            variant={
-                                              attendance.status === "present"
-                                                ? "green"
-                                                : attendance.status === "absent"
-                                                  ? "destructive"
-                                                  : attendance.status === "" || !attendance.status
-                                                    ? "secondary"
-                                                    : "secondary"
-                                            }
-                                          >
-                                            {attendance.status === "present"
-                                              ? "Present"
-                                              : attendance.status === "absent"
-                                                ? "Absent"
-                                                : attendance.status === "" || !attendance.status
-                                                  ? "No Record"
-                                                  : attendance.status}
-                                          </Badge>
-                                        </TableCell>
-                                        <TableCell>{attendance.type || "N/A"}</TableCell>
-                                      </TableRow>
-                                    ))}
+                                    .map((attendance: Attendance) => {
+                                      const attendanceStatus = getAttendanceStatus(attendance)
+                                      return (
+                                        <TableRow key={attendance.id}>
+                                          <TableCell className="font-medium">{attendance.student_name}</TableCell>
+                                          <TableCell>
+                                            {attendance.attendance_date
+                                              ? new Date(attendance.attendance_date).toLocaleDateString()
+                                              : "Not scheduled"}
+                                          </TableCell>
+                                          <TableCell>
+                                            {attendance.start_time && attendance.end_time
+                                              ? `${attendance.start_time} - ${attendance.end_time}`
+                                              : "N/A"}
+                                          </TableCell>
+                                          <TableCell>
+                                            <Badge variant={attendanceStatus.variant as any}>
+                                              {attendanceStatus.text}
+                                            </Badge>
+                                          </TableCell>
+                                          <TableCell>{attendance.type || "N/A"}</TableCell>
+                                        </TableRow>
+                                      )
+                                    })}
                                 </TableBody>
                               </Table>
                             ) : (
@@ -628,49 +639,6 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
               </div>
             </TabsContent>
           </Tabs>
-        </div>
-
-        {/* Sidebar */}
-        <div>
-          <div className="sticky top-6 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Course Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h3 className="font-medium text-sm text-muted-foreground mb-1">Price</h3>
-                  <p className="text-2xl font-bold">₹{course.price}</p>
-                </div>
-
-                <div>
-                  <h3 className="font-medium text-sm text-muted-foreground mb-1">Category</h3>
-                  <Badge
-                    variant={
-                      course.category === "Aquakids" ? "blue" : course.category === "Playsounds" ? "green" : "secondary"
-                    }
-                  >
-                    {course.category}
-                  </Badge>
-                </div>
-
-                <div>
-                  <h3 className="font-medium text-sm text-muted-foreground mb-1">Created</h3>
-                  <p className="text-sm">{new Date(course.created_at).toLocaleDateString()}</p>
-                </div>
-
-                <div>
-                  <h3 className="font-medium text-sm text-muted-foreground mb-1">Teachers</h3>
-                  <p className="text-sm">{course.teachers.length} assigned</p>
-                </div>
-
-                <div>
-                  <h3 className="font-medium text-sm text-muted-foreground mb-1">Sessions</h3>
-                  <p className="text-sm">{course.sessions ? course.sessions.length : 0} sessions</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
 
