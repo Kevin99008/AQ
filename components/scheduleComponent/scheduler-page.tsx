@@ -49,6 +49,7 @@ import { NotificationContainer, showNotification } from "@/components/notificati
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 import { toast } from "react-toastify"
 import { useRouter } from "next/navigation"
+import { ShieldAlertIcon } from "lucide-react"
 
 // แก้ไขโครงสร้างข้อมูล TimeSlot
 interface TimeSlot {
@@ -1899,9 +1900,12 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                                             <div
                                               key={slot.id}
                                               className={`p-2 rounded-md cursor-pointer text-sm h-full ${slotStyle}`}
-                                              onClick={() => openBookingDialog(slot)}
+                                              onClick={() => !conflicting.hasConflict && openBookingDialog(slot)}
                                             >
-                                              <div className="font-medium text-center">{slot.startTime}</div>
+                                              <div className="font-medium text-center flex items-center justify-center">
+                                                {conflicting.hasConflict && <ShieldAlertIcon></ShieldAlertIcon>}
+                                                {!conflicting.hasConflict && slot.startTime}
+                                              </div>
 
                                               {bookedStudents.length > 0 && (
                                                 <TooltipProvider>
@@ -1975,9 +1979,9 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                                       <div
                                         className={`h-full flex flex-col items-center justify-center text-xs text-muted-foreground border border-dashed border-gray-300 rounded-md ${isPastDate ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"
                                           }`}
-                                        onClick={() => !isPastDate && openBookingDialog(null, day.formattedDate, hour)}
+                                        onClick={() => !isPastDate && (!conflicting.hasConflict && openBookingDialog(null, day.formattedDate, hour))}
                                       >
-                                        {isPastDate ? "Past date" : <span>Click to add</span>}
+                                        {isPastDate ? "Past date" : conflicting.hasConflict ? <ShieldAlertIcon></ShieldAlertIcon> : <span>Click to add</span>}
                                       </div>
                                     )}
                                   </div>
