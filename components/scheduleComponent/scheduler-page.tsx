@@ -288,6 +288,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
   const [pendingConfirmBookings, setPendingConfirmBookings] = useState<BookingItem[]>([])
   const router = useRouter()
   const [teacherListOpen, setTeacherListOpen] = useState(false)
+  const [recurringWeeks, setRecurringWeeks] = useState<number>(1)
+  const [showRecurringOptions, setShowRecurringOptions] = useState<boolean>(false)
   // โหลดข้อมูลเมื่อคอมโพเนนต์ถูกโหลด
   useEffect(() => {
     const loadData = async () => {
@@ -652,6 +654,9 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       }
     }
 
+    // Reset recurring options
+    setRecurringWeeks(1)
+    setShowRecurringOptions(false)
     setPendingBookings([]) // Reset pending bookings
   }
 
@@ -878,6 +883,133 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       type: "success",
       message: "Sessions booked",
       description: `Booked for ${newBookingsCount} student${newBookingsCount !== 1 ? "s" : ""}`,
+    })
+  }
+
+  // Book recurring slots for multiple students
+  const bookRecurringSlots = (slotId: string | number, studentIds: string[], weeks: number) => {
+    if (!apiData || weeks <= 0) return
+
+    // Get the original slot
+    const originalSlot = availableSlots.find((s) => String(s.id) === String(slotId))
+    if (!originalSlot) return
+
+    // Book the first slot (current week)
+    bookSlotForMultipleStudents(slotId, studentIds)
+
+    // For each additional week, create and book slots
+    const originalDate = parseISO(originalSlot.date)
+    const hour = Number.parseInt(originalSlot.startTime.split(":")[0])
+
+    // Create a copy of the current state to work with
+    let updatedAvailableSlots = [...availableSlots]
+    const updatedSelectedSlots = { ...selectedSlots }
+    let updatedPendingConfirmBookings = [...pendingConfirmBookings]
+
+    // Process future weeks
+    for (let week = 1; week < weeks; week++) {
+      const futureDate = addWeeks(originalDate, week)
+      const futureDateStr = format(futureDate, "yyyy-MM-dd")
+
+      // Skip if this time slot is booked in other course
+      if (isTimeSlotBookedInOtherCourse(futureDateStr, hour)) {
+        continue
+      }
+
+      // Find or create a slot for this future date
+      let futureSlot = findTimeSlot(futureDateStr, hour)
+
+      if (!futureSlot) {
+        // Create a new slot
+        futureSlot = createNewTimeSlot(futureDateStr, hour)
+        // Add the new slot to our working copy
+        updatedAvailableSlots = [...updatedAvailableSlots, futureSlot]
+      }
+
+      // Check which students can be booked in this slot
+      const eligibleStudentIds = studentIds.filter(
+        (studentId) =>
+          canStudentEnroll(studentId, futureSlot!, apiData.student_attendances) && !hasReachedMaxSessions(studentId),
+      )
+
+      if (eligibleStudentIds.length > 0 && futureSlot.availableQuota >= eligibleStudentIds.length) {
+        // Count new bookings
+        let newBookingsCount = 0
+
+        // Book each eligible student
+        eligibleStudentIds.forEach((studentId) => {
+          // Check if student already has this slot booked
+          const alreadyBooked = updatedSelectedSlots[String(futureSlot!.id)]?.includes(studentId)
+
+          if (!alreadyBooked) {
+            // Initialize the array if it doesn't exist
+            if (!updatedSelectedSlots[String(futureSlot!.id)]) {
+              updatedSelectedSlots[String(futureSlot!.id)] = []
+            }
+            // Add the student to the slot
+            updatedSelectedSlots[String(futureSlot!.id)].push(studentId)
+            newBookingsCount++
+          }
+        })
+
+        // Update the available quota for this slot
+        updatedAvailableSlots = updatedAvailableSlots.map((s) => {
+          if (String(s.id) === String(futureSlot!.id)) {
+            return {
+              ...s,
+              availableQuota: Math.max(0, s.availableQuota - newBookingsCount),
+            }
+          }
+          return s
+        })
+
+        // Add to pendingConfirmBookings
+        const existingBookingIndex = updatedPendingConfirmBookings.findIndex(
+          (booking) => booking.date === futureSlot!.date && booking.startTime === futureSlot!.startTime,
+        )
+
+        if (existingBookingIndex !== -1) {
+          // If booking for this slot already exists, add the students
+          const existingStudentIds = updatedPendingConfirmBookings[existingBookingIndex].studentIds
+          const newStudentIds = eligibleStudentIds.filter((id) => !existingStudentIds.includes(id))
+
+          updatedPendingConfirmBookings[existingBookingIndex] = {
+            ...updatedPendingConfirmBookings[existingBookingIndex],
+            studentIds: [...existingStudentIds, ...newStudentIds],
+          }
+        } else {
+          // Create a new booking entry
+          const isNewSlot = futureSlot.isNewSlot || typeof futureSlot.id === "string"
+
+          const newBooking: BookingItem = {
+            date: futureSlot.date,
+            startTime: futureSlot.startTime,
+            studentIds: eligibleStudentIds,
+            isNewSlot: isNewSlot,
+          }
+
+          if (!isNewSlot && typeof futureSlot.id === "number") {
+            newBooking.id = futureSlot.id
+          }
+
+          updatedPendingConfirmBookings = [...updatedPendingConfirmBookings, newBooking]
+        }
+      }
+    }
+
+    // Update all state at once after processing all weeks
+    setAvailableSlots(updatedAvailableSlots)
+    setSelectedSlots(updatedSelectedSlots)
+    setPendingConfirmBookings(updatedPendingConfirmBookings)
+
+    // Close the booking dialog
+    setSelectedSlotForBooking(null)
+
+    // Show success message
+    showNotification({
+      type: "success",
+      message: "Recurring sessions booked",
+      description: `Booked sessions for ${weeks} weeks`,
     })
   }
 
@@ -2103,6 +2235,46 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                   })}
                 </div>
               </div>
+
+              {/* Recurring Options */}
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <div className="flex items-center justify-between w-full">
+                    <span className="font-medium">Make this a recurring booking</span>
+                    <Checkbox
+                      checked={showRecurringOptions}
+                      onCheckedChange={(checked) => setShowRecurringOptions(checked as boolean)}
+                    />
+                  </div>
+                </div>
+
+                {showRecurringOptions && (
+                  <div className="mt-3 p-3 border rounded-md">
+                    <Label htmlFor="recurring-weeks">Book for how many weeks?</Label>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setRecurringWeeks(Math.max(1, recurringWeeks - 1))}
+                      >
+                        -
+                      </Button>
+                      <div className="w-10 text-center font-medium">{recurringWeeks}</div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setRecurringWeeks(Math.min(enrichedCourse.totalSessions, recurringWeeks + 1))}
+                      >
+                        +
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      This will book the same time slot for {recurringWeeks} consecutive weeks.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <DialogFooter>
@@ -2111,28 +2283,59 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                   <div className="text-sm text-muted-foreground">
                     {pendingBookings.length} student{pendingBookings.length !== 1 ? "s" : ""} selected
                   </div>
-                  <Button
-                    className="w-full"
-                    onClick={() => bookSlotForMultipleStudents(selectedSlotForBooking.id, pendingBookings)}
-                    disabled={selectedSlotForBooking.availableQuota < pendingBookings.length}
-                  >
-                    Confirm Bookings
-                  </Button>
+                  {showRecurringOptions && recurringWeeks > 1 ? (
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        bookRecurringSlots(selectedSlotForBooking.id, pendingBookings, recurringWeeks)
+                        setSelectedSlotForBooking(null)
+                      }}
+                      disabled={selectedSlotForBooking.availableQuota < pendingBookings.length}
+                    >
+                      Confirm Recurring Bookings ({recurringWeeks} weeks)
+                    </Button>
+                  ) : (
+                    <Button
+                      className="w-full"
+                      onClick={() => bookSlotForMultipleStudents(selectedSlotForBooking.id, pendingBookings)}
+                      disabled={selectedSlotForBooking.availableQuota < pendingBookings.length}
+                    >
+                      Confirm Bookings
+                    </Button>
+                  )}
                 </div>
               ) : (
                 availableStudents.length > 0 &&
                 selectedSlotForBooking.availableQuota > 0 && (
-                  <Button
-                    onClick={() =>
-                      bookSlotForMultipleStudents(
-                        selectedSlotForBooking.id,
-                        availableStudents.map((s) => s.id),
-                      )
-                    }
-                    disabled={selectedSlotForBooking.availableQuota < availableStudents.length}
-                  >
-                    Book for all selected students
-                  </Button>
+                  <>
+                    {showRecurringOptions && recurringWeeks > 1 ? (
+                      <Button
+                        onClick={() => {
+                          bookRecurringSlots(
+                            selectedSlotForBooking.id,
+                            availableStudents.map((s) => s.id),
+                            recurringWeeks,
+                          )
+                          setSelectedSlotForBooking(null)
+                        }}
+                        disabled={selectedSlotForBooking.availableQuota < availableStudents.length}
+                      >
+                        Book recurring for all selected students ({recurringWeeks} weeks)
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() =>
+                          bookSlotForMultipleStudents(
+                            selectedSlotForBooking.id,
+                            availableStudents.map((s) => s.id),
+                          )
+                        }
+                        disabled={selectedSlotForBooking.availableQuota < availableStudents.length}
+                      >
+                        Book for all selected students
+                      </Button>
+                    )}
+                  </>
                 )
               )}
             </DialogFooter>
