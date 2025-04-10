@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 import { toast } from "react-toastify"
+import React from "react"
 
 type ReceiptResponse = {
   id: string
@@ -29,8 +30,6 @@ type ReceiptResponse = {
   payment_method: string
   receipt_number: string
 }
-
-
 
 // Get months as options
 const months = [
@@ -88,23 +87,23 @@ export default function ReceiptsPage() {
         if (response !== TOKEN_EXPIRED) {
           setReceipts(response)
         }
-  
       } catch (error: any) {
         if (error instanceof Error) {
-          toast.error(error.message);
+          toast.error(error.message)
         } else {
-          toast.error("Something went wrong");
+          toast.error("Something went wrong")
         }
       }
     }
 
     loadReceipts()
   }, [])
-  const getUniqueYears = () => {
+
+  // With this useMemo hook:
+  const uniqueYears = React.useMemo(() => {
     const years = receipts.map((receipt) => parseDate(receipt.payment_date).getFullYear())
     return [...new Set(years)].sort((a, b) => b - a) // Sort descending
-  }
-  const uniqueYears = getUniqueYears()
+  }, [receipts])
 
   // Filter receipts based on search term, year, and month
   const filteredReceipts = receipts.filter((receipt) => {
@@ -163,7 +162,7 @@ export default function ReceiptsPage() {
     })
 
     setYearlyData(data)
-  }, [])
+  }, [receipts])
 
   // Handle select all checkbox
   const handleSelectAll = () => {
@@ -479,7 +478,7 @@ export default function ReceiptsPage() {
                   <CardTitle className="text-lg">Total Amount</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold">${yearlyData[yearToDisplay].total.toFixed(2)}</p>
+                  <p className="text-3xl font-bold">฿{yearlyData[yearToDisplay].total.toFixed(2)}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -488,7 +487,7 @@ export default function ReceiptsPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold">
-                    ${(yearlyData[yearToDisplay].total / yearlyData[yearToDisplay].count || 0).toFixed(2)}
+                    ฿{(yearlyData[yearToDisplay].total / yearlyData[yearToDisplay].count || 0).toFixed(2)}
                   </p>
                 </CardContent>
               </Card>

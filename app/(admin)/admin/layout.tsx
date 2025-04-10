@@ -36,8 +36,8 @@ export default function MainLayout({
         <Navbar />
       </div>
 
-      <main className="p-8">
-        <div >{children}</div>
+      <main className="">
+        <div className="mt-8">{children}</div>
       </main>
     </div>
   )
