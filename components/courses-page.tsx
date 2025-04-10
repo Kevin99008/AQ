@@ -374,6 +374,11 @@ export default function CoursesPage({ onEnroll }: CoursesPageProps) {
                                                     <span>+{course.teachers.length - 4} more</span>
                                                 </div>
                                             )}
+                                            {course.teachers.length === 0 && (
+                                                <div className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-1 text-xs">
+                                                    <span>no teacher registered</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
