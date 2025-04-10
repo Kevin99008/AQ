@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Calendar, Users, Clock, Award, Plus, Trash2, ArrowLeft, Search, Check } from "lucide-react"
+import { Calendar, Users, Clock, Award, Plus, Trash2, Search, ChevronDown, ChevronUp } from "lucide-react"
 import { use } from "react"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 import { Button } from "@/components/ui/button"
@@ -14,12 +14,10 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,31 +29,50 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify"
 import { Input } from "@/components/ui/input"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 // Sample course data based on the provided JSON
 type Teacher = {
-  id: number;
-  name: string;
-  contact: string;
+  id: number
+  name: string
+  contact: string
   status: string
-};
+}
+
+type Attendance = {
+  id: number
+  status: string
+  type: string
+  student_id: number
+  student_name: string
+  attendance_date: string
+  start_time: string
+  end_time: string
+}
+
+type Session = {
+  id: number
+  name: string
+  total_quota: number
+  attendances: Attendance[]
+}
 
 type Course = {
-  id: number;
-  name: string;
-  description: string;
-  type: string;
-  min_age: number;
-  max_age: number;
-  quota: number;
-  created_at: string; // ISO date string
-  price: number;
-  category: string;
-  teachers: Teacher[];
-};
-
+  id: number
+  name: string
+  description: string
+  type: string
+  min_age: number
+  max_age: number
+  quota: number
+  created_at: string // ISO date string
+  price: number
+  category: string
+  teachers: Teacher[]
+  sessions: Session[]
+}
 
 export default function AdminCourseDetailPage(props: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -68,6 +85,9 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
   const [teacherSearchQuery, setTeacherSearchQuery] = useState("")
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [selectedTeacherDetails, setSelectedTeacherDetails] = useState<any>(null)
+  const [sessionSearchQuery, setSessionSearchQuery] = useState("")
+  const [openSessions, setOpenSessions] = useState<Record<number, boolean>>({})
+
   // Unwrap params using React.use()
   const params = use(props.params)
   const id = params.id
@@ -85,18 +105,25 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
       if (teacherResult !== TOKEN_EXPIRED) {
         setTeacherList(teacherResult)
       }
-
     } catch (err: any) {
       if (err instanceof Error) {
-        toast.error(err.message);
+        toast.error(err.message)
       } else {
-        toast.error("Something went wrong");
+        toast.error("Something went wrong")
       }
     }
   }
+
   useEffect(() => {
     fetchCourse()
   }, [id])
+
+  const toggleSession = (sessionId: number) => {
+    setOpenSessions((prev) => ({
+      ...prev,
+      [sessionId]: !prev[sessionId],
+    }))
+  }
 
   const formatAgeInMonths = (months: number | null): string => {
     if (months === null) return "N/A"
@@ -122,7 +149,7 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
     const courseId = Number.parseInt(id)
     try {
       const response = await apiFetch<any>(`/api/new/courses/${courseId}/assign-teacher/`, "POST", {
-        teacher_id: teacherId
+        teacher_id: teacherId,
       })
       if (response !== TOKEN_EXPIRED) {
         fetchCourse()
@@ -130,12 +157,11 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
       }
     } catch (err: any) {
       if (err instanceof Error) {
-        toast.error(err.message);
+        toast.error(err.message)
       } else {
-        toast.error("Something went wrong");
+        toast.error("Something went wrong")
       }
     }
-
   }
 
   const handleRemoveTeacher = (teacher: any) => {
@@ -147,19 +173,21 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
     if (teacherToRemove && course) {
       const courseId = Number.parseInt(id)
       try {
-        const response = await apiFetch<any>(`/api/new/courses/${courseId}/${Number.parseInt(teacherToRemove.id)}/remove-teacher/`, "DELETE")
+        const response = await apiFetch<any>(
+          `/api/new/courses/${courseId}/${Number.parseInt(teacherToRemove.id)}/remove-teacher/`,
+          "DELETE",
+        )
         if (response !== TOKEN_EXPIRED) {
           fetchCourse()
           toast.success("Successfully Removed Teacher from Course")
         }
       } catch (err: any) {
         if (err instanceof Error) {
-          toast.error(err.message);
+          toast.error(err.message)
         } else {
-          toast.error("Something went wrong");
+          toast.error("Something went wrong")
         }
       }
-
     }
   }
 
@@ -177,10 +205,6 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
     return (
       <div className="container mx-auto py-6 px-4 md:px-6">
         <div className="flex items-center mb-6">
-          <Button variant="outline" onClick={() => router.push("/admin/unit-course")} className="mr-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Courses
-          </Button>
           <h1 className="text-2xl font-bold">Course Details</h1>
         </div>
         <Card className="max-w-2xl mx-auto">
@@ -201,10 +225,6 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
     <div className="container mx-auto py-6 px-4 md:px-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <Button variant="outline" onClick={() => router.push("/admin/unit-course")} className="mr-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Courses
-          </Button>
           <h1 className="text-2xl font-bold">Course Details</h1>
         </div>
       </div>
@@ -246,12 +266,12 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                    {course.type === "restricted" && <span>
-                      Age Range: {formatAgeInMonths(course.min_age)} - {formatAgeInMonths(course.max_age)}
-                    </span>}
-                    {course.type !== "restricted" && <span>
-                      Age Range: All ages
-                    </span>}
+                    {course.type === "restricted" && (
+                      <span>
+                        Age Range: {formatAgeInMonths(course.min_age)} - {formatAgeInMonths(course.max_age)}
+                      </span>
+                    )}
+                    {course.type !== "restricted" && <span>Age Range: All ages</span>}
                   </div>
                   <div className="flex items-center text-sm">
                     <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -263,8 +283,9 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
           </Card>
 
           <Tabs defaultValue="teachers" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="teachers">Teacher Assignments</TabsTrigger>
+              <TabsTrigger value="sessions">Sessions & Attendance</TabsTrigger>
               <TabsTrigger value="details">Course Details</TabsTrigger>
             </TabsList>
 
@@ -305,8 +326,9 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
                             .map((teacher) => (
                               <div
                                 key={teacher.id}
-                                className={`flex items-center justify-between p-3 hover:bg-muted cursor-pointer ${selectedTeacher === teacher.id.toString() ? "bg-muted" : ""
-                                  } ${teacherList.indexOf(teacher) !== teacherList.length - 1 ? "border-b" : ""}`}
+                                className={`flex items-center justify-between p-3 hover:bg-muted cursor-pointer ${
+                                  selectedTeacher === teacher.id.toString() ? "bg-muted" : ""
+                                } ${teacherList.indexOf(teacher) !== teacherList.length - 1 ? "border-b" : ""}`}
                                 onClick={() => {
                                   setSelectedTeacher(teacher.id.toString())
                                   setConfirmDialogOpen(true)
@@ -429,6 +451,143 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
               )}
             </TabsContent>
 
+            <TabsContent value="sessions" className="space-y-4 pt-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Course Sessions</h2>
+                <div className="relative w-full max-w-sm">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search sessions or students..."
+                    className="pl-8"
+                    value={sessionSearchQuery}
+                    onChange={(e) => setSessionSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {course.sessions && course.sessions.length > 0 ? (
+                <div className="space-y-4">
+                  {course.sessions
+                    .filter((session: Session) => {
+                      if (!sessionSearchQuery) return true
+                      const query = sessionSearchQuery.toLowerCase()
+
+                      // Search by session name
+                      if (session.name.toLowerCase().includes(query)) return true
+
+                      // Search by student name in attendances
+                      return session.attendances.some((attendance: Attendance) =>
+                        attendance.student_name.toLowerCase().includes(query),
+                      )
+                    })
+                    .map((session: Session) => (
+                      <Collapsible
+                        key={session.id}
+                        open={openSessions[session.id]}
+                        onOpenChange={() => toggleSession(session.id)}
+                        className="border rounded-md"
+                      >
+                        <CollapsibleTrigger asChild>
+                          <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted">
+                            <div className="flex flex-col">
+                              <div className="font-medium">{session.name}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {session.attendances.length} attendance records
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Badge variant="outline">Quota: {session.total_quota}</Badge>
+                              {openSessions[session.id] ? (
+                                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </div>
+                          </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="px-4 pb-4">
+                            {sessionSearchQuery &&
+                              session.attendances.some((a) =>
+                                a.student_name.toLowerCase().includes(sessionSearchQuery.toLowerCase()),
+                              ) && (
+                                <p className="text-xs text-muted-foreground mb-2">
+                                  Showing students matching "{sessionSearchQuery}"
+                                </p>
+                              )}
+
+                            {session.attendances.length > 0 ? (
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Student</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Time</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Type</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {session.attendances
+                                    .filter((attendance: Attendance) => {
+                                      if (!sessionSearchQuery) return true
+                                      return attendance.student_name
+                                        .toLowerCase()
+                                        .includes(sessionSearchQuery.toLowerCase())
+                                    })
+                                    .map((attendance: Attendance) => (
+                                      <TableRow key={attendance.id}>
+                                        <TableCell className="font-medium">{attendance.student_name}</TableCell>
+                                        <TableCell>
+                                          {new Date(attendance.attendance_date).toLocaleDateString()}
+                                        </TableCell>
+                                        <TableCell>
+                                          {attendance.start_time} - {attendance.end_time}
+                                        </TableCell>
+                                        <TableCell>
+                                          <Badge
+                                            variant={
+                                              attendance.status === "present"
+                                                ? "green"
+                                                : attendance.status === "absent"
+                                                  ? "destructive"
+                                                  : attendance.status === "" || !attendance.status
+                                                    ? "secondary"
+                                                    : "secondary"
+                                            }
+                                          >
+                                            {attendance.status === "present"
+                                              ? "Present"
+                                              : attendance.status === "absent"
+                                                ? "Absent"
+                                                : attendance.status === "" || !attendance.status
+                                                  ? "No Record"
+                                                  : attendance.status}
+                                          </Badge>
+                                        </TableCell>
+                                        <TableCell>{attendance.type || "N/A"}</TableCell>
+                                      </TableRow>
+                                    ))}
+                                </TableBody>
+                              </Table>
+                            ) : (
+                              <div className="text-center py-4">
+                                <p className="text-muted-foreground">No attendance records for this session.</p>
+                              </div>
+                            )}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 border rounded-md">
+                  <p className="text-muted-foreground">No sessions or attendance records available for this course.</p>
+                </div>
+              )}
+            </TabsContent>
+
             <TabsContent value="details" className="space-y-4 pt-4">
               <h2 className="text-xl font-bold mb-4">Course Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -452,14 +611,20 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
                   <h3 className="font-medium mb-2">Category</h3>
                   <p className="text-sm">{course.category}</p>
                 </div>
-                {course.type === "restricted" && <div className="border rounded-md p-4">
-                  <h3 className="font-medium mb-2">Age Range</h3>
-                  <p className="text-sm">{formatAgeInMonths(course.min_age)} - {formatAgeInMonths(course.max_age)} </p>
-                </div>}
-                {course.type !== "restricted" && <div className="border rounded-md p-4">
-                  <h3 className="font-medium mb-2">Age Range</h3>
-                  <p className="text-sm">All Ages</p>
-                </div>}
+                {course.type === "restricted" && (
+                  <div className="border rounded-md p-4">
+                    <h3 className="font-medium mb-2">Age Range</h3>
+                    <p className="text-sm">
+                      {formatAgeInMonths(course.min_age)} - {formatAgeInMonths(course.max_age)}{" "}
+                    </p>
+                  </div>
+                )}
+                {course.type !== "restricted" && (
+                  <div className="border rounded-md p-4">
+                    <h3 className="font-medium mb-2">Age Range</h3>
+                    <p className="text-sm">All Ages</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
@@ -499,6 +664,10 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
                   <p className="text-sm">{course.teachers.length} assigned</p>
                 </div>
 
+                <div>
+                  <h3 className="font-medium text-sm text-muted-foreground mb-1">Sessions</h3>
+                  <p className="text-sm">{course.sessions ? course.sessions.length : 0} sessions</p>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -516,7 +685,8 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
             <div className="space-y-4 py-3">
               <div className="bg-red-50 border border-red-200 rounded-md p-3">
                 <p className="text-sm text-red-800">
-                  This teacher will be removed from all course timeslots enrollment in the future and will still have responsible for already enrolled timeslots
+                  This teacher will be removed from all course timeslots enrollment in the future and will still have
+                  responsible for already enrolled timeslots
                 </p>
               </div>
               <p className="text-sm">Do you want to continue?</p>
@@ -531,4 +701,3 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
     </div>
   )
 }
-
