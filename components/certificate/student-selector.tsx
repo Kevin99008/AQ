@@ -117,23 +117,23 @@ export function StudentSelector({ students, searchQuery, onSearchChange, onSelec
 
                 <div className="flex-1">
                   <div className="flex flex-col">
-                    <div className="font-medium text-base">{student.name}</div>
-
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      <Badge variant="outline" className="flex items-center gap-1 text-xs">
-                        <AtSign className="h-3 w-3" />
-                        {student.username}
-                      </Badge>
-
+                    <div className="font-medium text-base flex justify-between">{student.name}
                       <Badge variant="outline" className="flex items-center gap-1 text-xs">
                         <Calendar className="h-3 w-3" />
                         {calculateAge(student.birthdate)}
                       </Badge>
+
                     </div>
 
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      Born: {new Date(student.birthdate).toLocaleDateString()}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <Badge variant="outline" className=" flex items-center gap-1 text-xs">
+                        <AtSign className="h-3 w-3" />
+                        {student.username}
+                      </Badge>
+
                     </div>
+
+
                   </div>
                 </div>
               </CardContent>

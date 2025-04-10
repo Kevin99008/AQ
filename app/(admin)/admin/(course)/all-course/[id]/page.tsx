@@ -224,7 +224,7 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
             <Card>
               <CardContent className="p-4">
                 <img src={course.image || "/placeholder.svg"} alt={course.name} className="w-full rounded-md mb-4" />
-                <div className="text-3xl font-bold mb-4">₹{course.price}</div>
+                <div className="text-3xl font-bold mb-4">฿{course.price}</div>
 
                 <div className="mb-4">
                   <div className="flex justify-between text-sm mb-1">
@@ -335,7 +335,7 @@ export default function CourseDetailPage(props: { params: Promise<{ id: string }
             <Card>
               <CardContent className="p-4">
                 <img src={course.image || "/placeholder.svg"} alt={course.name} className="w-full rounded-md mb-4" />
-                <div className="text-3xl font-bold mb-4">₹{course.price}</div>
+                <div className="text-3xl font-bold mb-4">฿{course.price}</div>
 
                 <div className="mb-4">
                   <div className="flex justify-between text-sm mb-1">
