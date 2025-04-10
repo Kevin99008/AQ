@@ -70,11 +70,11 @@ export default function LoginPage() {
   
       // Check user role and redirect accordingly
       if (userData.role === "staff") {
-        push("admin/dashboard");
+        push("admin/home/");
       } else if (userData.role === "user") {
         push("home/");
       } else if (userData.role === "teacher") {
-        push("teacher/home/");
+        push("teacher/assignment/");
       } else {
         push("/");
       }

@@ -1,5 +1,5 @@
 export interface AttendanceRecord {
-    courseType: any;
+    category: string;
     id: number;
     name: string;
     studentId: number;

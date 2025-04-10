@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Switch } from "@/components/ui/switch"
-import { StatusConfirmDialog } from "@/components/status-confirm-dialog"
+import { StatusConfirmDialog } from "@/components/adminComponent/teacherList/status-confirm-dialog"
 import type { Teacher } from "@/types/teacher" // Import the Teacher type
 import { fetchTeachers } from "@/services/api"
 
@@ -91,7 +91,7 @@ export function TeacherTable({ categoryFilter, statusFilter, searchQuery, onView
               <TableHead>Category</TableHead>
               <TableHead>Phone No.</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

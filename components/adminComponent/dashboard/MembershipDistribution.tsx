@@ -8,20 +8,20 @@ import { Badge } from "@/components/ui/badge"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 
 interface MembershipDistributionProps {
-  courseType: string
+  category: string
 }
 
-export default function MembershipDistribution({ courseType }: MembershipDistributionProps) {
+export default function MembershipDistribution({ category }: MembershipDistributionProps) {
   const [pieChartData, setPieChartData] = useState<PieChartData[]>([
     { name: "Student", value: 0 },
     { name: "Teacher", value: 0 },
   ])
 
   useEffect(() => {
-    // Fetch pie chart data based on the selected courseType
+    // Fetch pie chart data based on the selected category
     const fetchData = async () => {
       try {
-        const pieChartResponse = await apiFetch<PieChartData[]>(`/api/static/pie?courseType=${courseType}`)
+        const pieChartResponse = await apiFetch<PieChartData[]>(`/api/static/pie?category=${category}`)
         if (pieChartResponse !== TOKEN_EXPIRED) {
           if (Array.isArray(pieChartResponse) && pieChartResponse.length > 0) {
             setPieChartData(pieChartResponse)
@@ -35,7 +35,7 @@ export default function MembershipDistribution({ courseType }: MembershipDistrib
     }
 
     fetchData()
-  }, [courseType])
+  }, [category])
 
   // Custom colors for the pie chart segments
   const COLORS = [    "#36A2EB", 
@@ -51,20 +51,20 @@ export default function MembershipDistribution({ courseType }: MembershipDistrib
 
   return (
     <div className="flex flex-col h-full">
-      {courseType !== "All" && (
+      {category !== "All" && (
         <div className="mb-3">
           <Badge
             className={`
               ${
-                courseType === "AquaKids"
+                category === "AquaKids"
                   ? "bg-blue-100 text-blue-800"
-                  : courseType === "Playsound"
+                  : category === "Playsound"
                     ? "bg-purple-100 text-purple-800"
                     : "bg-amber-100 text-amber-800"
               }
             `}
           >
-            {courseType}
+            {category}
           </Badge>
         </div>
       )}

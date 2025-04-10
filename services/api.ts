@@ -1,223 +1,152 @@
-import { Course } from "@/types/course"
-import { Teacher } from "@/types/teacher"
-import type { Student, User } from "@/types/user"
+import { Course } from "@/types/course";
+import { Teacher } from "@/types/teacher";
+import type { Student, User } from "@/types/user";
+import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"; // Import the apiFetch function
 
 // Fetch all users
 export async function fetchUsers(): Promise<User[]> {
-  const response = await fetch("http://localhost:8000/api/user/list/")
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch users")
+  const users = await apiFetch<User[]>("/api/user/list/");
+  if (users === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
-
-  return response.json()
+  return users;
 }
 
 // Fetch a specific user
 export async function fetchUser(userId: number): Promise<User> {
-  const response = await fetch(`http://localhost:8000/api/user/${userId}`)
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch user")
+  const user = await apiFetch<User>(`/api/user/${userId}`);
+  if (user === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
-
-  return response.json()
+  return user;
 }
 
-export const addStudent = async (userId: number, studentData: { name: string; birthdate: string }) => {
-  const response = await fetch(`http://localhost:8000/api/students/add/${userId}/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(studentData),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to add student");
+// Add a student
+export const addStudent = async (
+  userId: number,
+  studentData: { name: string; birthdate: string }
+) => {
+  const student = await apiFetch<{
+    id: { success: boolean; student: Student; }; success: boolean; student: Student 
+}>(
+    `/api/students/add/${userId}/`,
+    "POST",
+    studentData
+  );
+  if (student === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
-
-  return await response.json();
+  return student;
 };
-
 
 // Fetch all courses
 export async function fetchCourses(): Promise<Course[]> {
-  const response = await fetch("/api/courses")
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch courses")
+  const courses = await apiFetch<Course[]>("/api/courses");
+  if (courses === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
-
-  return response.json()
+  return courses;
 }
 
 // Enroll a student in a course
 export async function enrollStudentInCourse(
   studentId: number,
-  courseId: number,
+  courseId: number
 ): Promise<{ success: boolean; message: string; student: Student }> {
-  const response = await fetch(`/api/students/${studentId}/enroll`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ courseId }),
-  })
-
-  if (!response.ok) {
-    const errorData = await response.json()
-    throw new Error(errorData.error || "Failed to enroll student")
+  const enrollment = await apiFetch<{ success: boolean; message: string; student: Student }>(
+    `/api/students/${studentId}/enroll`,
+    "POST",
+    { courseId }
+  );
+  if (enrollment === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
-
-  return response.json()
+  return enrollment;
 }
 
 // Fetch all teachers
 export async function fetchTeachers(): Promise<Teacher[]> {
-  try {
-    const response = await fetch("http://localhost:8000/api/teachers")
-    if (!response.ok) {
-      throw new Error("Failed to fetch teachers")
-    }
-    return await response.json()
-  } catch (error) {
-    console.error("Error fetching teachers:", error)
-    throw error
+  const teachers = await apiFetch<Teacher[]>("/api/teachers");
+  if (teachers === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
+  return teachers;
 }
 
 // Fetch a single teacher by ID
 export async function fetchTeacher(id: number): Promise<Teacher> {
-  try {
-    const response = await fetch(`https://aqtech-production.up.railway.app/api/teachers/${id}`)
-    if (!response.ok) {
-      throw new Error("Failed to fetch teacher")
-    }
-    return await response.json()
-  } catch (error) {
-    console.error("Error fetching teacher:", error)
-    throw error
+  const teacher = await apiFetch<Teacher>(`/api/teachers/${id}`);
+  if (teacher === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
+  return teacher;
 }
 
 // Create a new teacher
 export async function createTeacher(teacherData: { name: string; username: string }): Promise<Teacher> {
-  try {
-    const response = await fetch("https://aqtech-production.up.railway.app/api/teachers/create/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(teacherData),
-    })
-    if (!response.ok) {
-      throw new Error("Failed to create teacher")
-    }
-    return await response.json()
-  } catch (error) {
-    console.error("Error creating teacher:", error)
-    throw error
+  const teacher = await apiFetch<Teacher>("/api/teachers/create/", "POST", teacherData);
+  if (teacher === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
+  return teacher;
 }
 
 // Add a session to a teacher
 export async function addSessionToTeacher(
   teacherId: number,
   sessionData: {
-    course: string
-    session_date: string
-    start_time: string
-    end_time: string
-    total_quota: string
-  },
+    course: string;
+    session_date: string;
+    start_time: string;
+    end_time: string;
+    total_quota: string;
+  }
 ): Promise<void> {
-  try {
-    const response = await fetch(`https://aqtech-production.up.railway.app/api/teachers/${teacherId}/sessions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(sessionData),
-    })
-    if (!response.ok) {
-      throw new Error("Failed to add session")
-    }
-  } catch (error) {
-    console.error("Error adding session:", error)
-    throw error
+  const session = await apiFetch<void>(`/api/teachers/${teacherId}/sessions`, "POST", sessionData);
+  if (session === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
 }
 
+// Update teacher status
 export async function updateTeacherStatus(teacherId: number, newStatus: string): Promise<void> {
-  try {
-    const response = await fetch(`http://localhost:8000/api/teachers/status/${teacherId}/`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ status: newStatus }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to update teacher status");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error updating teacher status:", error);
-    throw error; // Re-throw error to be handled in frontend
+  const statusUpdate = await apiFetch<void>(
+    `/api/teachers/status/${teacherId}/`,
+    "PATCH",
+    { status: newStatus }
+  );
+  if (statusUpdate === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
 }
 
-// services/api.ts
+// Fetch categories
 export async function fetchCategories() {
-  try {
-    const response = await fetch('http://localhost:8000/api/categories/')
-    if (!response.ok) {
-      throw new Error("Failed to fetch categories")
-    }
-    const data = await response.json()
-    return data
-  } catch (error) {
-    console.error("Error fetching categories:", error)
-    throw error
+  const categories = await apiFetch<any>("/api/categories/");
+  if (categories === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
+  return categories;
 }
 
+// Fetch enrolled courses
 export const fetchEnrolledCourses = async () => {
-  try {
-    const response = await fetch("http://localhost:8000/api/enrolled-courses/") // Replace with your actual API endpoint
-    if (!response.ok) {
-      throw new Error("Failed to fetch courses")
-    }
-    const courses = await response.json()
-    return courses
-  } catch (error) {
-    console.error("Error fetching courses:", error)
-    return [] // Return empty array on error
+  const courses = await apiFetch<any>("/api/enrolled-courses/");
+  if (courses === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
+  return courses;
 }
 
-export const updateStudentStatus = async (studentId: number, status: string, token: string) => {
-  try {
-    const response = await fetch(`http://localhost:8000/api/students/status/${studentId}/`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Token ${token}`, // Add the token here for authentication
-      },
-      body: JSON.stringify({ status }), // Send the new status in the request body
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to update student status');
-    }
-
-    const data = await response.json();
-    return data;  // Return the updated student data if the request is successful
-  } catch (error) {
-    console.error('Error updating student status:', error);
-    throw error; // Rethrow the error so the component can handle it
+// Update student status
+export const updateStudentStatus = async (studentId: number, status: string) => {
+  const updatedStudent = await apiFetch<any>(
+    `/api/students/status/${studentId}/`,
+    "PATCH",
+    { status },
+  );
+  if (updatedStudent === TOKEN_EXPIRED) {
+    throw new Error("Session expired, please log in again");
   }
+  return updatedStudent;
 };

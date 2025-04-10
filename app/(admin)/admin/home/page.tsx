@@ -27,34 +27,41 @@ const NavCard: React.FC<NavCardProps> = ({ icon, name, href }) => {
 export default function AdminPanel() {
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col w-full"> {/* Add a full-width background color */}
             {/* Navbar */}
-
+    
             {/* Navigation Cards */}
-            <div className="flex-grow flex items-center justify-center">
-                <div className="space-y-10">
-                    <div className="flex gap-6 w-full max-w-lg justify-center">
-                        <NavCard icon={<Home size={28} />} name="Dashboard" href="dashboard" />
-                        <NavCard icon={<ScanFace size={28} />} name="Check Attendance" href="checkAttendance" />
-                        <NavCard icon={<Settings2 size={28} />} name="Edit Attendance" href="modifyAttendance" />
+            <div className="flex-grow">
+                <div className="space-y-10 w-full px-4"> {/* Add padding to create space on the sides */}
+                    {/* Green background group */}
+                    <div className="w-full bg-green-100 rounded-md p-4">
+                        <div className="flex gap-6 w-full max-w-6xl mx-auto justify-center">
+                            <NavCard icon={<Home size={28} />} name="Dashboard" href="dashboard" />
+                            <NavCard icon={<ScanFace size={28} />} name="Check Attendance" href="checkAttendance" />
+                            <NavCard icon={<Settings2 size={28} />} name="Edit Attendance" href="modifyAttendance" />
+                        </div>
                     </div>
-                    <div className="flex gap-6 w-full max-w-lg justify-center">
-                        <NavCard icon={<Users size={28} />} name="User List" href="userList" />
-                        <NavCard icon={<Users size={28} />} name="Unit-User" href="unit-user" />
-                        <NavCard icon={<Users size={28} />} name="Teacher List" href="teacherList" />
-                        <NavCard icon={<Users size={28} />} name="Unit-Teacher" href="unit-teacher" />
-                        <NavCard icon={<ArchiveRestore size={28} />} name="Storage" href="storage" />
+    
+                    {/* Blue background group */}
+                    <div className="w-full bg-blue-100 rounded-md p-4">
+                        <div className="flex gap-6 w-full max-w-6xl mx-auto justify-center">
+                            <NavCard icon={<Users size={28} />} name="Unit-User" href="unit-user" />
+                            <NavCard icon={<Users size={28} />} name="Unit-Teacher" href="unit-teacher" />
+                            <NavCard icon={<ArchiveRestore size={28} />} name="Storage" href="storage" />
+                        </div>
                     </div>
-                    <div className="flex gap-6 w-full max-w-lg justify-center">
-                        <NavCard icon={<Book size={28} />} name="All Courses" href="all-course" />
-                        <NavCard icon={<BookA size={28} />} name="Progress Courses" href="unit-course" />
-                        <NavCard icon={<BookCheck size={28} />} name="Schedule Courses" href="scheduleCourse" />
-                        <NavCard icon={<BookOpen size={28} />} name="Enroll Courses" href="enrollCourse" />
-                        <NavCard icon={<BookPlus size={28} />} name="Create Courses" href="createCourse" />
-                        <NavCard icon={<GraduationCap size={28} />} name="Upload Certificate" href="uploadCertificate" />
+    
+                    {/* Orange background group */}
+                    <div className="w-full bg-orange-100 rounded-md p-4">
+                        <div className="flex gap-6 w-full max-w-6xl mx-auto justify-center">
+                            <NavCard icon={<Book size={28} />} name="All Courses" href="all-course" />
+                            <NavCard icon={<BookA size={28} />} name="Progress Courses" href="unit-course" />
+                            <NavCard icon={<GraduationCap size={28} />} name="Upload Certificate" href="uploadCertificate" />
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     );
+    
 }

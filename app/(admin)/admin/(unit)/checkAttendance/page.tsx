@@ -300,7 +300,7 @@ export default function CheckAttendance() {
                 records={attendanceRecords}
                 onSelectAttendance={setSelectedAttendance}
                 sortNewestFirst={true}
-                courseType={selectedGroup}
+                category={selectedGroup}
               />
             </CardContent>
           </Card>

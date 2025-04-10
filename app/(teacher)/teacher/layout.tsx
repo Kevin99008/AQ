@@ -15,7 +15,7 @@ export default function MainLayout({
   const router = useRouter()
 
   // Check if we're on the home page
-  const isHomePage = pathname === "/" || pathname === "/teacher/home"
+  const isHomePage = pathname === "/" || pathname === "/teacher/assignment"
 
   const handleBack = () => {
     router.back()
@@ -26,7 +26,7 @@ export default function MainLayout({
       <div className="w-full bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
         <div className="flex items-center gap-3">
           {!isHomePage && (
-            <Button variant="ghost" size="icon" onClick={handleBack} className="text-white hover:bg-gray-700 mr-2">
+            <Button variant="ghost" size="icon" onClick={handleBack} className="text-white hover:bg-white mr-2 w-full px-4">
               <ChevronLeft size={20} /> Back
             </Button>
           )}
