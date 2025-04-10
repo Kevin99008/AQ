@@ -47,7 +47,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Slider } from "@/components/ui/slider"
 import { NotificationContainer, showNotification } from "@/components/notification"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify"
 import { useRouter } from "next/navigation"
 
 // แก้ไขโครงสร้างข้อมูล TimeSlot
@@ -75,22 +75,22 @@ interface ApiResponse {
 
 // API Response type
 export interface AttendanceResponse {
-  message: string;
-  count: number;
-  attendance_ids: Attendance[];
+  message: string
+  count: number
+  attendance_ids: Attendance[]
 }
 
 // Attendance object type
 export interface Attendance {
-  id: number;
-  status: string;
-  type: string;
-  session: number;
-  student: number;
-  timeslot: number;
-  attendance_date: string;
-  start_time: string;
-  end_time: string;
+  id: number
+  status: string
+  type: string
+  session: number
+  student: number
+  timeslot: number
+  attendance_date: string
+  start_time: string
+  end_time: string
 }
 
 // ฟังก์ชันสำหรับโหลดข้อมูล timeslot จาก API
@@ -99,9 +99,9 @@ const fetchTimeSlots = async (courseId: string, studentIds: string[]) => {
     // ในสถานการณ์จริง คุณจะเรียก API ด้วย fetch หรือ axios
     // const response = await fetch(`/api/timeslots?courseId=${courseId}&studentIds=${studentIds.join(',')}`);
     // const data: ApiResponse = await response.json();
-    const coursesResponse = await apiFetch<ApiResponse>('/api/new/courses/timeslot-selection/', "POST", {
+    const coursesResponse = await apiFetch<ApiResponse>("/api/new/courses/timeslot-selection/", "POST", {
       courseId: courseId,
-      studentIds: studentIds
+      studentIds: studentIds,
     })
     if (coursesResponse !== TOKEN_EXPIRED) {
       return coursesResponse
@@ -116,9 +116,9 @@ const fetchTimeSlots = async (courseId: string, studentIds: string[]) => {
     // return data
   } catch (err: any) {
     if (err instanceof Error) {
-      toast.error(err.message);
+      toast.error(err.message)
     } else {
-      toast.error("Something went wrong");
+      toast.error("Something went wrong")
     }
   }
 }
@@ -294,7 +294,10 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       setIsLoading(true)
       try {
         // ในสถานการณ์จริง คุณจะเรียกใช้ fetchTimeSlots
-        const data = await fetchTimeSlots(course.id, students.map(s => s.id));
+        const data = await fetchTimeSlots(
+          course.id,
+          students.map((s) => s.id),
+        )
 
         // สำหรับตัวอย่าง เราจะใช้ข้อมูลจำลอง
         // const courseTimeslots = generateTimeSlots()
@@ -411,6 +414,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
   const currentWeekSlots = useMemo(() => {
     if (!apiData) return []
 
+    const now = new Date()
+
     return availableSlots.filter((slot) => {
       const slotDate = parseISO(slot.date)
       const weekEnd = addDays(currentWeekStart, 6)
@@ -421,10 +426,19 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       const isInTimeRange = slotHour >= timeRange[0] && slotHour <= timeRange[1]
       const isSelectedDay = selectedDays.includes(dayOfWeek)
 
+      // Check if this slot is in the past
+      const slotDateTime = new Date(`${slot.date}T${slot.startTime}:00`)
+      const isPastSlot = slotDateTime < now
+
       // กรองตามความพร้อมใช้งาน
       let isAvailable = true
 
       if (showOnlyAvailable && selectedStudents.length > 0) {
+        // Don't show past slots when "Show only available" is checked
+        if (isPastSlot) {
+          isAvailable = false
+        }
+
         // ตรวจสอบว่า timeslot นี้สามารถลงทะเบียนได้สำหรับนักเรียนทุกคนที่เลือกหรือไม่
         // ตรวจสอบว่า timeslot นี้ตรงกับ timeslot ของคอร์สอื่นในหมวดหมู่เดียวกันหรือไม่
         const conflictWithOtherCourses = apiData.other_category_timeslots.some(
@@ -586,6 +600,29 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
   // Open booking dialog
   const openBookingDialog = (slot: TimeSlot | null, date?: string, hour?: number) => {
+    // Check if the date and time have passed
+    if (slot) {
+      const slotDateTime = new Date(`${slot.date}T${slot.startTime}:00`)
+      if (slotDateTime < new Date()) {
+        showNotification({
+          type: "error",
+          message: "Cannot book past time",
+          description: "You cannot book a time slot that has already passed.",
+        })
+        return
+      }
+    } else if (date && hour !== undefined) {
+      const slotDateTime = new Date(`${date}T${hour.toString().padStart(2, "0")}:00:00`)
+      if (slotDateTime < new Date()) {
+        showNotification({
+          type: "error",
+          message: "Cannot book past time",
+          description: "You cannot book a time slot that has already passed.",
+        })
+        return
+      }
+    }
+
     if (slot) {
       setSelectedSlotForBooking(slot)
     } else if (date && hour !== undefined) {
@@ -1048,8 +1085,9 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       showNotification({
         type: "error",
         message: "Too many sessions",
-        description: `Cannot copy all slots. ${students.find((s) => s.id === toStudentId)?.name} can only have ${enrichedCourse.totalSessions - targetStudentBookedCount
-          } more sessions.`,
+        description: `Cannot copy all slots. ${students.find((s) => s.id === toStudentId)?.name} can only have ${
+          enrichedCourse.totalSessions - targetStudentBookedCount
+        } more sessions.`,
       })
       return
     }
@@ -1298,9 +1336,9 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       //   }),
       // });
       // const data = await response.json();
-      const response = await apiFetch<AttendanceResponse>('/api/new/courses/create-batch/', "POST", {
+      const response = await apiFetch<AttendanceResponse>("/api/new/courses/create-batch/", "POST", {
         course_id: course.id,
-        bookings: pendingConfirmBookings
+        bookings: pendingConfirmBookings,
       })
       if (response !== TOKEN_EXPIRED) {
         router.push(`/admin/all-course/attendances`)
@@ -1429,16 +1467,19 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                   ))}
                   {enrichedCourse.teachers && enrichedCourse.teachers.length > 4 && (
                     <div className="p-2 rounded-md border text-center">
-                      <button onClick={(e) => {
-                        e.stopPropagation()
-                        setTeacherListOpen(true)
-                      }} className="text-sm text-muted-foreground">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setTeacherListOpen(true)
+                        }}
+                        className="text-sm text-muted-foreground"
+                      >
                         +{enrichedCourse.teachers.length - 4} more teachers
                       </button>
                     </div>
                   )}
                   {enrichedCourse.teachers.length === 0 && (
-                      <div className="text-muted-foreground">No Teacher registered</div>
+                    <div className="text-muted-foreground">No Teacher registered</div>
                   )}
                 </div>
               </div>
@@ -1592,8 +1633,9 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                     {weekDays.map((day) => (
                       <div
                         key={day.dayName}
-                        className={`p-2 text-center border-r last:border-r-0 ${selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100 opacity-50"
-                          }`}
+                        className={`p-2 text-center border-r last:border-r-0 ${
+                          selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100 opacity-50"
+                        }`}
                       >
                         <div className="font-medium">{day.dayName}</div>
                         <div className="text-2xl">{day.dayNumber}</div>
@@ -1622,8 +1664,9 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                     {weekDays.map((day) => (
                       <div
                         key={day.dayName}
-                        className={`border-r last:border-r-0 ${selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100"
-                          }`}
+                        className={`border-r last:border-r-0 ${
+                          selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100"
+                        }`}
                       >
                         {timeSlots
                           .filter((time) => {
@@ -1643,6 +1686,12 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                             // ค้นหา timeslot ที่มีอยู่แล้ว
                             const existingSlot = findTimeSlot(day.formattedDate, hour)
 
+                            // Check if this time slot is in the past
+                            const slotDateTime = new Date(
+                              `${day.formattedDate}T${hour.toString().padStart(2, "0")}:00:00`,
+                            )
+                            const isPastTimeSlot = slotDateTime < new Date()
+
                             return (
                               <div key={`${day.formattedDate}-${hour}`} className="h-24 border-b last:border-b-0 p-1">
                                 {slotsForThisHour.length > 0 ? (
@@ -1651,10 +1700,16 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                                       const bookedStudents = getBookedStudents(slot.id)
                                       const isFullyBooked = slot.availableQuota === 0
 
+                                      // Check if this slot is in the past
+                                      const slotDateTime = new Date(`${slot.date}T${slot.startTime}:00`)
+                                      const isPastSlot = slotDateTime < new Date()
+
                                       // Determine slot style based on booked students
                                       let slotStyle = "bg-blue-50 border border-blue-200 hover:bg-blue-100"
 
-                                      if (isFullyBooked) {
+                                      if (isPastSlot) {
+                                        slotStyle = "bg-gray-200 border border-gray-300 opacity-60 cursor-not-allowed"
+                                      } else if (isFullyBooked) {
                                         slotStyle = "bg-amber-50 border border-amber-200 hover:bg-amber-100"
                                       } else if (bookedStudents.length > 0) {
                                         // If only one student is booked, use their color
@@ -1671,8 +1726,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                                       return (
                                         <div
                                           key={slot.id}
-                                          className={`p-2 rounded-md cursor-pointer text-sm h-full ${slotStyle}`}
-                                          onClick={() => openBookingDialog(slot)}
+                                          className={`p-2 rounded-md ${isPastSlot ? "cursor-not-allowed" : "cursor-pointer"} text-sm h-full ${slotStyle}`}
+                                          onClick={() => !isPastSlot && openBookingDialog(slot)}
                                         >
                                           <div className="font-medium text-center">{slot.startTime}</div>
 
@@ -1736,7 +1791,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                                               variant="outline"
                                               className={`text-xs ${isFullyBooked ? "bg-amber-50 text-amber-700" : ""}`}
                                             >
-                                              {slot.availableQuota} left
+                                              {isPastSlot ? "Past" : `${slot.availableQuota} left`}
                                             </Badge>
                                           </div>
                                         </div>
@@ -1746,6 +1801,10 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                                 ) : isBookedInOtherCourse ? (
                                   <div className="h-full flex items-center justify-center bg-gray-100 rounded-md text-xs text-muted-foreground">
                                     Booked in other course
+                                  </div>
+                                ) : isPastTimeSlot ? (
+                                  <div className="h-full flex items-center justify-center bg-gray-200 rounded-md text-xs text-muted-foreground opacity-60">
+                                    Not available
                                   </div>
                                 ) : (
                                   <div
@@ -1793,8 +1852,9 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                       return (
                         <div
                           key={studentId}
-                          className={`border rounded-lg overflow-hidden ${dropTargetStudent === studentId ? "ring-2 ring-primary" : ""
-                            }`}
+                          className={`border rounded-lg overflow-hidden ${
+                            dropTargetStudent === studentId ? "ring-2 ring-primary" : ""
+                          }`}
                           onDragOver={(e) => handleDragOver(e, studentId)}
                           onDragLeave={() => setDropTargetStudent(null)}
                           onDrop={(e) => handleDrop(e, studentId)}
@@ -1921,7 +1981,6 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                 )}
               </Button>
             )}
-
           </div>
         </div>
       </div>
