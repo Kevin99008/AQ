@@ -230,7 +230,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                       <div className="pt-2 border-t">
                         <div className="flex justify-between items-center">
                           <span className="font-medium">
-                            ₹{typeof session.course?.price === "number" ? session.course.price : "0"}
+                            ฿{typeof session.course?.price === "number" ? session.course.price : "0"}
                           </span>
                           <Button
                             size="sm"

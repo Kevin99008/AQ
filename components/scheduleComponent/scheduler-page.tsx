@@ -1599,7 +1599,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground">Price</h3>
-                    <p>₹{enrichedCourse.price}</p>
+                    <p>฿{enrichedCourse.price}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground">Duration</h3>

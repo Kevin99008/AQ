@@ -616,7 +616,7 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
                 </div>
                 <div className="border rounded-md p-4">
                   <h3 className="font-medium mb-2">Price</h3>
-                  <p className="text-sm">₹{course.price}</p>
+                  <p className="text-sm">฿{course.price}</p>
                 </div>
                 <div className="border rounded-md p-4">
                   <h3 className="font-medium mb-2">Category</h3>
