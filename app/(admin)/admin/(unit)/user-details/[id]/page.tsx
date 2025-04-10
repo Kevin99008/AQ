@@ -234,7 +234,7 @@ export default function UserDetailPage(props: { params: Promise<{ id: string }> 
                             variant="outline"
                             onClick={() =>
                               session.course && session.course.id
-                                ? router.push(`/admin/courses/${session.course.id}`)
+                                ? router.push(`/admin/unit-course/${session.course.id}`)
                                 : null
                             }
                           >
