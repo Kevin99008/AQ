@@ -36,7 +36,7 @@ export const ReceiptExportService = {
     doc.text(`Total Receipts: ${receipts.length}`, 14, 38)
 
     const totalAmount = receipts.reduce((sum, receipt) => sum + receipt.amount, 0)
-    doc.text(`Total Amount: $${totalAmount.toFixed(2)}`, 14, 44)
+    doc.text(`Total Amount: ${totalAmount.toFixed(2)} Baht`, 14, 44)
 
     // Add table with receipt data
     autoTable(doc, {
@@ -45,7 +45,7 @@ export const ReceiptExportService = {
       body: receipts.map((receipt) => [
         receipt.receipt_number,
         receipt.student,
-        `${receipt.amount.toFixed(2)}`,
+        `${receipt.amount.toFixed(2)} Baht`,
         new Date(receipt.payment_date).toLocaleDateString(),
         receipt.payment_method,
       ]),
