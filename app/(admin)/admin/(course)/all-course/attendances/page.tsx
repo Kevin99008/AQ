@@ -14,7 +14,7 @@ export default function ThankYouPage() {
         if (prevCount <= 1) {
           clearInterval(timer)
           // Redirect to courses page
-          router.push("/admin/all-courses")
+          router.push("/admin/all-course")
           return 0
         }
         return prevCount - 1
@@ -55,7 +55,7 @@ export default function ThankYouPage() {
         </div>
 
         <button
-          onClick={() => router.push("/admin/all-courses")}
+          onClick={() => router.push("/admin/all-course")}
           className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
         >
           Go to Courses Now

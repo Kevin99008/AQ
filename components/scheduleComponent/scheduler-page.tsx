@@ -64,12 +64,26 @@ interface TimeSlot {
   isNewSlot?: boolean // เพิ่มฟิลด์เพื่อระบุว่าเป็น timeslot ที่สร้างใหม่หรือไม่
 }
 
+interface TimeSlotAttendances {
+  id: number | string
+  date: string
+  startTime: string
+  endTime: string
+  hour: number
+  availableQuota: number
+  courseId?: string
+  courseName?: string
+  category?: string
+  isNewSlot?: boolean // เพิ่มฟิลด์เพื่อระบุว่าเป็น timeslot ที่สร้างใหม่หรือไม่
+  isSameCourse?: boolean
+}
+
 interface ApiResponse {
   course_timeslots: TimeSlot[] // timeslot ของคอร์สปัจจุบันที่สามารถลงทะเบียนได้
   other_category_timeslots: TimeSlot[] // timeslot ของคอร์สอื่นในหมวดหมู่เดียวกันที่มีการลงทะเบียนไปแล้ว
   student_attendances: {
     studentId: string
-    timeslots: TimeSlot[] // timeslot ที่นักเรียนคนนี้ลงทะเบียนไปแล้ว
+    timeslots: TimeSlotAttendances[] // timeslot ที่นักเรียนคนนี้ลงทะเบียนไปแล้ว
   }[]
 }
 
@@ -424,41 +438,41 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       // กรองตามความพร้อมใช้งาน
       let isAvailable = true
 
-      if (showOnlyAvailable && selectedStudents.length > 0) {
-        // ตรวจสอบว่า timeslot นี้สามารถลงทะเบียนได้สำหรับนักเรียนทุกคนที่เลือกหรือไม่
-        // ตรวจสอบว่า timeslot นี้ตรงกับ timeslot ของคอร์สอื่นในหมวดหมู่เดียวกันหรือไม่
-        const conflictWithOtherCourses = apiData.other_category_timeslots.some(
-          (otherSlot) => otherSlot.date === slot.date && otherSlot.startTime === slot.startTime,
-        )
+      const conflictWithOtherCourses = apiData.other_category_timeslots.some(
+        (otherSlot) => otherSlot.date === slot.date && otherSlot.startTime === slot.startTime,
+      )
 
-        if (conflictWithOtherCourses) {
-          isAvailable = false
-        }
-
-        // ตรวจสอบว่านักเรียนที่เลือกมีคอร์สในคาบนี้อยู่แล้วหรือไม่
-        for (const studentId of selectedStudents) {
-          const studentAttendance = apiData.student_attendances.find((attendance) => attendance.studentId === studentId)
-
-          if (studentAttendance) {
-            const hasConflict = studentAttendance.timeslots.some(
-              (attendedSlot) => attendedSlot.date === slot.date && attendedSlot.startTime === slot.startTime,
-            )
-
-            if (hasConflict) {
-              isAvailable = false
-              break
-            }
-          }
-        }
-
-        // ตรวจสอบว่ามีที่นั่งเพียงพอหรือไม่
-        isAvailable = isAvailable && slot.availableQuota >= selectedStudents.length
+      if (conflictWithOtherCourses) {
+        isAvailable = false
       }
 
       return slotDate >= currentWeekStart && slotDate <= weekEnd && isInTimeRange && isSelectedDay && isAvailable
     })
   }, [apiData, availableSlots, currentWeekStart, timeRange, selectedDays, showOnlyAvailable, selectedStudents])
 
+  const isStudentEnrolled = (studentId: string, date: string, startTime: string): boolean => {
+    if (!apiData) return false
+
+    const studentAttendance = apiData.student_attendances.find((attendance) => attendance.studentId === studentId)
+    if (!studentAttendance) return false
+
+    return studentAttendance.timeslots.some(
+      (attendedSlot) =>
+        attendedSlot.date === date && attendedSlot.startTime === startTime && attendedSlot.isSameCourse === true,
+    )
+  }
+
+  const isStudentEnrolledOther = (studentId: string, date: string, startTime: string): boolean => {
+    if (!apiData) return false
+
+    const studentAttendance = apiData.student_attendances.find((attendance) => attendance.studentId === studentId)
+    if (!studentAttendance) return false
+
+    return studentAttendance.timeslots.some(
+      (attendedSlot) =>
+        attendedSlot.date === date && attendedSlot.startTime === startTime && attendedSlot.isSameCourse === false,
+    )
+  }
   // Group slots by date and hour
   const slotsByDateAndHour = useMemo(() => {
     return currentWeekSlots.reduce(
@@ -582,6 +596,45 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
     // ค้นหาใน availableSlots ที่เป็น timeslot ที่สร้างใหม่
     return availableSlots.find((slot) => slot.date === date && slot.startTime === startTime && slot.isNewSlot)
+  }
+
+  const getStudentConflictStatus = (date: string, startTime: string, apiData: ApiResponse | null) => {
+    if (!apiData) return { hasConflict: false }
+
+    const studentAttendance = apiData.student_attendances
+    // .find((attendance) => attendance.studentId === studentId)
+
+    if (!studentAttendance) return { hasConflict: false }
+
+    // Find conflicting timeslot
+    let isAvailable = true
+
+    if (showOnlyAvailable && selectedStudents.length > 0) {
+
+      for (const studentId of selectedStudents) {
+        const studentAttendance = apiData.student_attendances.find((attendance) => attendance.studentId === studentId)
+
+        if (studentAttendance) {
+          const conflictingSlot = studentAttendance.timeslots.some((slot) => slot.date === date && slot.startTime === startTime)
+          if (conflictingSlot) {
+            isAvailable = false
+            break
+          }
+        }
+
+      }
+
+      const timeslotFind = apiData.course_timeslots.find((timeslot) => timeslot.date === date && timeslot.startTime === startTime)
+      if (timeslotFind) {
+        isAvailable = isAvailable && timeslotFind.availableQuota >= selectedStudents.length
+      }
+
+    }
+
+    if (!isAvailable) return { hasConflict: true }
+
+    return { hasConflict: false }
+
   }
 
   // Open booking dialog
@@ -1290,7 +1343,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       // const response = await fetch('/api/confirm-bookings', {
       //   method: 'POST',
       //   headers: {
-      //     'Content-Type': 'application/json',
+      //     'Content-Type': 'application/json', 
       //   },
       //   body: JSON.stringify({
       //     bookings: pendingConfirmBookings,
@@ -1438,7 +1491,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                     </div>
                   )}
                   {enrichedCourse.teachers.length === 0 && (
-                      <div className="text-muted-foreground">No Teacher registered</div>
+                    <div className="text-muted-foreground">No Teacher registered</div>
                   )}
                 </div>
               </div>
@@ -1589,17 +1642,24 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                   {/* Calendar Header */}
                   <div className="grid grid-cols-8 border-b">
                     <div className="p-2 text-center border-r"></div>
-                    {weekDays.map((day) => (
-                      <div
-                        key={day.dayName}
-                        className={`p-2 text-center border-r last:border-r-0 ${selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100 opacity-50"
-                          }`}
-                      >
-                        <div className="font-medium">{day.dayName}</div>
-                        <div className="text-2xl">{day.dayNumber}</div>
-                        <div className="text-xs text-muted-foreground">{day.monthName}</div>
-                      </div>
-                    ))}
+                    {weekDays.map((day) => {
+                      const isPastDate = new Date(day.formattedDate) < new Date(new Date().setHours(0, 0, 0, 0))
+                      return (
+                        <div
+                          key={day.dayName}
+                          className={`p-2 text-center border-r last:border-r-0 ${!selectedDays.includes(day.dayOfWeek)
+                            ? "bg-gray-100"
+                            : isPastDate
+                              ? "bg-gray-200 opacity-60"
+                              : ""
+                            }`}
+                        >
+                          <div className="font-medium">{day.dayName}</div>
+                          <div className="text-2xl">{day.dayNumber}</div>
+                          <div className="text-xs text-muted-foreground">{day.monthName}</div>
+                        </div>
+                      )
+                    })}
                   </div>
 
                   {/* Calendar Body - Time Grid */}
@@ -1619,147 +1679,252 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                     </div>
 
                     {/* Days columns */}
-                    {weekDays.map((day) => (
-                      <div
-                        key={day.dayName}
-                        className={`border-r last:border-r-0 ${selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100"
-                          }`}
-                      >
-                        {timeSlots
-                          .filter((time) => {
-                            const hour = Number.parseInt(time.split(":")[0])
-                            return hour >= timeRange[0] && hour <= timeRange[1]
-                          })
-                          .map((time) => {
-                            const hour = Number.parseInt(time.split(":")[0])
-                            const slotsForThisHour = slotsByDateAndHour[day.formattedDate]?.[hour] || []
+                    {weekDays.map((day) => {
+                      const isPastDate = new Date(day.formattedDate) < new Date(new Date().setHours(0, 0, 0, 0))
+                      return (
+                        <div
+                          key={day.dayName}
+                          className={`border-r last:border-r-0 ${selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100"
+                            }`}
+                        >
+                          {timeSlots
+                            .filter((time) => {
+                              const hour = Number.parseInt(time.split(":")[0])
+                              return hour >= timeRange[0] && hour <= timeRange[1]
+                            })
+                            .map((time) => {
+                              const hour = Number.parseInt(time.split(":")[0])
+                              const slotsForThisHour = slotsByDateAndHour[day.formattedDate]?.[hour] || []
 
-                            // ตรวจสอบว่าช่องเวลานี้มีการจองในคอร์สอื่นหรือไม่
-                            const isBookedInOtherCourse = isTimeSlotBookedInOtherCourse(day.formattedDate, hour)
+                              // ตรวจสอบว่าช่องเวลานี้มีการจองในคอร์สอื่นหรือไม่
+                              const isBookedInOtherCourse = isTimeSlotBookedInOtherCourse(day.formattedDate, hour)
 
-                            // ตรวจสอบว่าช่องเวลานี้มีใน course_timeslots หรือไม่
-                            const isInCourseTimeslots = isTimeSlotInCourseTimeslots(day.formattedDate, hour)
+                              // ตรวจสอบว่าช่องเวลานี้มีใน course_timeslots หรือไม่
+                              const isInCourseTimeslots = isTimeSlotInCourseTimeslots(day.formattedDate, hour)
 
-                            // ค้นหา timeslot ที่มีอยู่แล้ว
-                            const existingSlot = findTimeSlot(day.formattedDate, hour)
+                              // ค้นหา timeslot ที่มีอยู่แล้ว
+                              const existingSlot = findTimeSlot(day.formattedDate, hour)
 
-                            return (
-                              <div key={`${day.formattedDate}-${hour}`} className="h-24 border-b last:border-b-0 p-1">
-                                {slotsForThisHour.length > 0 ? (
-                                  <div className="h-full">
-                                    {slotsForThisHour.map((slot) => {
-                                      const bookedStudents = getBookedStudents(slot.id)
-                                      const isFullyBooked = slot.availableQuota === 0
+                              const conflicting = getStudentConflictStatus(day.formattedDate, `${hour.toString().padStart(2, "0")}:00`, apiData)
+                              return (
+                                showOnlyAvailable ? (
+                                  <div key={`${day.formattedDate}-${hour}`} className="h-24 border-b last:border-b-0 p-1">
+                                    {slotsForThisHour.length > 0 ? (
+                                      <div className="h-full">
+                                        {slotsForThisHour.map((slot) => {
+                                          const bookedStudents = getBookedStudents(slot.id)
+                                          const isFullyBooked = slot.availableQuota === 0
 
-                                      // Determine slot style based on booked students
-                                      let slotStyle = "bg-blue-50 border border-blue-200 hover:bg-blue-100"
+                                          let slotStyle = "bg-blue-50 border border-blue-200 hover:bg-blue-100"
+                                          if (isFullyBooked) {
+                                            slotStyle = "bg-amber-50 border border-amber-200 hover:bg-amber-100"
+                                          } else if (bookedStudents.length > 0) {
+                                            if (bookedStudents.length === 1) {
+                                              const color = studentColorMap[bookedStudents[0]]
+                                              slotStyle = `${color.bg} ${color.border} ${color.hover}`
+                                            } else {
+                                              slotStyle = "bg-gradient-to-r from-green-100 to-blue-100 border border-blue-200 hover:opacity-90"
+                                            }
+                                          }
 
-                                      if (isFullyBooked) {
-                                        slotStyle = "bg-amber-50 border border-amber-200 hover:bg-amber-100"
-                                      } else if (bookedStudents.length > 0) {
-                                        // If only one student is booked, use their color
-                                        if (bookedStudents.length === 1) {
-                                          const color = studentColorMap[bookedStudents[0]]
-                                          slotStyle = `${color.bg} ${color.border} ${color.hover}`
-                                        } else {
-                                          // For multiple students, use a gradient or pattern
-                                          slotStyle =
-                                            "bg-gradient-to-r from-green-100 to-blue-100 border border-blue-200 hover:opacity-90"
-                                        }
-                                      }
-
-                                      return (
-                                        <div
-                                          key={slot.id}
-                                          className={`p-2 rounded-md cursor-pointer text-sm h-full ${slotStyle}`}
-                                          onClick={() => openBookingDialog(slot)}
-                                        >
-                                          <div className="font-medium text-center">{slot.startTime}</div>
-
-                                          {/* Booked students indicators - improved for many students */}
-                                          {bookedStudents.length > 0 && (
-                                            <TooltipProvider>
-                                              <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                  <div className="mt-1 flex flex-wrap justify-center">
-                                                    {bookedStudents.length <= 3 ? (
-                                                      // Show all avatars if 3 or fewer students
-                                                      bookedStudents.map((studentId) => {
-                                                        const student = students.find((s) => s.id === studentId)
-                                                        const color = studentColorMap[studentId]
-                                                        return (
-                                                          <div
-                                                            key={studentId}
-                                                            className={`w-6 h-6 rounded-full flex items-center justify-center ${color.bg} ${color.text}`}
-                                                          >
-                                                            {student?.name.substring(0, 1)}
-                                                          </div>
-                                                        )
-                                                      })
-                                                    ) : (
-                                                      // Show first 2 avatars + count for more than 3 students
-                                                      <>
-                                                        {bookedStudents.slice(0, 2).map((studentId) => {
-                                                          const student = students.find((s) => s.id === studentId)
-                                                          const color = studentColorMap[studentId]
-                                                          return (
-                                                            <div
-                                                              key={studentId}
-                                                              className={`w-6 h-6 rounded-full flex items-center justify-center ${color.bg} ${color.text}`}
-                                                            >
-                                                              {student?.name.substring(0, 1)}
-                                                            </div>
-                                                          )
-                                                        })}
-                                                        <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-700">
-                                                          +{bookedStudents.length - 2}
-                                                        </div>
-                                                      </>
-                                                    )}
-                                                  </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                  <p className="font-medium">Booked students:</p>
-                                                  <ul className="mt-1 text-sm">
-                                                    {bookedStudents.map((studentId) => {
-                                                      const student = students.find((s) => s.id === studentId)
-                                                      return <li key={studentId}>{student?.name}</li>
-                                                    })}
-                                                  </ul>
-                                                </TooltipContent>
-                                              </Tooltip>
-                                            </TooltipProvider>
-                                          )}
-
-                                          <div className="mt-1 flex justify-center">
-                                            <Badge
-                                              variant="outline"
-                                              className={`text-xs ${isFullyBooked ? "bg-amber-50 text-amber-700" : ""}`}
+                                          return (
+                                            <div
+                                              key={slot.id}
+                                              className={`p-2 rounded-md cursor-pointer text-sm h-full ${slotStyle}`}
+                                              onClick={() => openBookingDialog(slot)}
                                             >
-                                              {slot.availableQuota} left
-                                            </Badge>
-                                          </div>
-                                        </div>
-                                      )
-                                    })}
-                                  </div>
-                                ) : isBookedInOtherCourse ? (
-                                  <div className="h-full flex items-center justify-center bg-gray-100 rounded-md text-xs text-muted-foreground">
-                                    Booked in other course
+                                              <div className="font-medium text-center">{slot.startTime}</div>
+
+                                              {bookedStudents.length > 0 && (
+                                                <TooltipProvider>
+                                                  <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                      <div className="mt-1 flex flex-wrap justify-center">
+                                                        {bookedStudents.length <= 3 ? (
+                                                          bookedStudents.map((studentId) => {
+                                                            const student = students.find((s) => s.id === studentId)
+                                                            const color = studentColorMap[studentId]
+                                                            return (
+                                                              <div
+                                                                key={studentId}
+                                                                className={`w-6 h-6 rounded-full flex items-center justify-center ${color.bg} ${color.text}`}
+                                                              >
+                                                                {student?.name.substring(0, 1)}
+                                                              </div>
+                                                            )
+                                                          })
+                                                        ) : (
+                                                          <>
+                                                            {bookedStudents.slice(0, 2).map((studentId) => {
+                                                              const student = students.find((s) => s.id === studentId)
+                                                              const color = studentColorMap[studentId]
+                                                              return (
+                                                                <div
+                                                                  key={studentId}
+                                                                  className={`w-6 h-6 rounded-full flex items-center justify-center ${color.bg} ${color.text}`}
+                                                                >
+                                                                  {student?.name.substring(0, 1)}
+                                                                </div>
+                                                              )
+                                                            })}
+                                                            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-700">
+                                                              +{bookedStudents.length - 2}
+                                                            </div>
+                                                          </>
+                                                        )}
+                                                      </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                      <p className="font-medium">Booked students:</p>
+                                                      <ul className="mt-1 text-sm">
+                                                        {bookedStudents.map((studentId) => {
+                                                          const student = students.find((s) => s.id === studentId)
+                                                          return <li key={studentId}>{student?.name}</li>
+                                                        })}
+                                                      </ul>
+                                                    </TooltipContent>
+                                                  </Tooltip>
+                                                </TooltipProvider>
+                                              )}
+
+                                              <div className="mt-1 flex justify-center">
+                                                <Badge
+                                                  variant="outline"
+                                                  className={`text-xs ${isFullyBooked ? "bg-amber-50 text-amber-700" : ""}`}
+                                                >
+                                                  {slot.availableQuota} left
+                                                </Badge>
+                                              </div>
+                                            </div>
+                                          )
+                                        })}
+                                      </div>
+                                    ) : isBookedInOtherCourse ? (
+                                      <div className="h-full flex items-center justify-center bg-gray-100 rounded-md text-xs text-muted-foreground">
+                                        Booked in other course
+                                      </div>
+                                    ) : (
+                                      <div
+                                        className={`h-full flex flex-col items-center justify-center text-xs text-muted-foreground border border-dashed border-gray-300 rounded-md ${isPastDate ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"
+                                          }`}
+                                        onClick={() => !isPastDate && openBookingDialog(null, day.formattedDate, hour)}
+                                      >
+                                        {isPastDate ? "Past date" : <span>Click to add</span>}
+                                      </div>
+                                    )}
                                   </div>
                                 ) : (
-                                  <div
-                                    className="h-full flex items-center justify-center text-xs text-muted-foreground border border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
-                                    onClick={() => openBookingDialog(null, day.formattedDate, hour)}
-                                  >
-                                    Click to add
+                                  <div key={`${day.formattedDate}-${hour}`} className="h-24 border-b last:border-b-0 p-1">
+                                    {slotsForThisHour.length > 0 ? (
+                                      <div className="h-full">
+                                        {slotsForThisHour.map((slot) => {
+                                          const bookedStudents = getBookedStudents(slot.id)
+                                          const isFullyBooked = slot.availableQuota === 0
+
+                                          let slotStyle = "bg-blue-50 border border-blue-200 hover:bg-blue-100"
+                                          if (isFullyBooked) {
+                                            slotStyle = "bg-amber-50 border border-amber-200 hover:bg-amber-100"
+                                          } else if (bookedStudents.length > 0) {
+                                            if (bookedStudents.length === 1) {
+                                              const color = studentColorMap[bookedStudents[0]]
+                                              slotStyle = `${color.bg} ${color.border} ${color.hover}`
+                                            } else {
+                                              slotStyle = "bg-gradient-to-r from-green-100 to-blue-100 border border-blue-200 hover:opacity-90"
+                                            }
+                                          }
+
+                                          return (
+                                            <div
+                                              key={slot.id}
+                                              className={`p-2 rounded-md cursor-pointer text-sm h-full ${slotStyle}`}
+                                              onClick={() => openBookingDialog(slot)}
+                                            >
+                                              <div className="font-medium text-center">{slot.startTime}</div>
+
+                                              {bookedStudents.length > 0 && (
+                                                <TooltipProvider>
+                                                  <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                      <div className="mt-1 flex flex-wrap justify-center">
+                                                        {bookedStudents.length <= 3 ? (
+                                                          bookedStudents.map((studentId) => {
+                                                            const student = students.find((s) => s.id === studentId)
+                                                            const color = studentColorMap[studentId]
+                                                            return (
+                                                              <div
+                                                                key={studentId}
+                                                                className={`w-6 h-6 rounded-full flex items-center justify-center ${color.bg} ${color.text}`}
+                                                              >
+                                                                {student?.name.substring(0, 1)}
+                                                              </div>
+                                                            )
+                                                          })
+                                                        ) : (
+                                                          <>
+                                                            {bookedStudents.slice(0, 2).map((studentId) => {
+                                                              const student = students.find((s) => s.id === studentId)
+                                                              const color = studentColorMap[studentId]
+                                                              return (
+                                                                <div
+                                                                  key={studentId}
+                                                                  className={`w-6 h-6 rounded-full flex items-center justify-center ${color.bg} ${color.text}`}
+                                                                >
+                                                                  {student?.name.substring(0, 1)}
+                                                                </div>
+                                                              )
+                                                            })}
+                                                            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-700">
+                                                              +{bookedStudents.length - 2}
+                                                            </div>
+                                                          </>
+                                                        )}
+                                                      </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                      <p className="font-medium">Booked students:</p>
+                                                      <ul className="mt-1 text-sm">
+                                                        {bookedStudents.map((studentId) => {
+                                                          const student = students.find((s) => s.id === studentId)
+                                                          return <li key={studentId}>{student?.name}</li>
+                                                        })}
+                                                      </ul>
+                                                    </TooltipContent>
+                                                  </Tooltip>
+                                                </TooltipProvider>
+                                              )}
+
+                                              <div className="mt-1 flex justify-center">
+                                                <Badge
+                                                  variant="outline"
+                                                  className={`text-xs ${isFullyBooked ? "bg-amber-50 text-amber-700" : ""}`}
+                                                >
+                                                  {slot.availableQuota} left
+                                                </Badge>
+                                              </div>
+                                            </div>
+                                          )
+                                        })}
+                                      </div>
+                                    ) : isBookedInOtherCourse ? (
+                                      <div className="h-full flex items-center justify-center bg-gray-100 rounded-md text-xs text-muted-foreground">
+                                        Booked in other course
+                                      </div>
+                                    ) : (
+                                      <div
+                                        className={`h-full flex flex-col items-center justify-center text-xs text-muted-foreground border border-dashed border-gray-300 rounded-md ${isPastDate ? "bg-gray-200 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"
+                                          }`}
+                                        onClick={() => !isPastDate && openBookingDialog(null, day.formattedDate, hour)}
+                                      >
+                                        {isPastDate ? "Past date" : <span>Click to add</span>}
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
-                            )
-                          })}
-                      </div>
-                    ))}
+                                )
+                              )
+                            })}
+                        </div>
+                      )
+                    })}
                   </div>
                 </CardContent>
               </Card>
@@ -1986,11 +2151,21 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                     const isBooked = selectedSlots[String(selectedSlotForBooking.id)]?.includes(studentId)
                     const isPendingBooking = pendingBookings.includes(studentId)
                     const isMaxed = hasReachedMaxSessions(studentId) && !isBooked && !isPendingBooking
+                    const isAlreadyEnrolled = isStudentEnrolled(
+                      studentId,
+                      selectedSlotForBooking.date,
+                      selectedSlotForBooking.startTime,
+                    )
+                    const isAlreadyEnrolledOther = isStudentEnrolledOther(
+                      studentId,
+                      selectedSlotForBooking.date,
+                      selectedSlotForBooking.startTime,
+                    )
 
                     return (
                       <div
                         key={studentId}
-                        className={`flex items-center justify-between p-2 rounded-md ${isPendingBooking || isBooked ? color.bg : ""}`}
+                        className={`flex items-center justify-between p-2 rounded-md ${isPendingBooking || isBooked || isAlreadyEnrolled ? color.bg : ""}`}
                       >
                         <div className="flex items-center gap-2">
                           <Avatar className={`h-8 w-8 ${color.border}`}>
@@ -2005,7 +2180,11 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                           </div>
                         </div>
 
-                        {isBooked || isPendingBooking ? (
+                        {isAlreadyEnrolled ? (
+                          <Badge variant="outline" className="bg-green-50 text-green-700">
+                            Already enrolled
+                          </Badge>
+                        ) : isBooked || isPendingBooking ? (
                           <Button
                             variant="outline"
                             size="sm"
@@ -2014,6 +2193,20 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                             <X className="h-4 w-4 mr-1" />
                             Remove
                           </Button>
+                        ) : isAlreadyEnrolledOther ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="text-xs text-amber-600 flex items-center">
+                                  <AlertCircle className="h-4 w-4 mr-1" />
+                                  Conflict with another class
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>This student already has another class scheduled</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         ) : isMaxed ? (
                           <TooltipProvider>
                             <Tooltip>
