@@ -386,7 +386,7 @@ export default function ReceiptsPage() {
               <TableHead>Course Session</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Payment Date</TableHead>
-              <TableHead>Method</TableHead>
+              {/* <TableHead>Method</TableHead> */}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -415,7 +415,7 @@ export default function ReceiptsPage() {
                   <TableCell>{receipt.session}</TableCell>
                   <TableCell>฿{receipt.amount.toFixed(2)}</TableCell>
                   <TableCell>{formatDate(receipt.payment_date)}</TableCell>
-                  <TableCell>{receipt.payment_method}</TableCell>
+                  {/* <TableCell>{receipt.payment_method}</TableCell> */}
                 </TableRow>
               ))
             )}

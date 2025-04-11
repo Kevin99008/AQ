@@ -4,11 +4,29 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Camera, AlertCircle, RefreshCw, CheckCircle } from 'lucide-react'
+import { Camera, AlertCircle, RefreshCw, CheckCircle, User, Calendar, Clock, MapPin } from "lucide-react"
 import { Html5QrcodeScanner } from "html5-qrcode"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
-import { AttendanceRecord } from "@/types/dashboard"
+import type { AttendanceRecord } from "@/types/dashboard"
 import AttendanceLog from "@/components/adminComponent/dashboard/AttendanceLog"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+
+// Define the Student interface
+interface Student {
+  id: number
+  name: string
+  email?: string
+  student_id: string
+  profile_image?: string
+  department?: string
+  year?: string
+  status?: string
+  sessions?: string
+  // Add any other student fields you need
+}
 
 export default function CheckAttendance() {
   const [scanning, setScanning] = useState(false)
@@ -20,6 +38,8 @@ export default function CheckAttendance() {
   const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(null)
   const [selectedGroup, setSelectedGroup] = useState<string>("All")
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
+  const [studentDetails, setStudentDetails] = useState<Student | null>(null)
+  const [loadingStudent, setLoadingStudent] = useState(false)
 
   useEffect(() => {
     // Fetch data based on the selected group
@@ -41,7 +61,7 @@ export default function CheckAttendance() {
 
     if (scanning) {
       // Function to handle successful scans
-      const onScanSuccess = (decodedText: string) => {
+      const onScanSuccess = async (decodedText: string) => {
         // Store the raw QR code content
         setQrContent(decodedText)
 
@@ -49,9 +69,15 @@ export default function CheckAttendance() {
           // Try to parse the QR code content as JSON
           const parsedData = JSON.parse(decodedText)
           setParsedContent(parsedData)
+
+          // If we have a student_id, fetch the student details
+          if (parsedData.student_id) {
+            await fetchStudentDetails(parsedData.student_id)
+          }
         } catch (e) {
           // If it's not valid JSON, just show the raw text
           setParsedContent(null)
+          setStudentDetails(null)
         }
       }
 
@@ -106,12 +132,35 @@ export default function CheckAttendance() {
     }
   }, [success])
 
+  const fetchStudentDetails = async (studentId: number) => {
+    setLoadingStudent(true)
+    try {
+      // Use the Django URL pattern to fetch student details
+      const studentResponse = await apiFetch<Student>(`/api/students/${studentId}`)
+
+      if (studentResponse === TOKEN_EXPIRED) {
+        setError("sessions expired. Cannot fetch student details.")
+        setStudentDetails(null)
+        return
+      }
+
+      setStudentDetails(studentResponse)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch student details")
+      setStudentDetails(null)
+      console.error("Error fetching student details:", err)
+    } finally {
+      setLoadingStudent(false)
+    }
+  }
+
   const startScanning = () => {
     setScanning(true)
     setError(null)
     setSuccess(null)
     setQrContent(null)
     setParsedContent(null)
+    setStudentDetails(null)
   }
 
   const stopScanning = () => {
@@ -122,39 +171,47 @@ export default function CheckAttendance() {
     setQrContent(null)
     setParsedContent(null)
     setSuccess(null)
+    setStudentDetails(null)
   }
 
   const handleCheckAttendance = async () => {
     try {
       // Validate that parsedContent has the expected format with student_id
       if (!parsedContent || !parsedContent.student_id) {
-        setError("Invalid QR code format. Expected {\"student_id\": number}");
-        return;
+        setError('Invalid QR code format. Expected {"student_id": number}')
+        return
       }
-  
-      const studentId = parsedContent.student_id;
-      
-      setIsSubmitting(true);
-      setError(null);
-  
+
+      const studentId = parsedContent.student_id
+
+      setIsSubmitting(true)
+      setError(null)
+
       // Prepare the data to send in the body
-      const dataToSend = { student_id: studentId };
-  
+      const dataToSend = { student_id: studentId }
+
       // Make the API call using apiFetch with the extracted studentId in the body
-      const result = await apiFetch("/api/attendance-update/", "PATCH", dataToSend);
-  
+      const result = await apiFetch("/api/attendance-update/", "PATCH", dataToSend)
+
       if (result === TOKEN_EXPIRED) {
-        setError("Session expired. Cannot update attendance.");
-        return;
+        setError("sessions expired. Cannot update attendance.")
+        return
       }
-  
-      setSuccess("Attendance successfully recorded!");
-      console.log("Attendance updated:", result);
+
+      setSuccess("Attendance successfully recorded!")
+
+      // Refresh attendance records after successful check-in
+      const attendanceResponse = await apiFetch<AttendanceRecord[]>(`/api/attendance-log/?sortNewestFirst=true`)
+      if (attendanceResponse !== TOKEN_EXPIRED) {
+        setAttendanceRecords(attendanceResponse)
+      }
+
+      console.log("Attendance updated:", result)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update attendance");
-      console.error("Error updating attendance:", err);
+      setError(err instanceof Error ? err.message : "Failed to update attendance")
+      console.error("Error updating attendance:", err)
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
   }
 
@@ -167,7 +224,7 @@ export default function CheckAttendance() {
               <Camera className="h-6 w-6" /> QR Code Scanner
             </CardTitle>
             <CardDescription>
-              Scan QR codes to view their content. Position the QR code within the scanner frame.
+              Scan QR codes to view student details. Position the QR code within the scanner frame.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -210,13 +267,13 @@ export default function CheckAttendance() {
           </Alert>
         )}
 
-        {/* QR Code Content Display */}
+        {/* Student Details Display */}
         {qrContent && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>QR Code Content</CardTitle>
-                <CardDescription>Data captured from the QR code</CardDescription>
+                <CardTitle>Student Details</CardTitle>
+                <CardDescription>Information about the scanned student</CardDescription>
               </div>
               {qrContent && (
                 <Button variant="outline" size="sm" onClick={clearResults}>
@@ -226,61 +283,149 @@ export default function CheckAttendance() {
               )}
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              {loadingStudent ? (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-4">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-[250px]" />
+                      <Skeleton className="h-4 w-[200px]" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              ) : studentDetails ? (
+                <div className="space-y-6">
+                  <div className="flex items-center space-x-4">
+                    <Avatar className="h-16 w-16">
+                      {studentDetails.profile_image ? (
+                        <AvatarImage src={studentDetails.profile_image} alt={studentDetails.name} />
+                      ) : (
+                        <AvatarFallback className="bg-black text-white text-lg">
+                          {studentDetails.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div>
+                      <h3 className="text-xl font-semibold">{studentDetails.name}</h3>
+                      <p className="text-muted-foreground">{studentDetails.email}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+
+                    {studentDetails.department && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Department:</span>
+                        <span className="text-sm">{studentDetails.department}</span>
+                      </div>
+                    )}
+
+                    {studentDetails.year && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Year:</span>
+                        <span className="text-sm">{studentDetails.year}</span>
+                      </div>
+                    )}
+
+                    {/* {studentDetails.sessions && (
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Last Attendance:</span>
+                        <span className="text-sm">{studentDetails.sessions}</span>
+                      </div>
+                    )} */}
+                  </div>
+
+                  {/* {studentDetails.status && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">Status:</span>
+                      <Badge variant={studentDetails.status === "Active" ? "default" : "secondary"}>
+                        {studentDetails.status}
+                      </Badge>
+                    </div>
+                  )} */}
+
+                  <Separator />
+
+                  {/* Check Attendance Button */}
+                  <div className="flex justify-center mt-6">
+                    <Button
+                      onClick={handleCheckAttendance}
+                      className="bg-green-600 hover:bg-green-700 text-white w-full py-6 text-lg"
+                      disabled={isSubmitting || !parsedContent || !parsedContent.student_id}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-5 w-5 mr-2" />
+                          Check Attendance
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ) : parsedContent ? (
+                <div className="space-y-4">
+                  <Alert className="bg-yellow-50 border-yellow-200">
+                    <AlertCircle className="h-4 w-4 text-yellow-600" />
+                    <AlertTitle>Student Not Found</AlertTitle>
+                    <AlertDescription>
+                      {parsedContent.student_id
+                        ? "Could not retrieve student details. Please try again or check the student ID."
+                        : "The scanned QR code doesn't contain a valid student_id. Please scan a valid student QR code."}
+                    </AlertDescription>
+                  </Alert>
+
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Raw QR Content:</h3>
+                    <div className="p-4 bg-muted rounded-md overflow-x-auto">
+                      <pre className="whitespace-pre-wrap break-words">{qrContent}</pre>
+                    </div>
+                  </div>
+
+                  {parsedContent && parsedContent.student_id && (
+                    <div className="flex justify-center mt-6">
+                      <Button
+                        onClick={handleCheckAttendance}
+                        className="bg-green-600 hover:bg-green-700 text-white w-full py-6 text-lg"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="h-5 w-5 mr-2" />
+                            Check Attendance Anyway
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
                 <div>
                   <h3 className="text-sm font-medium mb-2">Raw Content:</h3>
                   <div className="p-4 bg-muted rounded-md overflow-x-auto">
                     <pre className="whitespace-pre-wrap break-words">{qrContent}</pre>
                   </div>
                 </div>
-
-                {parsedContent && (
-                  <div>
-                    <h3 className="text-sm font-medium mb-2">Parsed JSON Content:</h3>
-                    <div className="p-4 bg-muted rounded-md overflow-x-auto">
-                      <div className="grid grid-cols-1 gap-2">
-                        {Object.entries(parsedContent).map(([key, value]) => (
-                          <div key={key} className="grid grid-cols-3 gap-4">
-                            <div className="font-medium">{key}:</div>
-                            <div className="col-span-2">{String(value)}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {parsedContent && !parsedContent.student_id && (
-                  <Alert className="mt-4 bg-yellow-50 border-yellow-200">
-                    <AlertCircle className="h-4 w-4 text-yellow-600" />
-                    <AlertTitle>Invalid Format</AlertTitle>
-                    <AlertDescription>
-                      The scanned QR code doesn't contain a valid student_id. Please scan a valid student QR code.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Check Attendance Button */}
-                <div className="flex justify-center mt-6">
-                  <Button
-                    onClick={handleCheckAttendance}
-                    className="bg-green-600 hover:bg-green-700 text-white w-full py-6 text-lg"
-                    disabled={isSubmitting || !parsedContent || !parsedContent.student_id}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="h-5 w-5 mr-2" />
-                        Check Attendance
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         )}

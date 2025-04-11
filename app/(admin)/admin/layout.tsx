@@ -37,7 +37,7 @@ export default function MainLayout({
       </div>
 
       <main className="">
-        <div className="mt-8">{children}</div>
+        <div>{children}</div>
       </main>
     </div>
   )

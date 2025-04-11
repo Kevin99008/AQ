@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 interface UserProfile {
   id: string
   username: string
+  first_name: string
+  last_name: string
   email: string
   contact: string
   students: {
@@ -218,13 +220,13 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="flex flex-col items-center">
               <Avatar className="h-24 w-24">
-                <AvatarImage src="/placeholder.svg" alt={user.username} />
+                <AvatarImage alt={user.username} />
                 <AvatarFallback>
                   <User className="h-12 w-12" />
                 </AvatarFallback>
               </Avatar>
               <h2 className="mt-4 text-xl font-semibold">{user.username}</h2>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
+              <h2 className="mt-4 text-xl font-semibold">{user.first_name} {user.last_name}</h2>
             </CardContent>
           </Card>
         </div>
@@ -241,10 +243,6 @@ export default function ProfilePage() {
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">Username</p>
                     <p>{user.username}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">Email</p>
-                    <p>{user.email}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">Contact</p>

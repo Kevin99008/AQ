@@ -123,14 +123,10 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
     doc.setFontSize(10)
     doc.setTextColor(100, 100, 100)
     doc.text("Name:", 14, 75)
-    doc.text("ID:", 14, 80)
-    doc.text("Email:", 14, 85)
     doc.text("Phone:", 14, 90)
 
     doc.setTextColor(40, 40, 40)
     doc.text(receipt.student.name, 50, 75)
-    doc.text(receipt.student.id, 50, 80)
-    doc.text(receipt.student.email, 50, 85)
     doc.text(receipt.student.phone, 50, 90)
 
     // Add course information
@@ -251,10 +247,10 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
                 <p className="text-sm font-medium text-muted-foreground">Date</p>
                 <p>{formatDate(receipt.payment_date)}</p>
               </div>
-              <div>
+              {/* <div>
                 <p className="text-sm font-medium text-muted-foreground">Payment Method</p>
                 <p>{formatPaymentMethod(receipt.payment_method)}</p>
-              </div>
+              </div> */}
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Created By</p>
                 <p>{receipt.created_by}</p>
@@ -278,14 +274,10 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
               <p className="text-sm font-medium text-muted-foreground">Name</p>
               <p>{receipt.student.name}</p>
             </div>
-            <div>
+            {/* <div>
               <p className="text-sm font-medium text-muted-foreground">Student ID</p>
               <p>{receipt.student.id}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Email</p>
-              <p>{receipt.student.email}</p>
-            </div>
+            </div> */}
             <div>
               <p className="text-sm font-medium text-muted-foreground">Phone</p>
               <p>{receipt.student.phone}</p>
