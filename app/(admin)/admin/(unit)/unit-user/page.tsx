@@ -32,31 +32,32 @@ export default function UserListPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
 
-    // Fetch all users on initial load
-    useEffect(() => {
-      loadUsers()
-    }, [])
+  // Fetch all users on initial load
+  useEffect(() => {
+    loadUsers()
+  }, [])
 
-    const loadUsers = async () => {
-      try {
-        const users = await fetchUsers() // Using the fetchUsers function directly
-        setUserData(users)
-      } catch (error) {
-        console.error("Error fetching users:", error)
-      }
+  const loadUsers = async () => {
+    try {
+      const users = await fetchUsers() // Using the fetchUsers function directly
+      // Sort users by join_date (newest first)
+      const sortedUsers = users.sort((a, b) => new Date(b.join_date).getTime() - new Date(a.join_date).getTime())
+      setUserData(sortedUsers)
+    } catch (error) {
+      console.error("Error fetching users:", error)
     }
+  }
 
   // Filter users based on search query - including student names
   const filteredUsers = userData.filter((user) => {
-    const matchesUsername =
-      user.username && user.username.toLowerCase().includes(searchQuery.toLowerCase()) // Check if username exists
+    const matchesUsername = user.username && user.username.toLowerCase().includes(searchQuery.toLowerCase()) // Check if username exists
     const matchesContact = user.contact && user.contact.includes(searchQuery) // Check if contact exists
-  
+
     // Check if any student name matches the search query
-    const matchesStudentName = user.students.some((student) =>
-      student.name && student.name.toLowerCase().includes(searchQuery.toLowerCase()) // Check if student name exists
+    const matchesStudentName = user.students.some(
+      (student) => student.name && student.name.toLowerCase().includes(searchQuery.toLowerCase()), // Check if student name exists
     )
-  
+
     return matchesUsername || matchesContact || matchesStudentName
   })
 
@@ -96,7 +97,7 @@ export default function UserListPage() {
           <h1 className="text-2xl font-bold">User Management</h1>
         </div>
         <Button onClick={() => setIsModalOpen(true)} size="sm" className="shrink-0">
-            <Plus className="mr-2 h-4 w-4" /> Create User
+          <Plus className="mr-2 h-4 w-4" /> Create User
         </Button>
       </div>
 
@@ -294,14 +295,13 @@ export default function UserListPage() {
         </Dialog>
       )}
 
-            <CreateUserModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-              onUserCreated={() => {
-                setIsModalOpen(false)
-              }}
-            />
+      <CreateUserModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onUserCreated={() => {
+          setIsModalOpen(false)
+        }}
+      />
     </div>
   )
 }
-

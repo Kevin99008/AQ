@@ -46,7 +46,11 @@ export default function CourseListPage() {
     const loadCourse = async () => {
       try {
         const courses = await fetchEnrolledCourses() // Using the fetchUsers function directly
-        setCourseData(courses)
+        // Sort courses by newest first (assuming there's a created_at or date field)
+        const sortedCourses = courses.sort(
+          (a: { created_at: any }, b: { created_at: any }) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime(),
+        )
+        setCourseData(sortedCourses)
       } catch (error) {
         console.error("Error fetching users:", error)
       }
@@ -84,6 +88,16 @@ export default function CourseListPage() {
         return `${years} year${years !== 1 ? "s" : ""} ${remainingMonths} month${remainingMonths !== 1 ? "s" : ""}`
       }
     }
+  }
+
+  // Add a function to format price
+  const formatPrice = (price: number): string => {
+    return new Intl.NumberFormat("th-TH", {
+      style: "currency",
+      currency: "THB",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price)
   }
   // Filter courses based on search query and category filter
   const filteredCourses = courseData.filter((course) => {
@@ -198,7 +212,7 @@ export default function CourseListPage() {
                       <span>All ages</span>
                     )}
                   </TableCell>
-                  <TableCell>THB {course.price}</TableCell>
+                  <TableCell>{formatPrice(course.price)}</TableCell>
                   <TableCell>{course.quota}</TableCell>
                   <TableCell>{course.teachers.length}</TableCell>
                   <TableCell>
@@ -298,4 +312,3 @@ export default function CourseListPage() {
     </div>
   )
 }
-
