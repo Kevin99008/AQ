@@ -35,7 +35,7 @@ export function TeacherTable({ categoryFilter, statusFilter, searchQuery, onView
     const getTeachers = async () => {
       try {
         const teachers = await fetchTeachers() // Fetch teachers using fetchTeachers function
-        setTeacherData(teachers)
+        setTeacherData(teachers.reverse()) // Reverse the array to show newest teachers first
       } catch (error) {
         console.error("Error fetching teachers:", error)
       }
@@ -196,4 +196,3 @@ export function TeacherTable({ categoryFilter, statusFilter, searchQuery, onView
     </>
   )
 }
-

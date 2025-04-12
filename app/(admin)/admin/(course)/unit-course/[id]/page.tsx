@@ -280,7 +280,7 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
                   </div>
                   <div className="flex items-center text-sm">
                     <Award className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <span>Price: THB{course.price}</span>
+                    <span>Price: THB{course.price.toLocaleString()}</span>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -616,7 +616,7 @@ export default function AdminCourseDetailPage(props: { params: Promise<{ id: str
                 </div>
                 <div className="border rounded-md p-4">
                   <h3 className="font-medium mb-2">Price</h3>
-                  <p className="text-sm">฿{course.price}</p>
+                  <p className="text-sm">฿{course.price.toLocaleString()}</p>
                 </div>
                 <div className="border rounded-md p-4">
                   <h3 className="font-medium mb-2">Category</h3>

@@ -1,6 +1,6 @@
 "use client"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, FileSpreadsheet, FileText } from "lucide-react"
+import { ArrowLeft, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -55,12 +55,11 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
           setReceipt(response)
           setLoading(false)
         }
-
       } catch (error: any) {
         if (error instanceof Error) {
-          toast.error(error.message);
+          toast.error(error.message)
         } else {
-          toast.error("Something went wrong");
+          toast.error("Something went wrong")
         }
       }
     }
@@ -215,7 +214,7 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
-        <Button variant="outline" onClick={() => router.push('/admin/receipts')}>
+        <Button variant="outline" onClick={() => router.push("/admin/receipts")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Receipts
         </Button>
@@ -228,7 +227,6 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
             <FileText className="mr-2 h-4 w-4" />
             Export to PDF
           </Button>
-
         </div>
       </div>
 
@@ -327,7 +325,9 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
                 {receipt.items.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell>{item.description}</TableCell>
-                    <TableCell className="text-right">฿{item.amount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                      ฿{item.amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -335,7 +335,13 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
             <Separator className="my-4" />
             <div className="flex justify-between font-medium">
               <span>Total</span>
-              <span>฿{receipt.amount}</span>
+              <span>
+                ฿
+                {Number.parseFloat(receipt.amount).toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
             </div>
           </CardContent>
         </Card>

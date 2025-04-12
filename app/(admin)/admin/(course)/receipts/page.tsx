@@ -413,7 +413,7 @@ export default function ReceiptsPage() {
                   </TableCell>
                   <TableCell>{receipt.student}</TableCell>
                   <TableCell>{receipt.session}</TableCell>
-                  <TableCell>฿{receipt.amount.toFixed(2)}</TableCell>
+                  <TableCell>฿{receipt.amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</TableCell>
                   <TableCell>{formatDate(receipt.payment_date)}</TableCell>
                   {/* <TableCell>{receipt.payment_method}</TableCell> */}
                 </TableRow>
@@ -478,7 +478,9 @@ export default function ReceiptsPage() {
                   <CardTitle className="text-lg">Total Amount</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold">฿{yearlyData[yearToDisplay].total.toFixed(2)}</p>
+                  <p className="text-3xl font-bold">
+                    ฿{yearlyData[yearToDisplay].total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -487,7 +489,10 @@ export default function ReceiptsPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold">
-                    ฿{(yearlyData[yearToDisplay].total / yearlyData[yearToDisplay].count || 0).toFixed(2)}
+                    ฿
+                    {(yearlyData[yearToDisplay].total / yearlyData[yearToDisplay].count || 0)
+                      .toFixed(2)
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                   </p>
                 </CardContent>
               </Card>
@@ -509,7 +514,12 @@ export default function ReceiptsPage() {
                     <TableRow key={month.value}>
                       <TableCell className="font-medium">{month.label}</TableCell>
                       <TableCell>{yearlyData[yearToDisplay].months[index].count || 0}</TableCell>
-                      <TableCell>฿{(yearlyData[yearToDisplay].months[index].total || 0).toFixed(2)}</TableCell>
+                      <TableCell>
+                        ฿
+                        {(yearlyData[yearToDisplay].months[index].total || 0)
+                          .toFixed(2)
+                          .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      </TableCell>
                       <TableCell className="text-right">
                         {yearlyData[yearToDisplay].months[index].count > 0 && (
                           <DropdownMenu>

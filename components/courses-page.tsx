@@ -492,7 +492,7 @@ export default function CoursesPage({ onEnroll }: CoursesPageProps) {
                 </div>
 
                 <div className="flex justify-between items-center mt-2">
-                  <span className="font-bold">฿{course.price}</span>
+                  <span className="font-bold">฿{course.price.toLocaleString()}</span>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`unit-course/${course.id}`}>View Details</Link>
@@ -554,4 +554,3 @@ export default function CoursesPage({ onEnroll }: CoursesPageProps) {
     </div>
   )
 }
-
