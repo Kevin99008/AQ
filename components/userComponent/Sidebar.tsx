@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, User, BookOpen, GraduationCap, Menu, LogOut } from "lucide-react"
+import { Home, User, BookOpen, GraduationCap, Menu, LogOut, Receipt } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
@@ -73,6 +73,19 @@ export default function Sidebar() {
         >
           <User size={20} />
           <span>Profile</span>
+        </Link>
+      </li>
+      <li>
+        <Link
+          href="/home/receipt"
+          className={cn(
+            "flex items-center space-x-2 p-2 rounded hover:bg-primary/10",
+            pathname === "/home/receipt" ? "bg-primary/50 text-white" : "",
+          )}
+          onClick={() => setIsOpen(false)} // Close sidebar on click
+        >
+          <Receipt size={20} />
+          <span>Receipt</span>
         </Link>
       </li>
       <li className="mt-auto pt-4">
