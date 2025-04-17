@@ -4,7 +4,9 @@ import { useState } from "react"
 import SchedulerPage from "@/components/scheduleComponent/scheduler-page"
 import CoursesPage from "@/components/courses-page"
 import StudentSelection from "@/components/student-selection"
+import AttendanceReceiptPage from "@/components/scheduleComponent/confirm-page"
 import { Toaster } from "@/components/ui/toaster"
+import { ApiReceiptResponse } from "@/types/receipt"
 
 export default function Home() {
   const [selectedData, setSelectedData] = useState<{
@@ -13,9 +15,9 @@ export default function Home() {
     course: any | null
   } | null>(null)
 
-  const [view, setView] = useState<"courses" | "student-selection" | "scheduler">("courses")
+  const [view, setView] = useState<"courses" | "student-selection" | "scheduler" | "confirm-success">("courses")
   const [selectedCourse, setSelectedCourse] = useState<any | null>(null)
-
+  const [confirmData, setConfirmData] = useState<ApiReceiptResponse | null>(null)
   const handleCourseEnroll = (course: any) => {
     setSelectedCourse(course)
     setView("student-selection")
@@ -36,6 +38,12 @@ export default function Home() {
     setSelectedData(null)
   }
 
+
+  const handleConfirm = (response: ApiReceiptResponse) => {
+    setView("confirm-success")
+    setConfirmData(response)
+  }
+
   return (
     <main className="min-h-screen bg-gray-50">
       {view === "courses" && <CoursesPage onEnroll={handleCourseEnroll} />}
@@ -54,7 +62,12 @@ export default function Home() {
           teacher={selectedData.teacher}
           course={selectedData.course}
           onBack={handleBackToCoursesPage}
+          onConfirm={handleConfirm}
         />
+      )}
+
+      {view === "confirm-success" && confirmData && (
+        <AttendanceReceiptPage response={confirmData} />
       )}
       <Toaster />
     </main>

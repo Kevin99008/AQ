@@ -340,7 +340,7 @@ export default function StudentSelection({ course, onComplete, onBack }: Student
                 <span className="absolute left-2.5 top-2.5 text-muted-foreground">@</span>
                 <Input
                   type="text"
-                  placeholder="Add username tag..."
+                  placeholder="Add username..."
                   className="pl-8"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
@@ -348,7 +348,7 @@ export default function StudentSelection({ course, onComplete, onBack }: Student
                 />
               </div>
               <Button variant="outline" onClick={addUsernameTag} disabled={!usernameInput}>
-                Add Tag
+                Add Username for filtering
               </Button>
             </div>
 

@@ -13,9 +13,35 @@ import autoTable from "jspdf-autotable"
 import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 import { toast } from "react-toastify"
 
+// Update the interfaces to match the new API response structure
 interface ReceiptItem {
   description: string
-  amount: number
+  amount: string
+}
+
+interface Receipt {
+  id: number
+  receipt_number: string
+  amount: string
+  payment_date: string
+  payment_method: string
+  notes: string
+  items: ReceiptItem[]
+}
+
+interface Student {
+  id: string
+  name: string
+  email: string
+  phone: string
+}
+
+interface Course {
+  id: number
+  name: string
+  category: string
+  total_quota: number
+  session_id: number
 }
 
 interface Attendance {
@@ -28,43 +54,36 @@ interface Attendance {
   timeslot_id: number
 }
 
-interface ReceiptData {
-  id: number
-  receipt_number: string
-  student: {
-    id: string
-    name: string
-    email: string
-    phone: string
-  }
-  session: {
-    course_name: string
-    course_id: number
-    category: string
-    total_quota: number
-  }
+// New API response interface
+interface ApiResponse {
+  receipt: Receipt
+  student: Student
+  course: Course
   attendances: Attendance[]
-  amount: string
-  payment_date: string
-  payment_method: string
-  created_by: string
-  notes: string
-  items: ReceiptItem[]
 }
 
-export default function ReceiptDetailPage(props: { params: Promise<{ id: string }> }) {
+// Replace the existing Invoice interface with this new structure
+interface Invoice {
+  receipt: Receipt
+  student: Student
+  course: Course
+  attendances: Attendance[]
+}
+
+export default function InvoiceDetailPage(props: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const params = use(props.params)
   const id = params.id
-  const [receipt, setReceipt] = useState<ReceiptData | null>(null)
+  const [invoice, setInvoice] = useState<Invoice | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Update the useEffect to handle the new structure
   useEffect(() => {
-    const loadReceipts = async () => {
+    const loadInvoice = async () => {
       try {
-        const response = await apiFetch<ReceiptData>(`/api/new/receipts/${id}`)
+        const response = await apiFetch<ApiResponse>(`/api/new/receipts/students/${id}`)
         if (response !== TOKEN_EXPIRED) {
-          setReceipt(response)
+          setInvoice(response)
           setLoading(false)
         }
       } catch (error: any) {
@@ -73,10 +92,11 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
         } else {
           toast.error("Something went wrong")
         }
+        setLoading(false)
       }
     }
 
-    loadReceipts()
+    loadInvoice()
   }, [id])
 
   // Format date for display
@@ -156,9 +176,9 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
     }
   }
 
-  // Generate PDF function
+  // Update the generatePDF function to use the new structure
   const generatePDF = () => {
-    if (!receipt) return
+    if (!invoice) return
 
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.getWidth()
@@ -169,15 +189,15 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
     // Add company logo/header
     doc.setFontSize(20)
     doc.setTextColor(40, 40, 40)
-    doc.text("RECEIPT", pageWidth / 2, 20, { align: "center" })
+    doc.text("INVOICE", pageWidth / 2, 20, { align: "center" })
 
     // Add receipt number and date
     doc.setFontSize(12)
     doc.setTextColor(40, 40, 40)
-    doc.text(`Receipt #: ${receipt.receipt_number}`, pageWidth / 2, 30, { align: "center" })
+    doc.text(`Invoice #: ${invoice.receipt.receipt_number}`, pageWidth / 2, 30, { align: "center" })
     doc.setFontSize(10)
     doc.setTextColor(80, 80, 80)
-    doc.text(`Date: ${formatDate(receipt.payment_date)}`, pageWidth / 2, 36, { align: "center" })
+    doc.text(`Date: ${formatDate(invoice.receipt.payment_date)}`, pageWidth / 2, 36, { align: "center" })
 
     // Add horizontal line
     doc.setDrawColor(200, 200, 200)
@@ -198,9 +218,9 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
     doc.text("Phone:", margin, 72)
 
     doc.setTextColor(40, 40, 40)
-    doc.text(receipt.student.name, margin + 30, 60)
-    doc.text(receipt.student.id, margin + 30, 66)
-    doc.text(receipt.student.phone || "N/A", margin + 30, 72)
+    doc.text(invoice.student.name, margin + 30, 60)
+    doc.text(invoice.student.id, margin + 30, 66)
+    doc.text(invoice.student.phone || "N/A", margin + 30, 72)
 
     // Right column - Payment Information
     doc.setFontSize(12)
@@ -211,12 +231,10 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
     doc.setTextColor(80, 80, 80)
     doc.text("Amount:", margin + colWidth + 10, 60)
     doc.text("Method:", margin + colWidth + 10, 66)
-    doc.text("Created By:", margin + colWidth + 10, 72)
 
     doc.setTextColor(40, 40, 40)
-    doc.text(`${Number.parseFloat(receipt.amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} Baht`, margin + colWidth + 50, 60)
-    doc.text(formatPaymentMethod(receipt.payment_method), margin + colWidth + 50, 66)
-    doc.text(receipt.created_by, margin + colWidth + 50, 72)
+    doc.text(`${Number.parseFloat(invoice.receipt.amount).toFixed(2)} Baht`, margin + colWidth + 50, 60)
+    doc.text(formatPaymentMethod(invoice.receipt.payment_method), margin + colWidth + 50, 66)
 
     // Course Information
     doc.setFontSize(12)
@@ -230,9 +248,9 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
     doc.text("Total Quota:", margin, 110)
 
     doc.setTextColor(40, 40, 40)
-    doc.text(receipt.session.course_name, margin + 40, 98)
-    doc.text(receipt.session.category, margin + 40, 104)
-    doc.text(receipt.session.total_quota.toString(), margin + 40, 110)
+    doc.text(invoice.course.name, margin + 40, 98)
+    doc.text(invoice.course.category, margin + 40, 104)
+    doc.text(invoice.course.total_quota.toString(), margin + 40, 110)
 
     // Add items table
     doc.setFontSize(12)
@@ -242,14 +260,16 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
     autoTable(doc, {
       startY: 128,
       head: [["Description", "Amount"]],
-      body: receipt.items.map((item) => [
+      body: invoice.receipt.items.map((item) => [
         item.description,
-        `${item.amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} Baht`,
+        `${Number.parseFloat(item.amount)
+          .toFixed(2)
+          .replace(/\B(?=(\d{3})+(?!\d))/g, ",")} Baht`,
       ]),
       foot: [
         [
           "Total",
-          `${Number.parseFloat(receipt.amount)
+          `${Number.parseFloat(invoice.receipt.amount)
             .toFixed(2)
             .replace(/\B(?=(\d{3})+(?!\d))/g, ",")} Baht`,
         ],
@@ -269,18 +289,18 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
     const finalY = (doc as any).lastAutoTable.finalY || 160
 
     // Add notes if available
-    if (receipt.notes) {
+    if (invoice.receipt.notes) {
       doc.setFontSize(12)
       doc.setTextColor(40, 40, 40)
       doc.text("Notes", margin, finalY + 10)
 
       doc.setFontSize(10)
       doc.setTextColor(80, 80, 80)
-      doc.text(receipt.notes, margin, finalY + 18)
+      doc.text(invoice.receipt.notes, margin, finalY + 18)
     }
 
     // Add attendance information on a new page if there are attendances
-    if (receipt.attendances && receipt.attendances.length > 0) {
+    if (invoice.attendances && invoice.attendances.length > 0) {
       doc.addPage()
 
       doc.setFontSize(16)
@@ -289,7 +309,7 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
 
       doc.setFontSize(12)
       doc.setTextColor(80, 80, 80)
-      doc.text(`For Receipt #${receipt.receipt_number}`, pageWidth / 2, 28, { align: "center" })
+      doc.text(`For Invoice #${invoice.receipt.receipt_number}`, pageWidth / 2, 28, { align: "center" })
 
       // Add horizontal line
       doc.setDrawColor(200, 200, 200)
@@ -299,7 +319,7 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
       autoTable(doc, {
         startY: 40,
         head: [["Date", "Time", "Status", "Type"]],
-        body: receipt.attendances.map((attendance) => [
+        body: invoice.attendances.map((attendance) => [
           formatSimpleDate(attendance.date),
           `${formatTime(attendance.start_time)} - ${formatTime(attendance.end_time)}`,
           attendance.status.charAt(0).toUpperCase() + attendance.status.slice(1),
@@ -333,40 +353,41 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
     }
 
     // Save the PDF
-    doc.save(`Receipt-${receipt.receipt_number}.pdf`)
+    doc.save(`Invoice-${invoice.receipt.receipt_number}.pdf`)
   }
 
   if (loading) {
     return (
       <div className="container mx-auto py-6">
         <div className="flex justify-center items-center h-64">
-          <p>Loading receipt details...</p>
+          <p>Loading invoice details...</p>
         </div>
       </div>
     )
   }
 
-  if (!receipt) {
+  if (!invoice) {
     return (
       <div className="container mx-auto py-6">
         <div className="flex justify-center items-center h-64">
-          <p>Receipt not found</p>
+          <p>Invoice not found</p>
         </div>
       </div>
     )
   }
 
+  // Update the JSX to use the new structure
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
-        <Button variant="outline" onClick={() => router.push("/admin/receipts")}>
+        <Button variant="outline" onClick={() => router.push("/home/receipt")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Receipts
+          Back to Invoices
         </Button>
       </div>
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Receipt #{receipt.receipt_number}</h1>
+        <h1 className="text-3xl font-bold">Invoice #{invoice.receipt.receipt_number}</h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={generatePDF}>
             <FileText className="mr-2 h-4 w-4" />
@@ -380,32 +401,38 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center">
               <CreditCard className="mr-2 h-5 w-5 text-primary" />
-              Receipt Information
+              Invoice Information
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Receipt Number</p>
-                <p className="font-medium">{receipt.receipt_number}</p>
+                <p className="text-sm font-medium text-muted-foreground">Invoice Number</p>
+                <p className="font-medium">{invoice.receipt.receipt_number}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Date</p>
-                <p>{formatDate(receipt.payment_date)}</p>
+                <p>{formatDate(invoice.receipt.payment_date)}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Payment Method</p>
-                <p>{formatPaymentMethod(receipt.payment_method)}</p>
+                <p>{formatPaymentMethod(invoice.receipt.payment_method)}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Created By</p>
-                <p>{receipt.created_by}</p>
+                <p className="text-sm font-medium text-muted-foreground">Amount</p>
+                <p className="font-medium">
+                  ฿
+                  {Number.parseFloat(invoice.receipt.amount).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
               </div>
             </div>
-            {receipt.notes && (
+            {invoice.receipt.notes && (
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Notes</p>
-                <p className="text-sm">{receipt.notes}</p>
+                <p className="text-sm">{invoice.receipt.notes}</p>
               </div>
             )}
           </CardContent>
@@ -422,15 +449,15 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Name</p>
-                <p className="font-medium">{receipt.student.name}</p>
+                <p className="font-medium">{invoice.student.name}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Student ID</p>
-                <p>{receipt.student.id}</p>
+                <p>{invoice.student.id}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Phone</p>
-                <p>{receipt.student.phone || "N/A"}</p>
+                <p>{invoice.student.phone || "N/A"}</p>
               </div>
             </div>
           </CardContent>
@@ -447,26 +474,26 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Course Name</p>
-                <p className="font-medium">{receipt.session.course_name}</p>
+                <p className="font-medium">{invoice.course.name}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Course ID</p>
-                <p>{receipt.session.course_id}</p>
+                <p>{invoice.course.id}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Category</p>
-                <p className="capitalize">{receipt.session.category}</p>
+                <p className="capitalize">{invoice.course.category}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Quota</p>
-                <p>{receipt.session.total_quota}</p>
+                <p>{invoice.course.total_quota}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {receipt.attendances && receipt.attendances.length > 0 && (
+      {invoice.attendances && invoice.attendances.length > 0 && (
         <Card className="mb-6">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center">
@@ -485,7 +512,7 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {receipt.attendances.map((attendance) => (
+                {invoice.attendances.map((attendance) => (
                   <TableRow key={attendance.id}>
                     <TableCell>{formatSimpleDate(attendance.date)}</TableCell>
                     <TableCell>
@@ -521,11 +548,14 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {receipt.items.map((item, index) => (
+              {invoice.receipt.items.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell>{item.description}</TableCell>
                   <TableCell className="text-right">
-                    ฿{item.amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    ฿
+                    {Number.parseFloat(item.amount)
+                      .toFixed(2)
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                   </TableCell>
                 </TableRow>
               ))}
@@ -536,7 +566,7 @@ export default function ReceiptDetailPage(props: { params: Promise<{ id: string 
             <span>Total</span>
             <span>
               ฿
-              {Number.parseFloat(receipt.amount).toLocaleString(undefined, {
+              {Number.parseFloat(invoice.receipt.amount).toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}

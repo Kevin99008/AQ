@@ -1,7 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Calendar, Download, FileSpreadsheet, FileText, Filter, Search, SortAsc, SortDesc } from "lucide-react"
+import {
+  Calendar,
+  CreditCard,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Filter,
+  Search,
+  SortAsc,
+  SortDesc,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -23,12 +35,17 @@ import React from "react"
 
 type ReceiptResponse = {
   id: string
+  student_id: string
   student: string
-  session: string
+  course_id: string
+  course_name: string
+  session_id: string
   amount: number
   payment_date: string
   payment_method: string
   receipt_number: string
+  notes: string
+  items: any
 }
 
 // Get months as options
@@ -79,6 +96,7 @@ export default function ReceiptsPage() {
   const [sortOrder, setSortOrder] = useState<string>("newest")
   const [exportPopoverOpen, setExportPopoverOpen] = useState(false)
   const [receipts, setReceipts] = useState<ReceiptResponse[]>([])
+  const [expandedReceipts, setExpandedReceipts] = useState<string[]>([])
 
   useEffect(() => {
     const loadReceipts = async () => {
@@ -113,7 +131,7 @@ export default function ReceiptsPage() {
 
     const matchesSearch =
       receipt.student.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      receipt.session.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      receipt.course_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       receipt.receipt_number.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesYear = selectedYear === "all" || receiptYear === selectedYear
@@ -179,6 +197,15 @@ export default function ReceiptsPage() {
       setSelectedReceipts(selectedReceipts.filter((receiptId) => receiptId !== id))
     } else {
       setSelectedReceipts([...selectedReceipts, id])
+    }
+  }
+
+  // Toggle receipt details
+  const toggleReceiptDetails = (id: string) => {
+    if (expandedReceipts.includes(id)) {
+      setExpandedReceipts(expandedReceipts.filter((receiptId) => receiptId !== id))
+    } else {
+      setExpandedReceipts([...expandedReceipts, id])
     }
   }
 
@@ -383,10 +410,10 @@ export default function ReceiptsPage() {
               </TableHead>
               <TableHead>Receipt #</TableHead>
               <TableHead>Student</TableHead>
-              <TableHead>Course Session</TableHead>
+              <TableHead>Course</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Payment Date</TableHead>
-              {/* <TableHead>Method</TableHead> */}
+              <TableHead>Details</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -398,25 +425,96 @@ export default function ReceiptsPage() {
               </TableRow>
             ) : (
               sortedReceipts.map((receipt) => (
-                <TableRow key={receipt.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedReceipts.includes(receipt.id)}
-                      onCheckedChange={() => handleSelectReceipt(receipt.id)}
-                      aria-label={`Select receipt ${receipt.receipt_number}`}
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    <a href={`/admin/receipts/${receipt.id}`} className="text-primary hover:underline">
-                      {receipt.receipt_number}
-                    </a>
-                  </TableCell>
-                  <TableCell>{receipt.student}</TableCell>
-                  <TableCell>{receipt.session}</TableCell>
-                  <TableCell>฿{receipt.amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</TableCell>
-                  <TableCell>{formatDate(receipt.payment_date)}</TableCell>
-                  {/* <TableCell>{receipt.payment_method}</TableCell> */}
-                </TableRow>
+                <React.Fragment key={receipt.id}>
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedReceipts.includes(receipt.id)}
+                        onCheckedChange={() => handleSelectReceipt(receipt.id)}
+                        aria-label={`Select receipt ${receipt.receipt_number}`}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      <a href={`/admin/receipts/${receipt.id}`} className="text-primary hover:underline">
+                        {receipt.receipt_number}
+                      </a>
+                    </TableCell>
+                    <TableCell>{receipt.student}</TableCell>
+                    <TableCell>{receipt.course_name}</TableCell>
+                    <TableCell>฿{receipt.amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</TableCell>
+                    <TableCell>{formatDate(receipt.payment_date)}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleReceiptDetails(receipt.id)}
+                        aria-label={expandedReceipts.includes(receipt.id) ? "Hide details" : "Show details"}
+                      >
+                        {expandedReceipts.includes(receipt.id) ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                  {expandedReceipts.includes(receipt.id) && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="bg-muted/30 p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="font-medium mb-2">Receipt Details</h4>
+                            <dl className="grid grid-cols-[120px_1fr] gap-1 text-sm">
+                              <dt className="font-medium text-muted-foreground">Receipt Number:</dt>
+                              <dd>{receipt.receipt_number}</dd>
+                              <dt className="font-medium text-muted-foreground">Payment Method:</dt>
+                              <dd>{receipt.payment_method}</dd>
+                              <dt className="font-medium text-muted-foreground">Payment Date:</dt>
+                              <dd>{formatDate(receipt.payment_date)}</dd>
+                              <dt className="font-medium text-muted-foreground">Amount:</dt>
+                              <dd>฿{receipt.amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</dd>
+                            </dl>
+                          </div>
+                          <div>
+                            <h4 className="font-medium mb-2">Course Information</h4>
+                            <dl className="grid grid-cols-[120px_1fr] gap-1 text-sm">
+                              <dt className="font-medium text-muted-foreground">Student:</dt>
+                              <dd>{receipt.student}</dd>
+                              <dt className="font-medium text-muted-foreground">Student ID:</dt>
+                              <dd>{receipt.student_id}</dd>
+                              <dt className="font-medium text-muted-foreground">Course:</dt>
+                              <dd>{receipt.course_name}</dd>
+                              <dt className="font-medium text-muted-foreground">Session ID:</dt>
+                              <dd>{receipt.session_id}</dd>
+                            </dl>
+                          </div>
+                          {receipt.notes && (
+                            <div className="col-span-1 md:col-span-2">
+                              <h4 className="font-medium mb-2">Notes</h4>
+                              <p className="text-sm">{receipt.notes}</p>
+                            </div>
+                          )}
+                          {receipt.items && (
+                            <div className="col-span-1 md:col-span-2">
+                              <h4 className="font-medium mb-2">Items</h4>
+                              <pre className="text-xs bg-muted p-2 rounded-md overflow-auto">
+                                {JSON.stringify(receipt.items, null, 2)}
+                              </pre>
+                            </div>
+                          )}
+                          <div className="col-span-1 md:col-span-2 flex justify-end">
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={`/admin/receipts/${receipt.id}`}>
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                View Full Receipt
+                              </a>
+                            </Button>
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
               ))
             )}
           </TableBody>

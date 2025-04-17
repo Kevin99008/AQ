@@ -50,6 +50,7 @@ import { apiFetch, TOKEN_EXPIRED } from "@/utils/api"
 import { toast } from "react-toastify"
 import { useRouter } from "next/navigation"
 import { ShieldAlertIcon } from "lucide-react"
+import { ApiReceiptResponse } from "@/types/receipt"
 
 // แก้ไขโครงสร้างข้อมูล TimeSlot
 interface TimeSlot {
@@ -63,6 +64,7 @@ interface TimeSlot {
   courseName?: string
   category?: string
   isNewSlot?: boolean // เพิ่มฟิลด์เพื่อระบุว่าเป็น timeslot ที่สร้างใหม่หรือไม่
+  enrolledStudents?: { id: number; name: string }[] // Added enrolledStudents array
 }
 
 interface TimeSlotAttendances {
@@ -86,26 +88,6 @@ interface ApiResponse {
     studentId: string
     timeslots: TimeSlotAttendances[] // timeslot ที่นักเรียนคนนี้ลงทะเบียนไปแล้ว
   }[]
-}
-
-// API Response type
-export interface AttendanceResponse {
-  message: string
-  count: number
-  attendance_ids: Attendance[]
-}
-
-// Attendance object type
-export interface Attendance {
-  id: number
-  status: string
-  type: string
-  session: number
-  student: number
-  timeslot: number
-  attendance_date: string
-  start_time: string
-  end_time: string
 }
 
 // ฟังก์ชันสำหรับโหลดข้อมูล timeslot จาก API
@@ -222,6 +204,7 @@ interface SchedulerPageProps {
   teacher: any
   course: any
   onBack: () => void
+  onConfirm: (response: ApiReceiptResponse) => void
 }
 
 const studentColors = [
@@ -273,7 +256,7 @@ interface BookingItem {
 }
 
 // ปรับปรุง state และการโหลดข้อมูล
-export default function SchedulerPage({ students, teacher, course, onBack }: SchedulerPageProps) {
+export default function SchedulerPage({ students, teacher, course, onBack, onConfirm }: SchedulerPageProps) {
   // เพิ่ม state สำหรับเก็บข้อมูลจาก API
   const [apiData, setApiData] = useState<ApiResponse | null>(null)
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([])
@@ -306,6 +289,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
   const [recurringWeeks, setRecurringWeeks] = useState<number>(1)
   const [showRecurringOptions, setShowRecurringOptions] = useState<boolean>(false)
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  // Add this state to your component
+  const [selectedTimeSlotDetails, setSelectedTimeSlotDetails] = useState<TimeSlot | null>(null)
   // โหลดข้อมูลเมื่อคอมโพเนนต์ถูกโหลด
   useEffect(() => {
     const loadData = async () => {
@@ -677,6 +662,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
     if (slot) {
       setSelectedSlotForBooking(slot)
+      setSelectedTimeSlotDetails(slot) // Set the selected timeslot for details
     } else if (date && hour !== undefined) {
       // ตรวจสอบว่าช่องเวลานี้มีการจองในคอร์สอื่นหรือไม่
       if (isTimeSlotBookedInOtherCourse(date, hour)) {
@@ -693,6 +679,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
 
       if (existingSlot) {
         setSelectedSlotForBooking(existingSlot)
+        setSelectedTimeSlotDetails(existingSlot) // Set the selected timeslot for details
       } else {
         // สร้าง timeslot ใหม่
         const newSlot = createNewTimeSlot(date, hour)
@@ -701,6 +688,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
         setAvailableSlots([...availableSlots, newSlot])
 
         setSelectedSlotForBooking(newSlot)
+        setSelectedTimeSlotDetails(newSlot) // Set the selected timeslot for details
       }
     }
 
@@ -708,6 +696,11 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
     setRecurringWeeks(1)
     setShowRecurringOptions(false)
     setPendingBookings([]) // Reset pending bookings
+  }
+
+  // Modify your calendar slot click handler to also show details without booking
+  const handleTimeSlotClick = (slot: TimeSlot) => {
+    setSelectedTimeSlotDetails(slot)
   }
 
   // Toggle a student in pending bookings
@@ -1227,12 +1220,14 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
     setIsLoading(true)
 
     try {
-      const response = await apiFetch<AttendanceResponse>("/api/new/courses/create-batch/", "POST", {
+      const response = await apiFetch<ApiReceiptResponse>("/api/new/courses/create-batch/", "POST", {
         course_id: course.id,
         bookings: pendingConfirmBookings,
       })
       if (response !== TOKEN_EXPIRED) {
-        router.push(`/admin/all-course/attendances`)
+        // fix here
+        onConfirm(response)
+        // router.push(`/admin/all-course/attendances`)
       }
     } catch (error: any) {
       if (error instanceof Error) {
@@ -1298,9 +1293,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       showNotification({
         type: "error",
         message: "Too many sessions",
-        description: `Cannot copy all slots. ${students.find((s) => s.id === toStudentId)?.name} can only have ${
-          enrichedCourse.totalSessions - targetStudentBookedCount
-        } more sessions.`,
+        description: `Cannot copy all slots. ${students.find((s) => s.id === toStudentId)?.name} can only have ${enrichedCourse.totalSessions - targetStudentBookedCount
+          } more sessions.`,
       })
       return
     }
@@ -1768,13 +1762,12 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                       return (
                         <div
                           key={day.dayName}
-                          className={`p-2 text-center border-r last:border-r-0 ${
-                            !selectedDays.includes(day.dayOfWeek)
-                              ? "bg-gray-100"
-                              : isPastDate
-                                ? "bg-gray-200 opacity-60"
-                                : ""
-                          }`}
+                          className={`p-2 text-center border-r last:border-r-0 ${!selectedDays.includes(day.dayOfWeek)
+                            ? "bg-gray-100"
+                            : isPastDate
+                              ? "bg-gray-200 opacity-60"
+                              : ""
+                            }`}
                         >
                           <div className="font-medium">{day.dayName}</div>
                           <div className="text-2xl">{day.dayNumber}</div>
@@ -1806,9 +1799,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                       return (
                         <div
                           key={day.dayName}
-                          className={`border-r last:border-r-0 ${
-                            selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100"
-                          }`}
+                          className={`border-r last:border-r-0 ${selectedDays.includes(day.dayOfWeek) ? "" : "bg-gray-100"
+                            }`}
                         >
                           {timeSlots
                             .filter((time) => {
@@ -1858,7 +1850,10 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                                           <div
                                             key={slot.id}
                                             className={`p-2 rounded-md cursor-pointer text-sm h-full ${slotStyle}`}
-                                            onClick={() => !conflicting.hasConflict && openBookingDialog(slot)}
+                                            onClick={() => {
+                                              handleTimeSlotClick(slot)
+                                              !conflicting.hasConflict && openBookingDialog(slot)
+                                            }}
                                           >
                                             <div className="font-medium text-center flex items-center justify-center">
                                               {conflicting.hasConflict && <ShieldAlertIcon></ShieldAlertIcon>}
@@ -1930,16 +1925,26 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                                       })}
                                     </div>
                                   ) : isBookedInOtherCourse ? (
-                                    <div className="h-full flex items-center justify-center bg-gray-100 rounded-md text-xs text-muted-foreground">
-                                      Booked in other course
+                                    <div className="h-full flex items-center justify-center bg-gray-100 rounded-md text-xs text-muted-foreground p-2">
+                                      <div className="text-center">
+                                        <div>Booked in other course</div>
+                                        {apiData && apiData.other_category_timeslots.find(
+                                          slot => slot.date === day.formattedDate && slot.startTime === `${hour.toString().padStart(2, "0")}:00`
+                                        )?.courseName && (
+                                          <div className="font-medium mt-1">
+                                            {apiData.other_category_timeslots.find(
+                                              slot => slot.date === day.formattedDate && slot.startTime === `${hour.toString().padStart(2, "0")}:00`
+                                            )?.courseName}
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
                                   ) : (
                                     <div
-                                      className={`h-full flex flex-col items-center justify-center text-xs text-muted-foreground border border-dashed border-gray-300 rounded-md ${
-                                        isPastDate
-                                          ? "bg-gray-200 cursor-not-allowed"
-                                          : "cursor-pointer hover:bg-gray-50"
-                                      }`}
+                                      className={`h-full flex flex-col items-center justify-center text-xs text-muted-foreground border border-dashed border-gray-300 rounded-md ${isPastDate
+                                        ? "bg-gray-200 cursor-not-allowed"
+                                        : "cursor-pointer hover:bg-gray-50"
+                                        }`}
                                       onClick={() =>
                                         !isPastDate &&
                                         !conflicting.hasConflict &&
@@ -2050,16 +2055,26 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                                       })}
                                     </div>
                                   ) : isBookedInOtherCourse ? (
-                                    <div className="h-full flex items-center justify-center bg-gray-100 rounded-md text-xs text-muted-foreground">
-                                      Booked in other course
+                                    <div className="h-full flex items-center justify-center bg-gray-100 rounded-md text-xs text-muted-foreground p-2">
+                                      <div className="text-center">
+                                        <div>Booked in other course</div>
+                                        {apiData && apiData.other_category_timeslots.find(
+                                          slot => slot.date === day.formattedDate && slot.startTime === `${hour.toString().padStart(2, "0")}:00`
+                                        )?.courseName && (
+                                          <div className="font-medium mt-1">
+                                            {apiData.other_category_timeslots.find(
+                                              slot => slot.date === day.formattedDate && slot.startTime === `${hour.toString().padStart(2, "0")}:00`
+                                            )?.courseName}
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
                                   ) : (
                                     <div
-                                      className={`h-full flex flex-col items-center justify-center text-xs text-muted-foreground border border-dashed border-gray-300 rounded-md ${
-                                        isPastDate
-                                          ? "bg-gray-200 cursor-not-allowed"
-                                          : "cursor-pointer hover:bg-gray-50"
-                                      }`}
+                                      className={`h-full flex flex-col items-center justify-center text-xs text-muted-foreground border border-dashed border-gray-300 rounded-md ${isPastDate
+                                        ? "bg-gray-200 cursor-not-allowed"
+                                        : "cursor-pointer hover:bg-gray-50"
+                                        }`}
                                       onClick={() => !isPastDate && openBookingDialog(null, day.formattedDate, hour)}
                                     >
                                       {isPastDate ? "Past date" : <span>Click to add</span>}
@@ -2104,9 +2119,8 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                       return (
                         <div
                           key={studentId}
-                          className={`border rounded-lg overflow-hidden ${
-                            dropTargetStudent === studentId ? "ring-2 ring-primary" : ""
-                          }`}
+                          className={`border rounded-lg overflow-hidden ${dropTargetStudent === studentId ? "ring-2 ring-primary" : ""
+                            }`}
                           onDragOver={(e) => handleDragOver(e, studentId)}
                           onDragLeave={() => setDropTargetStudent(null)}
                           onDrop={(e) => handleDrop(e, studentId)}
@@ -2134,7 +2148,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                                       onClick={() => openMimicDialog(studentId)}
                                     >
                                       <Copy className="h-4 w-4 mr-1" />
-                                      Mimic
+                                      Copy
                                     </Button>
                                   )}
 
@@ -2275,13 +2289,76 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       {/* Booking Dialog */}
       {selectedSlotForBooking && (
         <Dialog open={!!selectedSlotForBooking} onOpenChange={(open) => !open && setSelectedSlotForBooking(null)}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="">
             <DialogHeader>
               <DialogTitle>Book Session</DialogTitle>
               <DialogDescription>
                 {format(parseISO(selectedSlotForBooking.date), "EEEE, MMMM d, yyyy")} •{" "}
                 {selectedSlotForBooking.startTime} - {selectedSlotForBooking.endTime}
               </DialogDescription>
+              <Card className="mt-6">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    <span>Timeslot Details</span>
+                    <Badge variant={selectedTimeSlotDetails?.isNewSlot ? "outline" : "default"}>
+                      {selectedTimeSlotDetails?.isNewSlot ? "New Slot" : "Existing Slot"}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <div className="text-sm text-muted-foreground">Date</div>
+                        <div className="font-medium">
+                          {selectedTimeSlotDetails?.date
+                            ? format(parseISO(selectedTimeSlotDetails.date), "EEEE, MMMM d, yyyy")
+                            : "No date selected"}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <div className="text-sm text-muted-foreground">Time</div>
+                        <div className="font-medium">
+                          {selectedTimeSlotDetails?.startTime} - {selectedTimeSlotDetails?.endTime}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <div className="text-sm text-muted-foreground">Available Quota</div>
+                        <div className="font-medium">{selectedTimeSlotDetails?.availableQuota} spots left</div>
+                      </div>
+                    </div>
+                    {selectedTimeSlotDetails?.courseName && (
+                      <div>
+                        <div className="text-sm text-muted-foreground">Course</div>
+                        <div className="font-medium">{selectedTimeSlotDetails?.courseName}</div>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedTimeSlotDetails?.enrolledStudents && selectedTimeSlotDetails?.enrolledStudents.length > 0 && (
+                    <div className="mt-4">
+                      <h3 className="text-sm font-medium mb-2">Enrolled Students ({selectedTimeSlotDetails?.enrolledStudents.length})</h3>
+                      <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                        {selectedTimeSlotDetails?.enrolledStudents.map((student) => (
+                          <div key={student.id} className="flex items-center gap-2 p-2 border rounded-md">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback>{student.name.substring(0, 2)}</AvatarFallback>
+                            </Avatar>
+                            <div className="font-medium">{student.name}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </DialogHeader>
             <div className="py-4">
               {/* Student Selection */}
@@ -2350,6 +2427,15 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>This student already has another class scheduled</p>
+                                {apiData && apiData.student_attendances.find(a => a.studentId === studentId)?.timeslots.find(
+                                    t => t.date === selectedSlotForBooking.date && t.startTime === selectedSlotForBooking.startTime
+                                  )?.courseName && (
+                                    <p className="font-medium mt-1">
+                                      Course: {apiData.student_attendances.find(a => a.studentId === studentId)?.timeslots.find(
+                                        t => t.date === selectedSlotForBooking.date && t.startTime === selectedSlotForBooking.startTime
+                                      )?.courseName}
+                                    </p>
+                                  )}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -2495,7 +2581,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
       <Dialog open={mimicDialogOpen} onOpenChange={setMimicDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Mimic Schedule</DialogTitle>
+            <DialogTitle>Copy Schedule</DialogTitle>
             <DialogDescription>Select a student to copy all slots to</DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -2568,6 +2654,7 @@ export default function SchedulerPage({ students, teacher, course, onBack }: Sch
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-medium">Total Sessions:</span>
+
                 <span>{pendingConfirmBookings.reduce((total, booking) => total + booking.studentIds.length, 0)}</span>
               </div>
 
